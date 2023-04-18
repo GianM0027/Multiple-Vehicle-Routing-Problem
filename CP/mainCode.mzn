@@ -10,3 +10,4 @@ array[1..m, 1..n] of var 0..1: xi; % binary variable for item assignment
 array[1..m, 1..n] of var 0..1: rij; % binary variable for point visitation
 var int: z; % maximum distance travelled by any courier
 
+efe
