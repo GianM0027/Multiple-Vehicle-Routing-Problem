@@ -15,7 +15,7 @@ array[1..n_items,1..n_items] of int: distance_between_destinations; % distance b
 
 % Decision variables
 %array[1..n_items, 1..n_couriers] of var 0..1: item_assignment; % binary variable -> a courier deliver a package or not
-array[1..n_items, 1..n_couriers] of var 0..n_items: delivery_order; % correspondence between courier and items (by chronological order)
+array[1..(2*n_items+1), 1..n_couriers] of var 0..n_items: delivery_order; % correspondence between courier and items (by chronological order), 2*n_items+1 perchè se un pacco è pesante il corriere deve fare avanti e indietro
 var int: max_distance; % maximum distance travelled by any courier
 
 
