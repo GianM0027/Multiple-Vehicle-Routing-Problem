@@ -72,7 +72,7 @@ for(c in COURIERS, i in STEPS)(
           );*/
           
 
-constraint forall(c in COURIERS, i in STEPS)(sum(size_item[delivery_order[i,c]]) <= max_load[c]);
+constraint forall(c in COURIERS, i in STEPS)(size_item[delivery_order[i,c]] <= max_load[c]);
 
 
 
