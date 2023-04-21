@@ -6,7 +6,7 @@ int: n_couriers; % number of couriers
 int: n_items; % number of items
 
 array[1..n_couriers] of int: max_load; % maximum load size for each courier
-array[0..n_items] of int: size_item; % size of each item (AGGIUSTA INDICI ARRAY)
+array[1..n_items] of int: size_item; % size of each item (AGGIUSTA INDICI ARRAY)
 array[1..n_items] of int: distance_to_origin; % distance between each distribution point and the origin point
 array[1..n_items] of int: distance_from_origin; % distance between the origin point and each distribution point
 array[1..n_items,1..n_items] of int: distance_between_destinations; % distance between each distribution point
@@ -17,7 +17,6 @@ set of int: COURIERS = 1..n_couriers;
 set of int: ITEMS = 1..n_items;
 set of int: STEPS = 1..(2*n_items+1);
 var float: sum_items = n_items*(n_items+1)/2;
-array[COURIERS] of int: load_couriers = [];
 
 
 % Decision variables
@@ -29,7 +28,7 @@ var int: max_distance; % maximum distance travelled by any courier
 %%%%%%%%%%%%%%%%%%%%%%%%%% INPUT TEST %%%%%%%%%%%%%%%%%%%%%%%%%%
 n_couriers = 3;
 n_items = 7;
-size_item = [0,3, 2, 6, 8, 5, 4, 4]; %ATTENTO ALLO ZERO ALL'INIZIO
+size_item = [3, 2, 6, 8, 5, 4, 4]; %ATTENTO ALLO ZERO ALL'INIZIO
 max_load = [15,10,7];
 
 distance_between_destinations = [|0, 3, 3, 6, 5, 6, 6 | 3, 0, 4, 3, 4, 7, 7 | 3, 4, 0, 7, 6, 3, 5 | 6, 3, 7, 0, 3, 6, 6 | 5, 4, 6, 3, 0, 3, 3 | 6, 7, 3, 6, 3, 0, 2 | 6, 7, 5, 6, 3, 2, 0 |];
@@ -60,24 +59,23 @@ constraint alldifferent_except_0(delivery_order);
 constraint sum(delivery_order) == sum_items;
 
 % Ogni corriere non deve superare il suo carico massimo
-forall(c in COURIERS)(
-                forall(i in ITEMS)(
-                        load_couriers[c] = load_couriers[c] + size_item[delivery_order[i,c]]
-                )
-          );
-
-constraint forall(c in COURIERS)(
-                load_couriers[c] <= max_load[c]
-           );
 
 
+%array[COURIERS] of int: load_couriers = [sum(size_item[delivery_order[i,c]]) | i in STEPS, c in COURIERS];
+%array[COURIERS] of int: load_couriers = [sum(c in COURIERS)(size_item[delivery_order[i,c]])];
 /*
-constraint forall(i in ITEMS)(
-            forall(c in COURIERS)(
-                  i in delivery_order
-            )
-      );
-*/
+for(c in COURIERS, i in STEPS)(
+                      if delivery_order[i,c] != 0 then
+                        load_couriers[c] = load_couriers[c] + size_item[delivery_order[i,c]]
+                      endif
+                )
+          );*/
+          
+
+constraint forall(c in COURIERS, i in STEPS)(sum(size_item[delivery_order[i,c]]) <= max_load[c]);
+
+
+
 
 % Objective function
 % minimizzare la distanza
