@@ -22,14 +22,14 @@ var float: sum_items = n_items*(n_items+1)/2;
 % Decision variables
 %array[1..n_items, 1..n_couriers] of var 0..1: item_assignment; % binary variable -> a courier deliver a package or not
 array[1..(2*n_items+1), 1..n_couriers] of var 0..n_items: delivery_order; %correspondence between courier and items (by chronological order), 2*n_items+1 perchè se un pacco è pesante il corriere deve fare avanti e indietro passando di nuovo per l'origine
-var int: max_distance; % maximum distance travelled by any courier
+var int: max_distance = 0; % maximum distance travelled by any courier
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% INPUT TEST %%%%%%%%%%%%%%%%%%%%%%%%%%
 n_couriers = 3;
 n_items = 7;
 size_item = [3, 2, 6, 8, 5, 4, 4];
-max_load = [11,10,7];
+max_load = [14,10,7];
 
 distance_between_destinations = [|0, 3, 3, 6, 5, 6, 6 | 
                                   3, 0, 4, 3, 4, 7, 7 | 
@@ -58,7 +58,7 @@ constraint forall(i in COURIERS)
                   (delivery_order[1,i] == 0 /\ delivery_order[n_items,i] == 0);
 
 %Ogni pacco deve essere consegnato una sola volta
-constraint alldifferent_except_0(delivery_order);
+constraint alldifferent_except_0(delivery_order)::domain;
 
 %Ogni pacco deve essere consegnato
 constraint sum(delivery_order) == sum_items;
@@ -78,7 +78,7 @@ for(c in COURIERS, i in STEPS)(
                       endif
                 )
           );*/
-          
+
 
 
 
