@@ -10,7 +10,7 @@ int: n_couriers = 3;
 int: n_items = 7; 
 
 % Maximum load size for each courier
-array[1..n_couriers] of int: max_load = [15, 10, 7];
+array[1..n_couriers] of int: max_load = [14, 10, 8];
 
 % Size of each item (AGGIUSTA INDICI ARRAY)
 array[1..n_items] of int: size_item = [3, 2, 6, 8, 5, 4, 4];
@@ -42,7 +42,7 @@ array[1..n_items+1,1..n_items+1] of int: all_distances = [|0, 2, 3, 3, 4, 3, 4, 
 
 set of int: COURIERS = 1..n_couriers;
 set of int: ITEMS = 1..n_items;
-set of int: STEPS = 1..(2*n_items+1);
+set of int: STEPS = 1..(n_items+2);
 var float: sum_items = n_items*(n_items+1)/2;
 
 
@@ -50,10 +50,8 @@ var float: sum_items = n_items*(n_items+1)/2;
 %------------------------------
 
 % Correspondence between courier and items (chronological order)
-array[1..(2*n_items+1), 1..n_couriers] of var 0..n_items: delivery_order;
+array[STEPS, 1..n_couriers] of var 0..n_items: delivery_order;
 
-% Maximum distance travelled by any courier
-var int: max_distance = 0; 
 
 
 % CONSTRAINTS
@@ -75,20 +73,16 @@ constraint forall(c in COURIERS) (
   sum([size_item[delivery_order[i,c]] | i in STEPS where delivery_order[i,c] != 0]) <= max_load[c]
 );
                   
-% Rimosse tutte le soluzioni che partono con zero alla seconda tappa
-constraint forall(c in COURIERS, s in STEPS)
-                 (if delivery_order[2,c] == 0 then delivery_order[s,c] = 0 endif);
+% Rimozione soluzioni con 'reload' dai corrieri
+constraint forall(c in COURIERS, i in 2..(n_items+1))        
+                 (delivery_order[i,c] != 0 \/ sum(delivery_order[i..,c]) == 0);
                  
-% TERMPORANEA - Rimozione soluzioni con 'reload' dai corrieri
-set of int: STEPS_NO_DEPOT = 2..(2*n_items);
-constraint forall(c in COURIERS, snd in STEPS_NO_DEPOT)
-                 (if delivery_order[snd,c] == 0 then delivery_order[snd + 1,c] = 0 endif);
 
 
 
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE (max_dist)
 %------------------------------
-set of int: STEPS_NO_LAST = 1..(2*n_items);
+set of int: STEPS_NO_LAST = 1..(n_items+1);
 array[COURIERS] of var int: a_max_dist; 
 constraint forall(c in COURIERS)
                   (a_max_dist[c] = sum(s in STEPS_NO_LAST)
