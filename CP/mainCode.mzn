@@ -1,6 +1,6 @@
 include "alldifferent.mzn";
 include "globals.mzn";
-
+/*
 % PARAMETERS DECLARATION
 %------------------------------
 % number of couriers
@@ -14,7 +14,6 @@ array[1..n_couriers] of int: max_load = [14, 10, 8];
 
 % Size of each item (AGGIUSTA INDICI ARRAY)
 array[1..n_items] of int: size_item = [3, 2, 6, 8, 5, 4, 4];
-
 
 % Distance between each distribution point
 array[1..n_items] of int: distance_to_origin = [2, 3, 3, 4, 3, 4, 4];
@@ -36,6 +35,34 @@ set of int: COURIERS = 1..n_couriers;
 set of int: ITEMS = 1..n_items;
 set of int: STEPS = 1..(n_items+2);
 var float: sum_items = n_items*(n_items+1)/2;
+*/
+
+
+% PARAMETERS DECLARATION
+%------------------------------
+
+include "input.dzn";
+
+% number of couriers
+int: n_couriers; 
+
+% number of items
+int: n_items; 
+
+% Maximum load size for each courier
+array[1..n_couriers] of int: max_load;
+
+% Size of each item (AGGIUSTA INDICI ARRAY)
+array[1..n_items] of int: size_item;
+
+% Array of all distances
+array[1..n_items+1,1..n_items+1] of int: all_distances;
+
+set of int: COURIERS = 1..n_couriers;
+set of int: ITEMS = 1..n_items;
+set of int: STEPS = 1..(n_items+2);
+var float: sum_items = n_items*(n_items+1)/2;
+
 
 
 % DECISION VARIABLES
