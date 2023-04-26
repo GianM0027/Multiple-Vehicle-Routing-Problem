@@ -15,14 +15,6 @@ array[1..n_couriers] of int: max_load = [14, 10, 8];
 % Size of each item (AGGIUSTA INDICI ARRAY)
 array[1..n_items] of int: size_item = [3, 2, 6, 8, 5, 4, 4];
 
-% Distance between each distribution point and the origin point
-array[1..n_items,1..n_items] of int: distance_between_destinations = [|0, 3, 3, 6, 5, 6, 6 | 
-                                                                       3, 0, 4, 3, 4, 7, 7 | 
-                                                                       3, 4, 0, 7, 6, 3, 5 | 
-                                                                       6, 3, 7, 0, 3, 6, 6 | 
-                                                                       5, 4, 6, 3, 0, 3, 3 | 
-                                                                       6, 7, 3, 6, 3, 0, 2 | 
-                                                                       6, 7, 5, 6, 3, 2, 0 |];
 
 % Distance between each distribution point
 array[1..n_items] of int: distance_to_origin = [2, 3, 3, 4, 3, 4, 4];
