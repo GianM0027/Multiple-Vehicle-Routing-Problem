@@ -82,7 +82,7 @@ constraint forall(i in COURIERS)
 );
 
 %Ogni pacco deve essere consegnato una sola volta
-constraint alldifferent_except_0(delivery_order)::domain;
+constraint alldifferent_except_0(delivery_order);
 
 %Ogni pacco deve essere consegnato
 constraint sum(delivery_order) == sum_items;
@@ -95,6 +95,8 @@ constraint forall(c in COURIERS) (
 % Rimozione soluzioni con 'reload' dai corrieri
 constraint forall(c in COURIERS, i in 2..(n_items+1))        
                  (delivery_order[i,c] != 0 \/ sum(delivery_order[i..,c]) == 0);
+                 
+                 
                  
 
 
