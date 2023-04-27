@@ -1,6 +1,6 @@
 include "alldifferent.mzn";
 
-
+/*
 % PARAMETERS DECLARATION
 %------------------------------
 % number of couriers
@@ -30,7 +30,9 @@ set of int: ITEMS = 1..n_items;
 set of int: STEPS = 1..(n_items+2);
 var float: sum_items = sum(ITEMS);
 
-/*
+
+*/
+
 % PARAMETERS DECLARATION
 %------------------------------
 
@@ -56,7 +58,7 @@ set of int: ITEMS = 1..n_items;
 set of int: STEPS = 1..(n_items+2);
 var float: sum_items = n_items*(n_items+1)/2;
 
-*/
+
 
 
 
@@ -66,6 +68,9 @@ var float: sum_items = n_items*(n_items+1)/2;
 
 % Correspondence between courier and items (chronological order)
 array[STEPS, 1..n_couriers] of var 0..n_items: delivery_order;
+
+% array of max distance for each courier
+array[COURIERS] of var int: a_max_dist; 
 
 
 
@@ -90,7 +95,6 @@ constraint forall(c in COURIERS) (
 constraint forall(c in COURIERS, i in 2..(n_items+1))        
                  (delivery_order[i,c] != 0 \/ sum(delivery_order[i..,c]) == 0);
                  
-                 
          
 % CONSTRAINTS per far scendere i tempi di risoluzione del problema
 %------------------------------
@@ -103,7 +107,6 @@ constraint forall(c in COURIERS, i in 2..(n_items+1))
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE (max_dist)
 %------------------------------
 set of int: STEPS_NO_LAST = 1..(n_items+1);
-array[COURIERS] of var int: a_max_dist; 
 constraint forall(c in COURIERS)
                   (a_max_dist[c] = sum(s in STEPS_NO_LAST)
                   (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1]));
