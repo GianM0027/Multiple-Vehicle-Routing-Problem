@@ -4,10 +4,19 @@ include "all_equal.mzn"; %FOR TEST
 
 % CHOOSE THE INPUT FOR THE MODEL
 %------------------------------
-%include "prof_example_input.dzn"; % 3 couriers, 7 items / Solution -> a_max_dist = [12, 10, 10];
-%include "complex_input.dzn"; % 4 couriers, 47 items / Solution -> a_max_dist = ????????????
-include "simple_input.dzn"; % 5 couriers, 9 items / Solution -> a_max_dist = [10, 10, 9, 8, 10];
-%simple_input, 5 couriers, 9 items / Solution -> a_max_dist = [10, 9, 8, 8, 8](new objective f)
+
+% 3 couriers, 7 items / Solution -> a_max_dist = [12, 10, 10];
+%include "prof_example_input.dzn"; 
+
+% 5 couriers, 9 items / Solution -> a_max_dist = [10, 10, 9, 8, 10]; (a_max_dist = [10, 9, 8, 8, 8] with the new objective f)
+%include "simple_input.dzn"; 
+
+% 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 15, 14, 13];
+include "middle_complexity_input.dzn";
+
+% 4 couriers, 47 items / Solution -> a_max_dist = ????????????
+%include "complex_input.dzn";
+
 
 
 
@@ -73,6 +82,7 @@ constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)
                  (delivery_order[i,c] != 0 \/ sum(delivery_order[i..,c]) == 0);
                  
          
+         
 % CONSTRAINTS per far scendere i tempi di risoluzione del problema
 %------------------------------
 %TEST CONSTRAINT -> each courier deliver at least one item
@@ -81,12 +91,15 @@ constraint forall(c in COURIERS)(sum(delivery_order[n_items+2-n_couriers..,c]) =
 constraint forall(c in COURIERS)(delivery_order[2,c]!= 0);
 
 constraint all_equal(delivery_order[n_items+2-n_couriers..,1..n_couriers]);
+
+
 /*
 var float: avg_dist = sum(all_distances)/((n_items+1)*n_items);
 constraint forall(c in COURIERS, s in STEPS_NO_LAST)
                   (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] <= avg_dist);
 */      
 %With those new constraints is faster / the second one may give unoptimal solutions but its an idea we can try to use
+
 
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE (max_dist)
 %------------------------------
