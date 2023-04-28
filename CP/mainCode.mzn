@@ -1,11 +1,16 @@
 include "alldifferent.mzn";
 
 
+% CHOOSE THE INPUT FOR THE MODEL
+%------------------------------
+%include "prof_example_input.dzn"; % 3 couriers, 7 items / Solution -> a_max_dist = [12, 10, 10];
+%include "complex_input.dzn"; % 5 couriers, 9 items / Solution -> a_max_dist = ????????????
+include "simple_input.dzn"; % 4 couriers, 47 items / Solution -> a_max_dist = [10, 10, 9, 8, 10];
+
+
+
 % PARAMETERS DECLARATION
 %------------------------------
-include "prof_example_input.dzn"; %Solution -> a_max_dist = [12, 10, 10];
-%include "complex_input.dzn"; %Solution -> a_max_dist = ????????????
-%include "simple_input.dzn"; %Solution -> a_max_dist = [10, 10, 9, 8, 10];
 
 % number of couriers
 int: n_couriers; 
