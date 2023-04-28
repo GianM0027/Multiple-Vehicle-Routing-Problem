@@ -6,6 +6,7 @@ include "all_equal.mzn"; %FOR TEST
 %------------------------------
 
 % 3 couriers, 7 items / Solution -> a_max_dist = [12, 10, 10];
+<<<<<<< Updated upstream
 %include "prof_example_input.dzn"; 
 
 % 5 couriers, 9 items / Solution -> a_max_dist = [10, 10, 9, 8, 10]; (a_max_dist = [10, 9, 8, 8, 8] with the new objective f)
@@ -17,6 +18,18 @@ include "middle_complexity_input.dzn";
 % 4 couriers, 47 items / Solution -> a_max_dist = ????????????
 %include "complex_input.dzn";
 
+=======
+%include "prof_example_input.dzn";
+
+% 5 couriers, 9 items / Solution -> 5 couriers, 9 items / Solution -> a_max_dist = [10, 10, 9, 8, 10] 
+%include "simple_input.dzn";
+
+% 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 13, 14, 13];
+include "middle_complexity_input.dzn"; 
+
+% 4 couriers, 47 items / Solution -> a_max_dist = ????????????
+%include "complex_input.dzn";
+>>>>>>> Stashed changes
 
 
 
@@ -38,12 +51,13 @@ array[1..n_items] of int: size_item;
 % Array of all distances
 array[1..n_items+1,1..n_items+1] of int: all_distances;
 
+
 set of int: COURIERS = 1..n_couriers;
 set of int: ITEMS = 1..n_items;
-set of int: STEPS = 1..(n_items+2);
+set of int: STEPS = 1..(n_items+2); 
 set of int: STEPS_NO_LAST = 1..(n_items+1);
 set of int: STEPS_NO_FIRST_NO_LAST = 2..(n_items+1);
-var float: sum_items = sum(ITEMS);
+var int: sum_items = sum(ITEMS);
 
 
 
@@ -55,7 +69,7 @@ array[STEPS, COURIERS] of var 0..n_items: delivery_order;
 
 % array of max distance for each courier
 array[COURIERS] of var int: a_max_dist;
-array[COURIERS] of var int: a_max_dist_sqrd; 
+
 
 
 
@@ -64,8 +78,8 @@ array[COURIERS] of var int: a_max_dist_sqrd;
 %------------------------------
 
 %Tutti i corrieri partono e tornano all'origine
-constraint forall(i in COURIERS)
-                  (delivery_order[1,i] == 0 /\ delivery_order[n_items+2,i] == 0);
+constraint forall(c in COURIERS)
+                  (delivery_order[1,c] == 0 /\ delivery_order[n_items+2,c] == 0);
 
 %Ogni pacco deve essere consegnato una sola volta
 constraint alldifferent_except_0(delivery_order);
@@ -95,9 +109,10 @@ constraint all_equal(delivery_order[n_items+2-n_couriers..,1..n_couriers]);
 
 /*
 var float: avg_dist = sum(all_distances)/((n_items+1)*n_items);
-constraint forall(c in COURIERS, s in STEPS_NO_LAST)
-                  (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] <= avg_dist);
-*/      
+set of int: TEMP = 5..0;
+constraint forall(c in COURIERS, s in STEPS_NO_LAST, t in TEMP)
+                  (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] <= avg_dist+t);
+*/    
 %With those new constraints is faster / the second one may give unoptimal solutions but its an idea we can try to use
 
 
@@ -106,9 +121,7 @@ constraint forall(c in COURIERS, s in STEPS_NO_LAST)
 constraint forall(c in COURIERS)
                   (a_max_dist[c] = sum(s in STEPS_NO_LAST)
                   (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] ));
-constraint forall(c in COURIERS)
-                  (a_max_dist_sqrd[c] = sum(s in STEPS_NO_LAST)
-                  (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] ^2));
-var int: max_dist = max(a_max_dist_sqrd);
+
+var int: max_dist = max(a_max_dist);
 
 solve minimize max_dist;
