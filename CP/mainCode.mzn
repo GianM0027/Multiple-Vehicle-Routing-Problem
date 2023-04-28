@@ -1,42 +1,10 @@
 include "alldifferent.mzn";
 
-/*
-% PARAMETERS DECLARATION
-%------------------------------
-% number of couriers
-int: n_couriers = 3; 
-
-% number of items
-int: n_items = 7; 
-
-% Maximum load size for each courier
-array[1..n_couriers] of int: max_load = [14, 10, 8];
-
-% Size of each item (AGGIUSTA INDICI ARRAY)
-array[1..n_items] of int: size_item = [3, 2, 6, 8, 5, 4, 4];
-
-% Array of all distances
-array[1..n_items+1,1..n_items+1] of int: all_distances = [|0, 2, 3, 3, 4, 3, 4, 4| 
-                                                           2, 0, 3, 3, 6, 5, 6, 6 |  
-                                                           3, 3, 0, 4, 3, 4, 7, 7 | 
-                                                           3, 3, 4, 0, 7, 6, 3, 5 | 
-                                                           4, 6, 3, 7, 0, 3, 6, 6 | 
-                                                           3, 5, 4, 6, 3, 0, 3, 3 | 
-                                                           4, 6, 7, 3, 6, 3, 0, 2 | 
-                                                           4, 6, 7, 5, 6, 3, 2, 0 |];
-
-set of int: COURIERS = 1..n_couriers;
-set of int: ITEMS = 1..n_items;
-set of int: STEPS = 1..(n_items+2);
-var float: sum_items = sum(ITEMS);
-
-
-*/
 
 % PARAMETERS DECLARATION
 %------------------------------
-
-include "input.dzn";
+include "prof_example_input.dzn"; %Solution -> a_max_dist = [12, 10, 10];
+%include "complex_input.dzn"; %Solution -> a_max_dist = ????????????
 
 % number of couriers
 int: n_couriers; 
@@ -57,7 +25,6 @@ set of int: COURIERS = 1..n_couriers;
 set of int: ITEMS = 1..n_items;
 set of int: STEPS = 1..(n_items+2);
 var float: sum_items = n_items*(n_items+1)/2;
-
 
 
 
