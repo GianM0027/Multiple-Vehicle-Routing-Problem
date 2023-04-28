@@ -3,10 +3,11 @@ include "alldifferent.mzn";
 
 % CHOOSE THE INPUT FOR THE MODEL
 %------------------------------
+
 %include "prof_example_input.dzn"; % 3 couriers, 7 items / Solution -> a_max_dist = [12, 10, 10];
 %include "complex_input.dzn"; % 5 couriers, 9 items / Solution -> a_max_dist = ????????????
-include "simple_input.dzn"; % 4 couriers, 47 items / Solution -> a_max_dist = [10, 10, 9, 8, 10];
-
+%include "simple_input.dzn"; % 4 couriers, 47 items / Solution -> a_max_dist = [10, 10, 9, 8, 10];
+include "middle_complexity_input.dzn"; % 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 15, 14, 13];
 
 
 % PARAMETERS DECLARATION
@@ -29,7 +30,7 @@ array[1..n_items+1,1..n_items+1] of int: all_distances;
 
 set of int: COURIERS = 1..n_couriers;
 set of int: ITEMS = 1..n_items;
-set of int: STEPS = 1..(n_items+2);
+set of int: STEPS = 1..(n_items+2); 
 set of int: STEPS_NO_LAST = 1..(n_items+1);
 set of int: STEPS_NO_FIRST_NO_LAST = 2..(n_items+1);
 var float: sum_items = sum(ITEMS);
@@ -52,8 +53,8 @@ array[COURIERS] of var int: a_max_dist;
 %------------------------------
 
 %Tutti i corrieri partono e tornano all'origine
-constraint forall(i in COURIERS)
-                  (delivery_order[1,i] == 0 /\ delivery_order[n_items+2,i] == 0);
+constraint forall(c in COURIERS)
+                  (delivery_order[1,c] == 0 /\ delivery_order[n_items+2,c] == 0);
 
 %Ogni pacco deve essere consegnato una sola volta
 constraint alldifferent_except_0(delivery_order);
@@ -74,12 +75,12 @@ constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)
 %------------------------------
 
 
-
                   
 
 
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE (max_dist)
 %------------------------------
+
 constraint forall(c in COURIERS)
                   (a_max_dist[c] = sum(s in STEPS_NO_LAST)
                   (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1]));
