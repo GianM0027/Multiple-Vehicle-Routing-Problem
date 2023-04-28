@@ -7,13 +7,13 @@ include "alldifferent.mzn";
 % 3 couriers, 7 items / Solution -> a_max_dist = [12, 10, 10];
 %include "prof_example_input.dzn";
 
-% 4 couriers, 47 items / Solution -> a_max_dist = [10, 10, 9, 8, 10];
-%include "simple_input.dzn";
+% 5 couriers, 9 items / Solution -> 
+include "simple_input.dzn";
 
-% 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 15, 14, 13];
-include "middle_complexity_input.dzn"; 
+% 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 13, 14, 13];
+%include "middle_complexity_input.dzn"; 
 
-% 5 couriers, 9 items / Solution -> a_max_dist = ????????????
+% 4 couriers, 47 items / Solution -> a_max_dist = ????????????
 %include "complex_input.dzn";
 
 
@@ -64,9 +64,7 @@ array[COURIERS] of var int: a_max_dist;
 
 %Tutti i corrieri partono e tornano all'origine
 constraint forall(c in COURIERS)
-                  (delivery_order[1,c] == 0);
-constraint forall(c in COURIERS)
-                  (delivery_order[n_items+2,c] == 0);
+                  (delivery_order[1,c] == 0 /\ delivery_order[n_items+2,c] == 0);
 
 %Ogni pacco deve essere consegnato una sola volta
 constraint alldifferent_except_0(delivery_order);
@@ -97,6 +95,5 @@ constraint forall(c in COURIERS)
                   (a_max_dist[c] = sum(s in STEPS_NO_LAST)
                   (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1]));
 var int: max_dist = max(a_max_dist);
-
 
 solve minimize max_dist;
