@@ -116,8 +116,13 @@ constraint forall(c in COURIERS, s in STEPS_NO_LAST, t in TEMP)
 %With those new constraints is faster / the second one may give unoptimal solutions but its an idea we can try to use
 
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE (max_dist)
 %------------------------------
+
 constraint forall(c in COURIERS)
                   (a_max_dist[c] = sum(s in STEPS_NO_LAST)
                   (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] ));
