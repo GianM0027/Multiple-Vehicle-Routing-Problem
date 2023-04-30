@@ -14,8 +14,11 @@ include "all_equal.mzn"; %FOR TEST
 % 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 15, 14, 13];
 %include "middle_complexity_input.dzn";
 
+% 5 couriers, 22 items / Solution -> a_max_dist = ????????????
+include "middle_complex_input.dzn";
+
 % 4 couriers, 47 items / Solution -> a_max_dist = ????????????
-include "complex_input.dzn";
+%include "complex_input.dzn";
 
 
 % PARAMETERS DECLARATION
@@ -115,7 +118,7 @@ var float: avg_dist = sum(all_distances)/((n_items+1)*n_items);
 set of int: TEMP = 5..0;
 constraint forall(c in COURIERS, s in STEPS_NO_LAST, t in TEMP)
                   (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] <= avg_dist+t);
-*/    
+*/
 %With those new constraints is faster / the second one may give unoptimal solutions but its an idea we can try to use
 
 
@@ -135,5 +138,6 @@ constraint forall(c in COURIERS)
 var int: max_dist = max(a_max_dist);
 
 
+% euristica per la ricerca della soluzione
 solve :: int_search(delivery_order, dom_w_deg, indomain_min)
 minimize max_dist;
