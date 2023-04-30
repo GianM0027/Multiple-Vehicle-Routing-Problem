@@ -6,7 +6,6 @@ include "all_equal.mzn"; %FOR TEST
 %------------------------------
 
 % 3 couriers, 7 items / Solution -> a_max_dist = [12, 10, 10];
-<<<<<<< Updated upstream
 %include "prof_example_input.dzn"; 
 
 % 5 couriers, 9 items / Solution -> a_max_dist = [10, 10, 9, 8, 10]; (a_max_dist = [10, 9, 8, 8, 8] with the new objective f)
@@ -17,20 +16,6 @@ include "middle_complexity_input.dzn";
 
 % 4 couriers, 47 items / Solution -> a_max_dist = ????????????
 %include "complex_input.dzn";
-
-=======
-%include "prof_example_input.dzn";
-
-% 5 couriers, 9 items / Solution -> 5 couriers, 9 items / Solution -> a_max_dist = [10, 10, 9, 8, 10] 
-%include "simple_input.dzn";
-
-% 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 13, 14, 13];
-include "middle_complexity_input.dzn"; 
-
-% 4 couriers, 47 items / Solution -> a_max_dist = ????????????
-%include "complex_input.dzn";
->>>>>>> Stashed changes
-
 
 
 % PARAMETERS DECLARATION
@@ -69,9 +54,6 @@ array[STEPS, COURIERS] of var 0..n_items: delivery_order;
 
 % array of max distance for each courier
 array[COURIERS] of var int: a_max_dist;
-
-
-
 
 
 % CONSTRAINTS per risoluzione problema
@@ -116,10 +98,6 @@ constraint forall(c in COURIERS, s in STEPS_NO_LAST, t in TEMP)
 %With those new constraints is faster / the second one may give unoptimal solutions but its an idea we can try to use
 
 
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE (max_dist)
 %------------------------------
 
