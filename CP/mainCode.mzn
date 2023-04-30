@@ -60,8 +60,11 @@ array[COURIERS] of var int: a_max_dist;
 %------------------------------
 
 %Tutti i corrieri partono e tornano all'origine
+%constraint forall(c in COURIERS)
+                  %(delivery_order[1,c] == 0 /\ delivery_order[n_items+2,c] == 0);
+                  
 constraint forall(c in COURIERS)
-                  (delivery_order[1,c] == 0 /\ delivery_order[n_items+2,c] == 0);
+                  (delivery_order[1,c] = 0 -> delivery_order[n_items+2,c] = 0);
 
 %Ogni pacco deve essere consegnato una sola volta
 constraint alldifferent_except_0(delivery_order);
@@ -74,10 +77,24 @@ constraint forall(c in COURIERS) (
   sum([size_item[delivery_order[i,c]] | i in STEPS where delivery_order[i,c] != 0]) <= max_load[c]);
                   
 % Rimozione soluzioni con 'reload' dai corrieri
-constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)        
-                 (delivery_order[i,c] != 0 \/ sum(delivery_order[i..,c]) == 0);
+%constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)        
+%                 (delivery_order[i,c] != 0 \/ sum(delivery_order[i..,c]) == 0);
                  
-         
+constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)        
+                  (delivery_order[i,c] = 0 -> sum(delivery_order[i..,c]) = 0);
+                 
+%------------------------------  PROVE PROVETTE  ------------------------------ 
+
+%------------------------------   VINCOLO SIMMETRIA  ------------------------------
+constraint forall(c1, c2 in COURIERS where c1 < c2, i in 2..n_items+1) (
+    delivery_order[i,c1] < delivery_order[i,c2] -> 
+        exists(j in 2..n_items+1) (
+            delivery_order[j,c1] = delivery_order[i,c2] /\ delivery_order[j,c2] = delivery_order[i,c1]
+        )
+);
+%------------------------------  FINE PROVE PROVETTE  ------------------------------
+
+
          
 % CONSTRAINTS per far scendere i tempi di risoluzione del problema
 %------------------------------
