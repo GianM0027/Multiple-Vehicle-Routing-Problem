@@ -12,10 +12,10 @@ include "all_equal.mzn"; %FOR TEST
 %include "simple_input.dzn"; 
 
 % 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 15, 14, 13];
-include "middle_complexity_input.dzn";
+%include "middle_complexity_input.dzn";
 
 % 4 couriers, 47 items / Solution -> a_max_dist = ????????????
-%include "complex_input.dzn";
+include "complex_input.dzn";
 
 
 % PARAMETERS DECLARATION
@@ -83,16 +83,9 @@ constraint forall(c in COURIERS) (
 constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)        
                   (delivery_order[i,c] = 0 -> sum(delivery_order[i..,c]) = 0);
                  
-%------------------------------  PROVE PROVETTE  ------------------------------ 
-
-%------------------------------   VINCOLO SIMMETRIA  ------------------------------
-constraint forall(c1, c2 in COURIERS where c1 < c2, i in 2..n_items+1) (
-    delivery_order[i,c1] < delivery_order[i,c2] -> 
-        exists(j in 2..n_items+1) (
-            delivery_order[j,c1] = delivery_order[i,c2] /\ delivery_order[j,c2] = delivery_order[i,c1]
-        )
-);
-%------------------------------  FINE PROVE PROVETTE  ------------------------------
+      
+                
+                                    
 
 
          
@@ -105,6 +98,17 @@ constraint forall(c in COURIERS)(delivery_order[2,c]!= 0);
 
 constraint all_equal(delivery_order[n_items+2-n_couriers..,1..n_couriers]);
 
+%------------------------------  PROVE PROVETTE  ------------------------------ 
+
+%------------------------------   VINCOLO SIMMETRIA  ------------------------------
+constraint forall(c1, c2 in COURIERS where c1 < c2, i in STEPS_NO_FIRST_NO_LAST) (
+    delivery_order[i,c1] < delivery_order[i,c2] -> 
+        exists(j in STEPS_NO_FIRST_NO_LAST) (
+            delivery_order[j,c1] = delivery_order[i,c2] /\ delivery_order[j,c2] = delivery_order[i,c1]
+        )
+);
+%------------------------------  FINE PROVE PROVETTE  ------------------------------
+
 
 /*
 var float: avg_dist = sum(all_distances)/((n_items+1)*n_items);
@@ -113,6 +117,12 @@ constraint forall(c in COURIERS, s in STEPS_NO_LAST, t in TEMP)
                   (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] <= avg_dist+t);
 */    
 %With those new constraints is faster / the second one may give unoptimal solutions but its an idea we can try to use
+
+
+
+
+
+
 
 
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE (max_dist)
@@ -124,4 +134,6 @@ constraint forall(c in COURIERS)
 
 var int: max_dist = max(a_max_dist);
 
-solve minimize max_dist;
+
+solve :: int_search(delivery_order, dom_w_deg, indomain_min)
+minimize max_dist;
