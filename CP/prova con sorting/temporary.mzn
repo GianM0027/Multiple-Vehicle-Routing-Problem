@@ -1,4 +1,5 @@
 include "alldifferent.mzn";
+include "all_equal.mzn"; %FOR TEST
 
 
 % CHOOSE THE INPUT FOR THE MODEL
@@ -8,13 +9,13 @@ include "alldifferent.mzn";
 %include "prof_example_input.dzn"; 
 
 % 5 couriers, 9 items / Solution -> a_max_dist = [10, 10, 9, 8, 10]; (a_max_dist = [10, 9, 8, 8, 8] with the new objective f)
-%include "simple_input.dzn"; 
+%include "simple_input_temporary.dzn"; 
 
 % 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 15, 14, 13];
-include "middle_complexity_input.dzn";
+include "middle_complexity_input_temporary.dzn";
 
 % 5 couriers, 22 items / Solution -> a_max_dist = ????????????
-%include "middle_complex_complexity_input.dzn";
+%include "middle_complex_complexity_input_temporary.dzn";
 
 % 4 couriers, 47 items / Solution -> a_max_dist = ????????????
 %include "complex_input.dzn";
@@ -52,7 +53,7 @@ var int: sum_items = sum(ITEMS);
 %------------------------------
 
 % Correspondence between courier and items (chronological order)
-array[STEPS, COURIERS] of var 0..n_items: delivery_order;
+array[COURIERS,STEPS] of var 0..n_items: delivery_order;
 
 % array of max distance for each courier
 array[COURIERS] of var int: a_max_dist;
@@ -63,7 +64,7 @@ array[COURIERS] of var int: a_max_dist;
 
 %Tutti i corrieri partono e tornano all'origine
 constraint forall(c in COURIERS)
-                  (delivery_order[1,c] == 0 /\ delivery_order[n_items+2,c] == 0);
+                  (delivery_order[c,1] == 0 /\ delivery_order[c,n_items+2] == 0);
 
 %Ogni pacco deve essere consegnato una sola volta
 constraint alldifferent_except_0(delivery_order);
@@ -73,22 +74,38 @@ constraint sum(delivery_order) == sum_items;
 
 % Ogni corriere non deve superare il suo carico massimo
 constraint forall(c in COURIERS) (
-  sum([size_item[delivery_order[i,c]] | i in STEPS where delivery_order[i,c] != 0]) <= max_load[c]);
+  sum([size_item[delivery_order[c,i]] | i in STEPS where delivery_order[c,i] != 0]) <= max_load[c]);
                   
 % Rimozione soluzioni con 'reload' dai corrieri
 constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)        
-                 (delivery_order[i,c] != 0 \/ sum(delivery_order[i..,c]) == 0);
+                 (delivery_order[c,i] != 0 \/ sum(delivery_order[c,i..]) == 0);
                  
-         
          
 % CONSTRAINTS per far scendere i tempi di risoluzione del problema
 %------------------------------
-constraint forall(c in COURIERS, c1 in COURIERS where max_load[c] <= max_load[c1])(
-                  sum([size_item[delivery_order[i,c]] | i in STEPS where delivery_order[i,c] != 0])
-                    <= sum([size_item[delivery_order[i,c1]] | i in STEPS where delivery_order[i,c1] != 0]));
 
 
-constraint if max(size_item) <= min(max_load) then forall(c in COURIERS)(delivery_order[2,c] != 0) endif;
+
+
+
+
+
+
+
+
+
+%TEST CONSTRAINT -> each courier deliver at least one item
+%constraint forall(c in COURIERS)(sum(delivery_order[n_items+2-n_couriers..,c]) == 0);
+%constraint forall(c in COURIERS)(delivery_order[2,c]!= 0);
+%constraint all_equal(delivery_order[n_items+2-n_couriers..,1..n_couriers]);
+
+/*
+var float: avg_dist = sum(all_distances)/((n_items+1)*n_items);
+set of int: TEMP = 5..0;
+constraint forall(c in COURIERS, s in STEPS_NO_LAST, t in TEMP)
+                  (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] <= avg_dist+t);
+*/
+%With those new constraints is faster / the second one may give unoptimal solutions but its an idea we can try to use
 
 
 
@@ -102,11 +119,12 @@ constraint if max(size_item) <= min(max_load) then forall(c in COURIERS)(deliver
 
 constraint forall(c in COURIERS)
                   (a_max_dist[c] = sum(s in STEPS_NO_LAST)
-                  (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] ));
+                  (all_distances[delivery_order[c,s] + 1,delivery_order[c,s+1] + 1] ));
 
 var int: max_dist = max(a_max_dist);
 
-
+% prova a creare una euristica tale per cui ottimizzi prima riga 1, poi riga 2, e cosi via
 % euristica per la ricerca della soluzione
-solve minimize max_dist;
+solve :: int_search(delivery_order, dom_w_deg, indomain_min)
+minimize max_dist;
 
