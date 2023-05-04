@@ -1,8 +1,5 @@
 include "alldifferent.mzn";
-<<<<<<< HEAD
-=======
 
->>>>>>> edabe90cd895bd5f6f60b968fb71cae04ffe0abc
 
 % CHOOSE THE INPUT FOR THE MODEL
 %------------------------------
@@ -89,8 +86,6 @@ constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)
 constraint forall(c in COURIERS, c1 in COURIERS where max_load[c] <= max_load[c1])(
                   sum([size_item[delivery_order[i,c]] | i in STEPS where delivery_order[i,c] != 0])
                     <= sum([size_item[delivery_order[i,c1]] | i in STEPS where delivery_order[i,c1] != 0]));
-
-<<<<<<< HEAD
 %TEST CONSTRAINT -> each courier deliver at least one item
 
 constraint forall(c in COURIERS)(sum(delivery_order[n_items+2-n_couriers..,c]) == 0);
@@ -101,11 +96,8 @@ constraint forall(c in COURIERS, s in STEPS_NO_LAST)
                   max(all_distances));
 
 %With those new constraints is faster / the second one may give unoptimal solutions but its an idea we can try to use
-=======
 
 constraint if max(size_item) <= min(max_load) then forall(c in COURIERS)(delivery_order[2,c] != 0) endif;
->>>>>>> edabe90cd895bd5f6f60b968fb71cae04ffe0abc
-
 
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE (max_dist)
 %------------------------------
@@ -118,13 +110,9 @@ var int: max_dist = max(a_max_dist);
 
 
 % euristica per la ricerca della soluzione
-<<<<<<< HEAD
+
 /*
 solve :: int_search(delivery_order, dom_w_deg, indomain_min)
 minimize max_dist;
 */
 solve minimize max_dist;
-=======
-solve minimize max_dist;
-
->>>>>>> edabe90cd895bd5f6f60b968fb71cae04ffe0abc
