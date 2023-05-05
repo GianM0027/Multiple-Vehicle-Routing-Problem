@@ -10,10 +10,10 @@ include "alldifferent.mzn";
 %include "simple_input.dzn"; 
 
 % 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 15, 14, 13];
-%include "middle_complexity_input.dzn";
+include "middle_complexity_input.dzn";
 
 % 5 couriers, 22 items / Solution -> a_max_dist = ????????????
-include "middle_complex_complexity_input.dzn";
+%include "middle_complex_complexity_input.dzn";
 
 % 4 couriers, 47 items / Solution -> a_max_dist = ????????????
 %include "complex_input.dzn";
@@ -132,6 +132,7 @@ constraint forall(c in COURIERS) (
 % Rimozione soluzioni con 'reload' dai corrieri
 constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)        
                  (couriers_delivery[i,c] != 0 \/ sum(couriers_delivery[i..,c]) == 0);                                                                                                         
+                 
                                                                                                                                   
                                                                                                                                             %Se tutti i corrieri hanno capienza sufficiente a trasportare almeno un pacco, allora devono farlo (probabilmente inutile)
 constraint if max(size_item) <= min(max_load) then forall(c in COURIERS)(delivery_order[2,c] != 0) endif;
@@ -146,7 +147,6 @@ var int: max_dist = max(a_max_dist);
 
 % euristica per la ricerca della soluzione
 solve minimize max_dist;
- 
       
       
       

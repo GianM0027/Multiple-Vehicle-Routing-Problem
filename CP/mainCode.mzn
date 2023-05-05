@@ -58,7 +58,10 @@ array[STEPS, COURIERS] of var 0..n_items: delivery_order;
 array[COURIERS] of var int: a_max_dist;
 
 
-% CONSTRAINTS per risoluzione problema
+
+
+
+% CONSTRAINTS NECESSARIE per risoluzione problema
 %------------------------------
 
 %Tutti i corrieri partono e tornano all'origine
@@ -81,23 +84,35 @@ constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)
                  
          
          
-% CONSTRAINTS per far scendere i tempi di risoluzione del problema
+         
+         
+         
+         
+% CONSTRAINTS AGGIUNTIVE per far scendere i tempi di risoluzione del problema
 %------------------------------
 constraint forall(c in COURIERS, c1 in COURIERS where max_load[c] <= max_load[c1])(
                   sum([size_item[delivery_order[i,c]] | i in STEPS where delivery_order[i,c] != 0])
                     <= sum([size_item[delivery_order[i,c1]] | i in STEPS where delivery_order[i,c1] != 0]));
-%TEST CONSTRAINT -> each courier deliver at least one item
 
-constraint forall(c in COURIERS)(sum(delivery_order[n_items+2-n_couriers..,c]) == 0);
-constraint forall(c in COURIERS)(delivery_order[2,c]!= 0);
 
 constraint forall(c in COURIERS, s in STEPS_NO_LAST)
                   (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] <
                   max(all_distances));
 
-%With those new constraints is faster / the second one may give unoptimal solutions but its an idea we can try to use
 
+/*
+(CONSTRAINT di base sbagliate, ma da cui si può prendere spunto per qualche idea)
+% vincolo con il quale si cerca di dare una logica alla scelta della meta successiva, sviluppare l'idea
+constraint forall(c in COURIERS, s in STEPS_NO_LAST)
+                  (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] <
+                  max(all_distances));
+
+%vincolo con il quale si cerca di assegnare meno peso a un corriere con max_load più piccolo 
 constraint if max(size_item) <= min(max_load) then forall(c in COURIERS)(delivery_order[2,c] != 0) endif;
+*/
+
+
+
 
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE (max_dist)
 %------------------------------
