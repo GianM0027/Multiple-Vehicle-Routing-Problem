@@ -66,6 +66,8 @@ array[1..n_items+2,COURIERS] of var ITEMS_0: decode_matrix;
 % CONSTRAINTS per risoluzione problema
 %------------------------------
 
+
+
 %Tutti i corrieri partono all'origine
 constraint forall(c in COURIERS)(delivery_order[c] == 0);
 
