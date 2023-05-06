@@ -59,7 +59,7 @@ array[ITEMS] of var int: ordering;
 array[COURIERS] of var int: a_max_dist;
 
 %specie di copia dell'originale delivery_order, ogni colonna è un corriere, ogni riga contienre l'index del pacco consegnato da quel corriere in ordine cronologico
-array[STEPS, COURIERS] of var 0..n_items: couriers_delivery;
+array[STEPS, COURIERS] of var 0..n_items: delivery_order;
 
 
 
@@ -93,7 +93,7 @@ endif;
 % CONSTRAINTS per far scendere i tempi di risoluzione del problema
 %------------------------------
 constraint forall(c in COURIERS, s in STEPS_NO_LAST)
-                  (all_distances[couriers_delivery[s,c] + 1,couriers_delivery[s + 1,c] + 1] < max(all_distances));
+                  (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] < max(all_distances));
 
 
 
@@ -107,43 +107,46 @@ constraint forall(c in COURIERS, s in STEPS_NO_LAST)
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE (max_dist)
 %------------------------------
 
-% definisco l'equivalente del vecchio delivery_order (qui si chiama couriers_delivery), poi ottimizzo come facevamo nel vecchio modello
 constraint forall(i in ITEMS)
-                (couriers_delivery[ordering[i] + 1, couriers[i]] = i);
+                (delivery_order[ordering[i] + 1, couriers[i]] = i);
 
 
-                                                                                                                                                                                                                                                      %CONSTRAINTS PER couriers_delivery                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                      %CONSTRAINTS PER delivery_order                                                                                                                                                                                                                                                       
 constraint forall(c in COURIERS)
-                  (couriers_delivery[1,c] == 0 /\ couriers_delivery[n_items+2,c] == 0);
+                  (delivery_order[1,c] == 0 /\ delivery_order[n_items+2,c] == 0);
 
 %Ogni pacco deve essere consegnato una sola volta
-constraint alldifferent_except_0(couriers_delivery);
+constraint alldifferent_except_0(delivery_order);
 
 %Ogni pacco deve essere consegnato
-constraint sum(couriers_delivery) == sum_items;
+constraint sum(delivery_order) == sum_items;
 
 % Ogni corriere non deve superare il suo carico massimo
 constraint forall(c in COURIERS) (
-  sum([size_item[couriers_delivery[i,c]] | i in STEPS where couriers_delivery[i,c] != 0]) <= max_load[c]);
+  sum([size_item[delivery_order[i,c]] | i in STEPS where delivery_order[i,c] != 0]) <= max_load[c]);
                   
 % Rimozione soluzioni con 'reload' dai corrieri
 constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)        
-                 (couriers_delivery[i,c] != 0 \/ sum(couriers_delivery[i..,c]) == 0);                                                                                                         
+                 (delivery_order[i,c] != 0 \/ sum(delivery_order[i..,c]) == 0);                                                                                                         
                  
                                                                                                                                   
-                                                                                                                                            %Se tutti i corrieri hanno capienza sufficiente a trasportare almeno un pacco, allora devono farlo (probabilmente inutile)
+%Se tutti i corrieri hanno capienza sufficiente a trasportare almeno un pacco, allora devono farlo (probabilmente inutile)
 constraint if max(size_item) <= min(max_load) then forall(c in COURIERS)(ordering[c] != 0) endif;
 
 
 constraint forall(c in COURIERS)
                   (a_max_dist[c] = sum(s in STEPS_NO_LAST)
-                  (all_distances[couriers_delivery[s,c] + 1, couriers_delivery[s + 1,c] + 1] ));
+                  (all_distances[delivery_order[s,c] + 1, delivery_order[s + 1,c] + 1] ));
 
 var int: max_dist = max(a_max_dist);
 
 
 % euristica per la ricerca della soluzione
-solve minimize max_dist;
+solve :: seq_search([
+            int_search(couriers, dom_w_deg, indomain_min, complete),
+            int_search(ordering, input_order, indomain_min)
+])
+ minimize max_dist;
 
 
 /* PROVA A MINIMIZZARE MEDIA E VARIANZA
