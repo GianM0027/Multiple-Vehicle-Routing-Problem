@@ -1,20 +1,21 @@
 include "alldifferent.mzn";
+include "globals.mzn";
 
 
 % CHOOSE THE INPUT FOR THE MODEL
 %------------------------------
 
 % 3 couriers, 7 items / Solution -> a_max_dist = [12, 10, 10];
-%include "prof_example_input.dzn"; 
+% include "prof_example_input.dzn"; 
 
 % 5 couriers, 9 items / Solution -> a_max_dist = [10, 10, 9, 8, 10]; (a_max_dist = [10, 9, 8, 8, 8] with the new objective f)
-%include "simple_input.dzn"; 
+% include "simple_input.dzn"; 
 
 % 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 15, 14, 13];
 include "middle_complexity_input.dzn";
 
 % 5 couriers, 22 items / Solution -> a_max_dist = ????????????
-%include "middle_complex_complexity_input.dzn";
+%  include "middle_complex_complexity_input.dzn";
 
 % 4 couriers, 47 items / Solution -> a_max_dist = ????????????
 %include "complex_input.dzn";
@@ -41,27 +42,25 @@ array[1..n_items+1,1..n_items+1] of int: all_distances;
 
 set of int: COURIERS = 1..n_couriers;
 set of int: ITEMS = 1..n_items;
+int: steps = n_items+2;
 set of int: STEPS = 1..(n_items+2); 
 set of int: STEPS_NO_LAST = 1..(n_items+1);
 set of int: STEPS_NO_FIRST_NO_LAST = 2..(n_items+1);
-var int: sum_items = sum(ITEMS);
-
 
 
 % DECISION VARIABLES
 %------------------------------
-
 % Correspondence between courier and items (chronological order)
 array[STEPS, COURIERS] of var 0..n_items: delivery_order;
 
 % array of max distance for each courier
 array[COURIERS] of var int: a_max_dist;
 
-
 % CONSTRAINTS per risoluzione problema
 %------------------------------
-
 %Tutti i corrieri partono e tornano all'origine
+% constraint count(delivery_order[1,1..],0,n_couriers); %più lento di qualche ms
+% constraint count(delivery_order[n_items+2,1..],0,n_couriers);
 constraint forall(c in COURIERS)
                   (delivery_order[1,c] == 0 /\ delivery_order[n_items+2,c] == 0);
 
@@ -69,50 +68,56 @@ constraint forall(c in COURIERS)
 constraint alldifferent_except_0(delivery_order);
 
 %Ogni pacco deve essere consegnato
-constraint sum(delivery_order) == sum_items;
+% constraint sum(delivery_order) == sum_items; %old version
+constraint nvalue(n_items+1, delivery_order);
 
 % Ogni corriere non deve superare il suo carico massimo
 constraint forall(c in COURIERS) (
   sum([size_item[delivery_order[i,c]] | i in STEPS where delivery_order[i,c] != 0]) <= max_load[c]);
                   
 % Rimozione soluzioni con 'reload' dai corrieri
-constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)        
+constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)      
                  (delivery_order[i,c] != 0 \/ sum(delivery_order[i..,c]) == 0);
                  
-         
-         
 % CONSTRAINTS per far scendere i tempi di risoluzione del problema
 %------------------------------
-constraint forall(c in COURIERS, c1 in COURIERS where max_load[c] <= max_load[c1])(
-                  sum([size_item[delivery_order[i,c]] | i in STEPS where delivery_order[i,c] != 0])
-                    <= sum([size_item[delivery_order[i,c1]] | i in STEPS where delivery_order[i,c1] != 0]));
-%TEST CONSTRAINT -> each courier deliver at least one item
+%Each courier deliver at least one item
+constraint if max(size_item) <= min(max_load) then forall(c in COURIERS)(delivery_order[2,c] != 0 /\
+              sum(delivery_order[steps-n_couriers..,c]) == 0) endif;
+% constraint if max(size_item) <= min(max_load) then alldifferent(delivery_order[2,1..]) /\ all_equal(delivery_order[steps-n_couriers..,1..]) endif; Più o meno uguale
 
-constraint forall(c in COURIERS)(sum(delivery_order[n_items+2-n_couriers..,c]) == 0);
-constraint forall(c in COURIERS)(delivery_order[2,c]!= 0);
+constraint forall(c,c2 in COURIERS, s in 3..steps-n_couriers)(if delivery_order [s,c] != 0 /\ c != c2
+                  then sum(delivery_order[steps-n_couriers-(s-2)..,c2]) == 0 endif);
 
+% TEST CONSTRAINT - Couriers with higher max load take the havier items (MAY BE WRONG)
+% constraint forall(c,c1 in COURIERS where max_load[c] < max_load[c1] /\ c != c1)(
+%                   sum([size_item[delivery_order[i,c]] | i in STEPS where delivery_order[i,c] != 0])
+%                < sum([size_item[delivery_order[i,c1]] | i in STEPS where delivery_order[i,c1] != 0]));
+
+
+% TEST CONSTRAINT - couriers cannot use the edge with max lenght during the delivery (MAY BE WRONG)
 constraint forall(c in COURIERS, s in STEPS_NO_LAST)
                   (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] <
                   max(all_distances));
 
-%With those new constraints is faster / the second one may give unoptimal solutions but its an idea we can try to use
+% TEST CONSTRAINT 
+constraint forall(c in COURIERS, s in 2..steps-1)
+                  (if ((s-1) * n_couriers + c) >= n_items+n_couriers+1 then delivery_order[s,c] == 0 endif);
 
-constraint if max(size_item) <= min(max_load) then forall(c in COURIERS)(delivery_order[2,c] != 0) endif;
 
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE (max_dist)
 %------------------------------
-
 constraint forall(c in COURIERS)
                   (a_max_dist[c] = sum(s in STEPS_NO_LAST)
                   (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] ));
 
+constraint forall(c in COURIERS) (a_max_dist[c] <= max(a_max_dist)); % with this is a little faster
 var int: max_dist = max(a_max_dist);
-
 
 % euristica per la ricerca della soluzione
 
-/*
-solve :: int_search(delivery_order, dom_w_deg, indomain_min)
-minimize max_dist;
-*/
+
+% solve :: int_search(delivery_order, dom_w_deg, indomain_min)
+% minimize max_dist;
+
 solve minimize max_dist;

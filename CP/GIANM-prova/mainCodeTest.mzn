@@ -10,10 +10,10 @@ include "alldifferent.mzn";
 %include "simple_input.dzn"; 
 
 % 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 15, 14, 13];
-%include "middle_complexity_input.dzn";
+include "middle_complexity_input.dzn";
 
 % 5 couriers, 22 items / Solution -> a_max_dist = ????????????
-include "middle_complex_complexity_input.dzn";
+%include "middle_complex_complexity_input.dzn";
 
 % 4 couriers, 47 items / Solution -> a_max_dist = ????????????
 %include "complex_input.dzn";
@@ -92,19 +92,10 @@ constraint if (max(size_item) <= min(max_load)) then
 endif;
 
          
-
 % CONSTRAINTS per far scendere i tempi di risoluzione del problema
 %------------------------------
 constraint forall(c in COURIERS, s in STEPS_NO_LAST)
                   (all_distances[couriers_delivery[s,c] + 1,couriers_delivery[s + 1,c] + 1] < max(all_distances));
-
-
-
-
-
-
-
-
 
 
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE (max_dist)
@@ -114,8 +105,7 @@ constraint forall(c in COURIERS, s in STEPS_NO_LAST)
 constraint forall(i in ITEMS)
                 (couriers_delivery[delivery_order[2,i] + 1, delivery_order[1,i]] = i);
 
-
-                                                                                                                                                                                                                                                      %CONSTRAINTS PER couriers_delivery                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                  %CONSTRAINTS PER couriers_delivery                                                                                                                                                                                                                                                       
 constraint forall(c in COURIERS)
                   (couriers_delivery[1,c] == 0 /\ couriers_delivery[n_items+2,c] == 0);
 
