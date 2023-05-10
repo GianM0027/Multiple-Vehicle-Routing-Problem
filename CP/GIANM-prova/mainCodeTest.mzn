@@ -1,4 +1,5 @@
 include "alldifferent.mzn";
+include "gecode.mzn";
 
 % CHOOSE THE INPUT FOR THE MODEL
 %------------------------------
@@ -10,10 +11,10 @@ include "alldifferent.mzn";
 %include "simple_input.dzn"; 
 
 % 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 15, 14, 13];
-include "middle_complexity_input.dzn";
+% include "middle_complexity_input.dzn";
 
 % 5 couriers, 22 items / Solution -> a_max_dist = ????????????
-%include "middle_complex_complexity_input.dzn";
+include "middle_complex_complexity_input.dzn";
 
 % 4 couriers, 47 items / Solution -> a_max_dist = ????????????
 %include "complex_input.dzn";
@@ -101,12 +102,11 @@ constraint forall(c in COURIERS, s in STEPS_NO_LAST)
 constraint forall(i in ITEMS)
                 (delivery_order[ordering[i] + 1, couriers[i]] = i);
 
-<<<<<<< HEAD
+
                                                                                                                                                                                                                                                   %CONSTRAINTS PER couriers_delivery                                                                                                                                                                                                                                                       
-=======
+
 
                                                                                                                                                                                                                                                       %CONSTRAINTS PER delivery_order                                                                                                                                                                                                                                                       
->>>>>>> cbfdc67c134fb71dacf5e22457656ccc4f7807a2
 constraint forall(c in COURIERS)
                   (delivery_order[1,c] == 0 /\ delivery_order[n_items+2,c] == 0);
 
@@ -137,10 +137,8 @@ var int: max_dist = max(a_max_dist);
 
 
 % euristica per la ricerca della soluzione
-solve :: seq_search([
-            int_search(couriers, dom_w_deg, indomain_min, complete),
-            int_search(ordering, input_order, indomain_min)
-])
+solve 
+      :: relax_and_reconstruct(ordering, 85)
  minimize max_dist;
 
 
