@@ -11,13 +11,15 @@ include "globals.mzn";
 % include "simple_input.dzn"; 
 
 % 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 15, 14, 13];
-include "middle_complexity_input.dzn";
+%include "middle_complexity_input.dzn";
 
 % 5 couriers, 22 items / Solution -> a_max_dist = ????????????
 %include "middle_complex_complexity_input.dzn";
 
 % 4 couriers, 47 items / Solution -> a_max_dist = ????????????
-%include "complex_input.dzn";
+include "complex_input.dzn";
+
+include "sorted_test.dzn";
 
 
 % PARAMETERS DECLARATION
@@ -141,5 +143,6 @@ var int: max_dist = max(a_max_dist);
 
 % euristica per la ricerca della soluzione
 
-
-solve minimize max_dist;
+%provare questo metodo di risoluzione con le colonne ordinate in ordine crescente
+solve :: int_search(delivery_order, dom_w_deg, indomain_min)
+minimize max_dist;
