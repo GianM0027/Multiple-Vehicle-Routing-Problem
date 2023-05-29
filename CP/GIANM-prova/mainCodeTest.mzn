@@ -14,10 +14,12 @@ include "gecode.mzn";
 % include "middle_complexity_input.dzn";
 
 % 5 couriers, 22 items / Solution -> a_max_dist = ????????????
-include "middle_complex_complexity_input.dzn";
+%include "middle_complex_complexity_input.dzn";
 
 % 4 couriers, 47 items / Solution -> a_max_dist = ????????????
 %include "complex_input.dzn";
+
+include "input_test.dzn";
 
 
 % PARAMETERS DECLARATION
@@ -137,9 +139,10 @@ var int: max_dist = max(a_max_dist);
 
 
 % euristica per la ricerca della soluzione
-solve 
+solve :: int_search(delivery_order, dom_w_deg, indomain_random)
       :: relax_and_reconstruct(ordering, 85)
- minimize max_dist;
+      :: restart_linear(1000)
+minimize max_dist;
 
 
 /* PROVA A MINIMIZZARE MEDIA E VARIANZA

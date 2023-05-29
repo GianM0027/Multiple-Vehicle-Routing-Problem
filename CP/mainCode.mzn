@@ -14,12 +14,12 @@ include "globals.mzn";
 %include "middle_complexity_input.dzn";
 
 % 5 couriers, 22 items / Solution -> a_max_dist = ????????????
-%include "middle_complex_complexity_input.dzn";
+include "middle_complex_complexity_input.dzn";
 
 % 4 couriers, 47 items / Solution -> a_max_dist = ????????????
-include "complex_input.dzn";
+%include "complex_input.dzn";
 
-include "sorted_test.dzn";
+%include "CreateInputFinal/input_test.dzn";
 
 
 % PARAMETERS DECLARATION
@@ -58,12 +58,6 @@ array[STEPS, COURIERS] of var 0..n_items: delivery_order;
 array[COURIERS] of var int: a_max_dist;
 
 
-% CONSTRAINTS per risoluzione problema
-
-
-
-
-
 % CONSTRAINTS NECESSARIE per risoluzione problema
 %------------------------------
 %Tutti i corrieri partono e tornano all'origine
@@ -93,25 +87,19 @@ constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)
                  
 % CONSTRAINTS per far scendere i tempi di risoluzione del problema
 %------------------------------
-%Each courier deliver at least one item
+
+%Each courier deliver at least one item -> not very useful
 constraint if max(size_item) <= min(max_load) then 
               forall(c in COURIERS)(delivery_order[2,c] != 0 /\
               sum(delivery_order[steps-n_couriers..,c]) == 0) endif;
               
-              
-constraint forall(c,c2 in COURIERS, s in 3..steps-n_couriers)(if delivery_order [s,c] != 0 /\ c != c2
-                  then sum(delivery_order[steps-n_couriers-(s-2)..,c2]) == 0 endif);
-
-
-%se tutti i corrieri possono trasportare almeno un pacco, allora devono farlo (inutile ai fini dell'efficienza)
-constraint if max(size_item) <= min(max_load) then forall(c in COURIERS)
-                                      (delivery_order[2,c] != 0) endif;
-
-
-
 
 
 /*
+constraint forall(k in ITEMS, c in COURIERS, s in STEPS_NO_LAST where delivery_order[s,c] != 0)
+                  (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] <= (all_distances[delivery_order[s,c] + 1,k] + all_distances[delivery_order[s + 1,c] + 1,k]));
+
+
 (CONSTRAINT di base sbagliate, ma da cui si può prendere spunto per qualche idea)
 
 % vincolo con il quale si cerca di dare una logica alla scelta della meta successiva, sviluppare l'idea
@@ -141,8 +129,23 @@ var int: max_dist = max(a_max_dist);
 
 
 
+
+
 % euristica per la ricerca della soluzione
 
 %provare questo metodo di risoluzione con le colonne ordinate in ordine crescente
-solve :: int_search(delivery_order, dom_w_deg, indomain_min)
+solve minimize max_dist;
+
+
+/*
+solve :: int_search(delivery_order, dom_w_deg, indomain_random)
+      :: relax_and_reconstruct(delivery_order, 85)
+      :: restart_linear(1000)
 minimize max_dist;
+ */
+
+
+
+
+
+
