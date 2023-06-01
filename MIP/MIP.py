@@ -4,8 +4,7 @@ from pulp import *
 np.set_printoptions(threshold=sys.maxsize)
 
 
-
-def writeInputFile(num):
+def input(num):
     # Instantiate variables from file
     if num < 10:
         instances_path = "instances/inst0"+str(num)+".dat"  # inserire nome del file
@@ -36,47 +35,55 @@ def writeInputFile(num):
 
     dist = dist.astype(int)
 
-    dist_str = str(dist)
-    dist_str = dist_str[0] + dist_str[1:-1].replace("[", "|").replace("]", "|") + dist_str[-1]
-    dist_str = dist_str.replace("\n", "")
-    dist_str = dist_str[0] + dist_str[1:-1].replace("  ", " ") + dist_str[-1]  # eliminazione doppi spazi
-    dist_str = dist_str[0] + dist_str[1:-1].replace("   ", " ") + dist_str[-1]  # eliminazione tripli spazi
-    dist_str = dist_str[0] + dist_str[1:-1].replace("| ", "|") + dist_str[-1]
-    dist_str = dist_str[0] + dist_str[1:-1].replace("| |", "|") + dist_str[-1]
-    dist_str = dist_str[0] + dist_str[1:-1].replace("||", "|") + dist_str[-1]
-    dist_str = dist_str[0] + dist_str[1:-1].replace(" ", ", ") + dist_str[-1]
-    dist_str = dist_str[0] + dist_str[1:-1].replace(", ,", ", ") + dist_str[-1]
+    return n_couriers, n_items, max_load, size_item, dist
 
-    print("n_couriers = " + str(n_couriers) + ";")
-    print("n_items = " + str(n_items) + ";")
-    print("max_load = " + str(max_load) + ";")
-    print("size_item = " + str(size_item) + ";")
-    print("all_distances = " + str(dist_str) + ";")
-
-    with open("input.dzn", "w") as output_file:
-        output_file.write("n_couriers = " + str(n_couriers) + ";\n")
-        output_file.write("n_items = " + str(n_items) + ";\n")
-        output_file.write("max_load = " + str(max_load) + ";\n")
-        output_file.write("size_item = " + str(size_item) + ";\n")
-        output_file.write("all_distances = " + str(dist_str) + ";")
 
 def main(num):
-    writeInputFile(num) #funzione che crea il file da dare in input al modello
+    n_couriers, n_items, max_load, size_item, dist = input(num)
+    STEPS = range(0, n_items + 2)
+    COURIERS = range(0, n_couriers)
 
-    prob = LpProblem("Brewery Problem", LpMaximize)
+    prob = LpProblem("MIP_solver", LpMinimize)
 
-    A = LpVariable("Ale", 0, None, LpInteger)
-    B = LpVariable("Beer", 0, None, LpInteger)
+    delivery_order = LpVariable.dicts("delivery_order", (COURIERS, STEPS), 0, n_items, LpInteger) #dizionario con corrieri come keys e possibili items come values
+    a_max_dist = LpVariable.dicts("a_max_dist", COURIERS, cat='Integer')
 
-    prob += 13 * A + 23 * B, "Profit"
-    prob += 5 * A + 15 * B <= 480, "Corn"
-    prob += 4 * A + 4 * B <= 160, "Hop"
-    prob += 35 * A + 20 * B <= 1190, "Malt"
+    print(delivery_order.keys())
+
+    # Constraint: All couriers start and end at the origin
+    for key in delivery_order:
+        prob += delivery_order[key][0] == 0
+        prob += delivery_order[key][n_items+1] == 0
+
+    # Constraint: Each item is delivered only once
+    #?????????
+
+    """"
+    # Constraint: Couriers do not exceed their maximum load
+    for c in COURIERS:
+        load_sum = 0
+        for i in STEPS:
+            delivery_value = value(delivery_order[i][c])
+            if delivery_value != 0 and delivery_value != None:
+                load_sum += size_item[delivery_value]  # Access the size of the item
+        prob += load_sum <= max_load[c]
+
+    # Constraint: Avoid reloads within couriers
+    for c in COURIERS:
+        for i in STEPS_NO_FIRST_NO_LAST:
+            prob += delivery_order[i][c] != 0 or lpSum(delivery_order[s][c] for s in range(i, n_items + 3)) == 0
+
+    #objective
+    #prob += lpSum(a_max_dist[c] for c in COURIERS)
+    """
 
     # We can specify the solver to use as a parameter of solve
     prob.solve()
 
 
 
+
 #passare come parametro solo numero dell'istanza (senza lo 0)
 main(2)
+
+#istanza 2 -> 6 corrieri, 9 items
