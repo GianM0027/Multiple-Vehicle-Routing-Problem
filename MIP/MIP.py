@@ -1,6 +1,7 @@
 import sys
 import numpy as np
-from pulp import *
+import gurobipy as gp
+from gurobipy import *
 np.set_printoptions(threshold=sys.maxsize)
 
 
@@ -40,47 +41,44 @@ def input(num):
 
 def main(num):
     n_couriers, n_items, max_load, size_item, dist = input(num)
-    STEPS = range(0, n_items + 2)
-    COURIERS = range(0, n_couriers)
+    STEPS = range(n_items + 2)
+    COURIERS = range(n_couriers)
 
-    prob = LpProblem("MIP_solver", LpMinimize)
+    first_delivery = 0
+    last_delivery = n_items+1
 
-    delivery_order = LpVariable.dicts("delivery_order", (COURIERS, STEPS), 0, n_items, LpInteger) #dizionario con corrieri come keys e possibili items come values
-    a_max_dist = LpVariable.dicts("a_max_dist", COURIERS, cat='Integer')
+    model = gp.Model()
 
-    print(delivery_order.keys())
+    #decision variables
+    delivery_order = model.addMVar(shape=(n_items + 2,n_couriers), ub=n_items, vtype=GRB.INTEGER)
+    a_max_dist = model.addMVar(shape=(1,n_couriers))
+
 
     # Constraint: All couriers start and end at the origin
-    for key in delivery_order:
-        prob += delivery_order[key][0] == 0
-        prob += delivery_order[key][n_items+1] == 0
+    for i in COURIERS:
+        model.addConstr(delivery_order[first_delivery][i] == 0)
+        model.addConstr(delivery_order[last_delivery][i] == 0)
+
+    # Constraint: Each item is delivered (all values different but zero)
 
     # Constraint: Each item is delivered only once
-    #?????????
+    model.addConstr(sum(delivery_order[i,j] for i in STEPS for j in COURIERS) == (n_items*(n_items+1)/2))
 
-    """"
     # Constraint: Couriers do not exceed their maximum load
-    for c in COURIERS:
-        load_sum = 0
-        for i in STEPS:
-            delivery_value = value(delivery_order[i][c])
-            if delivery_value != 0 and delivery_value != None:
-                load_sum += size_item[delivery_value]  # Access the size of the item
-        prob += load_sum <= max_load[c]
 
     # Constraint: Avoid reloads within couriers
-    for c in COURIERS:
-        for i in STEPS_NO_FIRST_NO_LAST:
-            prob += delivery_order[i][c] != 0 or lpSum(delivery_order[s][c] for s in range(i, n_items + 3)) == 0
 
     #objective
-    #prob += lpSum(a_max_dist[c] for c in COURIERS)
-    """
+
+
 
     # We can specify the solver to use as a parameter of solve
-    prob.solve()
+    model.optimize()
 
 
+    print("\n\n\n###############################################################################")
+    print(delivery_order.X)
+    print("############################################################################### \n")
 
 
 #passare come parametro solo numero dell'istanza (senza lo 0)
