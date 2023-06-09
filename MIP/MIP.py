@@ -41,35 +41,33 @@ def input(num):
 
 def main(num):
     n_couriers, n_items, max_load, size_item, dist = input(num)
-    STEPS = range(n_items + 2)
-    COURIERS = range(n_couriers)
 
     first_delivery = 0
     last_delivery = n_items+1
 
     model = gp.Model()
 
-    #decision variables
-    delivery_order = model.addMVar(shape=(n_items + 2,n_couriers), ub=n_items, vtype=GRB.INTEGER)
+    #decision variables position [i] in couriers and ordering refers to i-th item
+    couriers = model.addMVar(n_items, ub=n_couriers, vtype=GRB.INTEGER)
+    ordering = model.addMVar(n_items, ub=n_items, vtype=GRB.INTEGER)
     a_max_dist = model.addMVar(shape=(1,n_couriers))
 
+    # RIMODELLA IL PROBLEMA IN MODO CHE PER OGNI CORRIERE K ESISTA UNA MATRICE UGUALE A DIST, MA AL POSTO DELLE DISTANZE CI SONO
+    # ZERO E UNO A SECONDA CHE QUEL PACCO SIA STATO PRESO IN CARICO DAL CORRIERE K. CAPISCI SE FATTIBILE
+    # https://www.youtube.com/watch?v=zWPNHCWEOTE
 
-    # Constraint: All couriers start and end at the origin
-    for i in COURIERS:
-        model.addConstr(delivery_order[first_delivery][i] == 0)
-        model.addConstr(delivery_order[last_delivery][i] == 0)
 
-    # Constraint: Each item is delivered (all values different but zero)
 
-    # Constraint: Each item is delivered only once
-    model.addConstr(sum(delivery_order[i,j] for i in STEPS for j in COURIERS) == (n_items*(n_items+1)/2))
 
-    # Constraint: Couriers do not exceed their maximum load
 
-    # Constraint: Avoid reloads within couriers
+    #constraints
+
+
+
+
+
 
     #objective
-
 
 
     # We can specify the solver to use as a parameter of solve
@@ -77,7 +75,8 @@ def main(num):
 
 
     print("\n\n\n###############################################################################")
-    print(delivery_order.X)
+    print("Couriers: ",couriers.X)
+    print("Ordering: ",ordering.X)
     print("############################################################################### \n")
 
 
