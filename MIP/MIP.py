@@ -1,7 +1,8 @@
 import sys
+
+import gurobipy
 import numpy as np
-import gurobipy as gp
-from gurobipy import *
+from gurobipy import GRB, Model, quicksum
 np.set_printoptions(threshold=sys.maxsize)
 
 
@@ -44,23 +45,34 @@ def main(num):
 
     first_delivery = 0
     last_delivery = n_items+1
+    x = np.zeros(dist.shape)
 
-    model = gp.Model()
+    model = gurobipy.Model()
 
     #decision variables position [i] in couriers and ordering refers to i-th item
-    couriers = model.addMVar(n_items, ub=n_couriers, vtype=GRB.INTEGER)
-    ordering = model.addMVar(n_items, ub=n_items, vtype=GRB.INTEGER)
+    delivery_order = model.addMVar(shape=(n_items+2,n_couriers), lb=0, ub=n_items, vtype=GRB.INTEGER)
+    #couriers = model.addMVar(n_items, ub=n_couriers, vtype=GRB.INTEGER)
+    #ordering = model.addMVar(n_items, ub=n_items, vtype=GRB.INTEGER)
     a_max_dist = model.addMVar(shape=(1,n_couriers))
 
-    # RIMODELLA IL PROBLEMA IN MODO CHE PER OGNI CORRIERE K ESISTA UNA MATRICE UGUALE A DIST, MA AL POSTO DELLE DISTANZE CI SONO
-    # ZERO E UNO A SECONDA CHE QUEL PACCO SIA STATO PRESO IN CARICO DAL CORRIERE K. CAPISCI SE FATTIBILE
-    # https://www.youtube.com/watch?v=zWPNHCWEOTE
-
-
-
-
+    """
+    IDEA attuale (vedi disegno su quadernino):
+    Matrice di boolean per ogni corriere, la shape sarà la stessa di all_distances, infatti la casella [i,j] 
+    di questa matrice corrisponderà all'item nella casella [i,j] di all_distances.
+    Sostanzialmente è un grattacielo di matrici, constraint: 
+    - in cui ogni colonna 3 dimensionale dovrà contenere al massimo un 1 (un solo corriere passa per una determinata destinazione)
+    - dagli indici [i,j] si recupera il peso dei due item interessati dallo spostamento e si calcola da lì il max_load massimo da non superare
+    - tutti i pacchi vanno consegnati ????
+    - partenza e arrivo a zero
+    - ALTRE CONSTRAINT???
+    
+    Introduci qualcosa per il calcolo dinamico del peso trasportato dai corrieri
+    """
 
     #constraints
+
+
+
 
 
 
@@ -75,8 +87,9 @@ def main(num):
 
 
     print("\n\n\n###############################################################################")
-    print("Couriers: ",couriers.X)
-    print("Ordering: ",ordering.X)
+    #print("Couriers: ",couriers.X)
+    #print("Ordering: ",ordering.X)
+    print("Delivery order: \n", delivery_order.X)
     print("############################################################################### \n")
 
 
