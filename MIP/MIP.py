@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 np.set_printoptions(threshold=sys.maxsize)
 
 
-def input(num):
+def inputFile(num):
     # Instantiate variables from file
     if num < 10:
         instances_path = "instances/inst0"+str(num)+".dat"  # inserire nome del file
@@ -71,42 +71,16 @@ def printPathAndDistance(delivery_order, all_dist):
     print("Distance: ", dist)
 
 def main(num):
-    n_couriers, n_items, max_load, size_item, all_distances = input(num)
+    n_couriers, n_items, max_load, size_item, all_distances = inputFile(num)
     all_dist_size = all_distances.shape[0]
     weights_matrix = create_weight_matrix(all_distances, size_item)
 
-    first_delivery = 0
-    last_delivery = n_items+1
-
     model = gurobipy.Model()
 
-    #decision variables position [i] in couriers and ordering refers to i-th item
-    #delivery_order = model.addMVar(shape=(n_items+2,n_couriers), lb=0, ub=n_items, vtype=GRB.INTEGER)
-    #couriers = model.addMVar(n_items, ub=n_couriers, vtype=GRB.INTEGER)
-    #ordering = model.addMVar(n_items, ub=n_items, vtype=GRB.INTEGER)
-    a_max_dist = model.addMVar(shape=(1,n_couriers))
     delivery_order = model.addMVar(shape=(n_couriers, all_dist_size, all_dist_size), vtype=GRB.BINARY)
-
-
-    """
-    IDEA attuale (vedi disegno su quadernino):
-    Matrice di boolean per ogni corriere, la shape sarà la stessa di all_distances, infatti la casella [i,j] 
-    di questa matrice corrisponderà all'item nella casella [i,j] di all_distances.
-    
-    Sostanzialmente è un grattacielo di matrici. Le constraint sono: 
-    - in cui ogni colonna 3 dimensionale dovrà contenere al massimo un 1 (un solo corriere passa per una determinata destinazione)
-    - dagli indici [i,j] si recupera il peso dei due item interessati dallo spostamento e si calcola da lì il max_load massimo da non superare
-    - tutti i pacchi vanno consegnati ????
-    - partenza e arrivo a zero
-    - ALTRE CONSTRAINT???
-    
-    Introduci qualcosa per il calcolo dinamico del peso trasportato dai corrieri
-    
-    Alla fine la objective è semplicemente la moltiplicazione della matrice di booleani per all indices 
-    """
+    ordering = model.addMVar(shape=(n_couriers,n_items), ub=n_items, vtype=GRB.INTEGER) #uFrom[k,i] ha valore p se i è la p-esima meta del corriere k
 
     #constraints
-
 
     for i in range(all_dist_size):
         # tutti i pacchi vanno consegnati (ogni colonna 3dimensionale deve contenere almeno una presa in carico)
@@ -122,13 +96,8 @@ def main(num):
 
     #ogni corriere parte e torna all'origine
     for z in range(n_couriers):
-        model.addConstr(delivery_order[z, :, 0].sum() + delivery_order[z, 0, :].sum() == 2)
-
-
-    # Non passi dalla posizione [1,2] alla posizione [8,10], le consegne sono valide solo se [i,j] -> [j,k]
-    # somma di riga e colonna o è zero oppure è maggiore di 2
-    for z in range(n_couriers):
-        pass
+        model.addConstr(delivery_order[z, :, 0].sum()== 1)
+        model.addConstr(delivery_order[z, 0, :].sum() == 1)
 
 
     # per ogni corriere non si supera il max_load
@@ -136,8 +105,22 @@ def main(num):
         model.addConstr(sum(weights_matrix[i,j]*delivery_order[z, i, j] for i in range(all_dist_size) for j in range(all_dist_size)) <= max_load[z])
 
 
+    # Evitare subtour: non passi dalla posizione [1,2] alla posizione [8,10], le consegne sono valide solo se [i,j] -> [j,k]
+    for k in range(n_couriers):
+        model.addConstr(ordering[k,0] == 1)
+
+    for k in range(n_couriers):
+        for i in range(1,n_items):
+            model.addConstr(ordering[k,i] >= 2)
+
+    for k in range(n_couriers):
+        for i in range(1,n_items):
+            for j in range(1, n_items):
+                model.addConstr(ordering[k,j] + (n_items-2) <= ordering[k,i] + (n_items-1)*delivery_order[k,i,j])
+
+
     #objective
-    model.setObjective(sum(all_distances[i,j]*delivery_order[z, i, j] for z in range(n_couriers) for i in range(all_dist_size) for j in range(all_dist_size)), GRB.MINIMIZE)
+    #model.setObjective(sum(all_distances[i,j]*delivery_order[z, i, j] for z in range(n_couriers) for i in range(all_dist_size) for j in range(all_dist_size)), GRB.MINIMIZE)
 
     # We can specify the solver to use as a parameter of solve
     model.optimize()
@@ -156,6 +139,7 @@ def main(num):
         print("Max load: ", max_load[z])
         print("Final load: ", int(current_load.getValue()))
         printPathAndDistance(delivery_order[z,:,:].X, all_distances)
+    print("\n",ordering.X)
     print("############################################################################### \n")
 
 
