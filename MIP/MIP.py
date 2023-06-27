@@ -1,8 +1,11 @@
 import sys
+
+import matplotlib.colors
 import numpy as np
 import gurobipy as gp
 from gurobipy import GRB, quicksum
 import networkx as nx
+import matplotlib.cm as cm
 
 from matplotlib import pyplot as plt
 
@@ -39,6 +42,11 @@ def inputFile(num):
     dist = np.delete(dist, -1, 0)
 
     dist = dist.astype(int)
+
+    # print general information about the problem instance
+    print("Number of items: ", n_items)
+    print("Number of couriers: ", n_couriers)
+    print("")
 
     return n_couriers, n_items, max_load, [0]+size_item, dist
 
@@ -166,13 +174,23 @@ def main(num):
     print("Size_items: ", size_item)
 
     # print plots
-    """
+    tour_edges = [edge for edge in G.edges for z in range(n_couriers) if x[z][edge].x >= 1]
+
+    # Calculate the node colors
+    colormap = cm._colormaps.get_cmap("Set3")
+    node_colors = {}
     for z in range(n_couriers):
-        tour_edges = [edge for edge in G.edges if x[z][edge].x >= 1]
-        nx.draw(G.edge_subgraph(tour_edges), with_labels=True)
-        plt.figure(z)
+        for i, j in G.edges:
+            if x[z][i, j].x >= 1:
+                node_colors[i] = colormap(z)
+                node_colors[j] = colormap(z)
+    node_colors[0] = 'pink'
+    # Convert to list to maintain order for nx.draw
+    color_list = [node_colors[node] for node in G.nodes]
+
+    nx.draw(G.edge_subgraph(tour_edges), with_labels=True, node_color=color_list)
     plt.show()
-    """
+
 
     print("############################################################################### \n")
 
@@ -180,4 +198,4 @@ def main(num):
 
 
 #passare come parametro solo numero dell'istanza (senza lo 0)
-main(12)
+main(4)
