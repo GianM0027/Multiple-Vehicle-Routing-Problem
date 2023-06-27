@@ -40,26 +40,11 @@ def inputFile(num):
 
     dist = dist.astype(int)
 
-    return n_couriers, n_items, max_load, size_item, dist
-
-
-def create_weight_matrix(all_distances, size_item):
-    all_dist = range(all_distances.shape[0])
-    weight_matrix = np.array(all_distances)
-    for i in all_dist:
-        for j in all_dist:
-            if i != 0 and j != 0:
-                if i > j:
-                    weight_matrix[i, j] = size_item[i-1]
-                if j < i:
-                    weight_matrix[i, j] = size_item[j-1]
-    weight_matrix[0, 1:] = size_item[:]
-    weight_matrix[1:, 0] = size_item[:]
-    return weight_matrix
+    return n_couriers, n_items, max_load, [0]+size_item, dist
 
 
 
-def graph(all_distances):
+def createGraph(all_distances):
     all_dist_size = all_distances.shape[0]
     size_item = all_distances.shape[0]-1
     G = nx.DiGraph()
@@ -82,14 +67,12 @@ def graph(all_distances):
 
 def main(num):
     n_couriers, n_items, max_load, size_item, all_distances = inputFile(num)
-    all_dist_size = all_distances.shape[0]
-    weights_matrix = create_weight_matrix(all_distances, size_item)
 
     #model
     model = gp.Model()
 
     # Defining a graph which contain all the possible paths
-    G = graph(all_distances)
+    G = createGraph(all_distances)
 
 
 
@@ -106,87 +89,68 @@ def main(num):
 
     #CONSTRAINTS
 
-    # tutti i pacchi vanno consegnati ma diversi corrieri passano per diversi punti
-    # (ogni riga 3dimensionale e corrispettiva colonna 3dimensionale, depot escluso, devono contenere UNA E UNA SOLA presa in carico)
+    # Every item must be delivered
+    # (each 3-dimensional raw, must contain only 1 true value, depot not included in this constraint)
     for j in G.nodes:
-        if j != 0:
-            model.addConstr(quicksum(x[z][i, j]+x[z][j, i] for z in range(n_couriers) for i in G.nodes if i != j ) == 1)
+        if j != 0: #no depot
+            model.addConstr(quicksum(x[z][i, j] for z in range(n_couriers) for i in G.nodes if i != j) == 1)
 
-    #ogni corriere entra ed esce una volta dal depot (parte e torna allo starting point)
+    # Every node should be entered and left once and by the same vehicle
+    # (number of times a vehicle enters a node is equal to the number of times it leaves that node)
+    for z in range(n_couriers):
+        for i in G.nodes:
+            model.addConstr(quicksum(x[z][i, j]-x[z][j,i] for j in G.nodes if i != j) == 0)
+
+    # each courier leaves and enters exactly once in the depot
+    # (the number of predecessors and successors of the depot must be exactly one for each courier)
     for z in range(n_couriers):
         model.addConstr(quicksum(x[z][i, 0] for i in G.predecessors(0)) == 1)
         model.addConstr(quicksum(x[z][0, j] for j in G.successors(0)) == 1)
 
-    # per ogni corriere non si supera il max_load
-
-    #eliminate sub-tour
-    #model.addConstrs(ordering[z][0] == 1 for z in range(n_couriers))  # first city in each tour is depot
-
-
-    """
-    # constraint per il numero di edges che possono entrare e uscire da ogni nodo
+    # each courier does not exceed its max_load
+    # sum of size_items must be minor than max_load for each courier
     for z in range(n_couriers):
-        model.addConstrs(
-            gp.quicksum(x[z][i, j] for i in G.predecessors(j)) == 1 for j in G.nodes)  # Enter each city exactly once
-        model.addConstrs(
-            gp.quicksum(x[z][i, j] for j in G.successors(i)) == 1 for i in G.nodes)  # Leave each city exactly  once
-    """
-
-    #eliminate subtour
-    #model.addConstrs(u[z][0] == 1 for z in range(n_couriers))  # first city in each tour is depot
-    #model.addConstrs(u[z][i] >= 2 for z in range(n_couriers) for i in G.nodes)  # other cities > 1
-
-    #for z in range(n_couriers):
-        #model.addConstrs(quicksum(u[z][i] for i in G.nodes) == (quicksum(x[z][i,j] for i,j in G.edges)*(quicksum(x[z][i,j] for i,j in G.edges)+1))/2)
-        #model.addConstrs(u[z][i] - u[z][j] + (n - 1) * x[z][i, j] + (n - 3) * x[z][j, i] <= n - 2 for i, j in G.edges if j != 0)
+        model.addConstr(quicksum(size_item[j] * x[z][i, j] for i,j in G.edges) <= max_load[z])
 
 
+    # subtour elimination (Explicit Dantzig-Fulkerson-Johnson formulation)
 
-    """
-    #constraints
+    # item delivered by each courier
+    #items_delivered = [sum(x[z][i, j].x for i, j in G.edges) for z in range(n_couriers)]
 
-    for i in range(all_dist_size):
-        # tutti i pacchi vanno consegnati (ogni colonna 3dimensionale deve contenere almeno una presa in carico)
-        model.addConstr((delivery_order[:, :, i].sum() >= 1))
-        for j in range(all_dist_size):
-            if i != j:
-                # un solo corriere passa per una determinata posizione [i,j] (un pacco viene consegnato da un solo corriere)
-                model.addConstr((delivery_order[:, i, j].sum() <= 1))
-            else:
-                # la diagonale deve essere sempre composta da zeri
-                model.addConstr((delivery_order[:, i, j].sum() == 0))
-
-    # per ogni corriere non si supera il max_load
+    # the depot is always the first point visited
     for z in range(n_couriers):
-        model.addConstr(sum(weights_matrix[i,j]*delivery_order[z, i, j] for i in range(all_dist_size) for j in range(all_dist_size)) <= max_load[z])
+        model.addConstr(ordering[z][0] == 0)
+
+    # all the other points must be visited after the depot
+    for z in range(n_couriers):
+        for i in G.nodes:
+            if i != 0:  # excluding the depot
+                model.addConstr(ordering[z][i] >= 1)
+
+    # MTZ for delivery ordering
+    for z in range(n_couriers):
+        for i,j in G.edges:
+            if i != j and (i != 0 and j != 0):  # excluding the depot and self loops
+                model.addConstr(ordering[z][i] - ordering[z][j] + 1 <= (1 - x[z][i, j]) * quicksum(x[z][k, l] for k,l in G.edges))
 
 
-    # Evitare subtour: non passi dalla posizione [1,2] alla posizione [8,10], le consegne sono valide solo se [i,j] -> [j,k]
-    
-    
-    
-    """
 
+    # start solving process
     model.optimize()
 
 
     #print information about solving process
     print("\n\n\n###############################################################################")
-    print("Number of items: ", n_items)
-    print("Number of couriers: ", n_couriers)
-    print("all_distances:\n", all_distances, "\n")
-    print("Size_items: ", size_item)
-    print("weight_matrix:\n", weights_matrix)
 
-
+    # print general information about each courier
     for z in range(n_couriers):
         print(f"\nCourier {z}: ")
-        current_load = quicksum(weights_matrix[i,j]*x[z][i, j] for i,j in G.edges)
         print("Max load: ", max_load[z])
-        print("Final load: ", current_load.getValue())
-        total_dist = quicksum(all_distances[i, j] * x[z][i, j].x for z in range(n_couriers) for i,j in G.edges)
-        print("Total distance: ", total_dist)
+        print("Final load: ", quicksum(size_item[j] * x[z][i, j].x for i,j in G.edges))
+        print("Total distance: ", quicksum(all_distances[i,j] * x[z][i, j].x for i,j in G.edges))
 
+    # print ordering variables
     z = 0
     for dictionary in ordering:
         print(f"\nCourier: {z}")
@@ -195,11 +159,20 @@ def main(num):
         print("")
         z+=1
 
+    # print general information about the problem instance
+    print("Number of items: ", n_items)
+    print("Number of couriers: ", n_couriers)
+    print("all_distances:\n", all_distances, "\n")
+    print("Size_items: ", size_item)
+
+    # print plots
+    """
     for z in range(n_couriers):
         tour_edges = [edge for edge in G.edges if x[z][edge].x >= 1]
         nx.draw(G.edge_subgraph(tour_edges), with_labels=True)
         plt.figure(z)
     plt.show()
+    """
 
     print("############################################################################### \n")
 
@@ -207,4 +180,4 @@ def main(num):
 
 
 #passare come parametro solo numero dell'istanza (senza lo 0)
-main(1)
+main(12)
