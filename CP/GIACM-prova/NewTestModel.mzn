@@ -2,15 +2,20 @@ include "alldifferent.mzn";
 
 % CHOOSE THE INPUT FOR THE MODEL
 %------------------------------
+% include "inst01.dzn";    % 2 couriers, 6 items
+% include "inst02.dzn";    % 6 couriers, 9 items
+% include "inst03.dzn";    % 3 couriers, 7 items
+% include "inst04.dzn";    % 8 couriers, 10 items
+
 
 % 3 couriers, 7 items / Solution -> a_max_dist = [12, 10, 10];
-include "prof_example_input.dzn"; 
+% include "prof_example_input.dzn"; 
 
 % 5 couriers, 9 items / Solution -> a_max_dist = [10, 10, 9, 8, 10]; (a_max_dist = [10, 9, 8, 8, 8] with the new objective f)
-%include "simple_input.dzn"; 
+% include "simple_input.dzn"; 
 
 % 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 15, 14, 13];
-%include "middle_complexity_input.dzn";
+include "middle_complexity_input.dzn";
 
 % 4 couriers, 47 items / Solution -> a_max_dist = ????????????
 %include "complex_input.dzn";
@@ -66,8 +71,6 @@ array[1..n_items+2,COURIERS] of var ITEMS_0: decode_matrix;
 % CONSTRAINTS per risoluzione problema
 %------------------------------
 
-
-
 %Tutti i corrieri partono all'origine
 constraint forall(c in COURIERS)(delivery_order[c] == 0);
 
@@ -101,23 +104,30 @@ constraint forall(c in COURIERS) (
 constraint forall(s in STEPS, c in COURIERS)(if courier_assignment[s] == c then
                   delivery_order[s] < count(courier_assignment,c) endif);
 
+% REDUNDANT CONSTRAINTS 
+%------------------------------
+%Tutti i corrieri partono e tornano all'origine
+% constraint forall(c in COURIERS)
+%                   (decode_matrix[1,c] == 0 /\ decode_matrix[n_items+2,c] == 0);
+
+%Ogni pacco deve essere consegnato una sola volta
+% constraint alldifferent_except_0(decode_matrix);
+
+%Ogni pacco deve essere consegnato
+% constraint count(decode_matrix, 0, (steps*n_couriers)-n_items);
+
+% Ogni corriere non deve superare il suo carico massimo
+% constraint forall(c in COURIERS) (
+%   sum([size_item[decode_matrix[i,c]] | i in STEPS where decode_matrix[i,c] != 0]) <= max_load[c]);
+                  
+% % Rimozione soluzioni con 'reload' dai corrieri
+% constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)      
+%                  (delivery_order[i,c] != 0 \/ sum(delivery_order[i..,c]) == 0);
+
+
 % CONSTRAINTS per far scendere i tempi di risoluzione del problema
 %------------------------------
 %TEST CONSTRAINT -> each courier deliver at least one item
-/*
-constraint forall(c in COURIERS)(sum(delivery_order[n_items+2-n_couriers..,c]) == 0);
-constraint forall(c in COURIERS)(delivery_order[2,c]!= 0);
-
-constraint all_equal(delivery_order[n_items+2-n_couriers..,1..n_couriers]);
-
-
-/*
-var float: avg_dist = sum(all_distances)/((n_items+1)*n_items);
-set of int: TEMP = 5..0;
-constraint forall(c in COURIERS, s in STEPS_NO_LAST, t in TEMP)
-                  (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] <= avg_dist+t);
-*/    
-%With those new constraints is faster / the second one may give unoptimal solutions but its an idea we can try to use
 
 
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE (max_dist)
@@ -132,8 +142,13 @@ constraint forall(c in COURIERS)
                   (a_max_dist[c] = sum(s in 1..n_items+1)
                   (all_distances[decode_matrix[s,c] + 1,decode_matrix[s + 1,c] + 1] ));
 
-var int: max_dist = max(a_max_dist);
+% var int: max_dist = max(a_max_dist);
 
-solve satisfy; %:: int_search(delivery_order, dom_w_deg, indomain_min) 
+var int: obj_fun = sum(a_max_dist)+ max(a_max_dist)- min(a_max_dist);
+% solve minimize obj_fun
 
-%minimize max_dist;
+solve :: int_search(courier_assignment, dom_w_deg, indomain_min)
+      :: restart_linear(1000)
+minimize obj_fun;
+
+% solve minimize max_dist;

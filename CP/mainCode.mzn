@@ -3,24 +3,29 @@ include "globals.mzn";
 
 % CHOOSE THE INPUT FOR THE MODEL
 %------------------------------
-
-% 3 couriers, 7 items / Solution -> a_max_dist = [12, 10, 10];
-% include "prof_example_input.dzn"; 
-
-% 5 couriers, 9 items / Solution -> a_max_dist = [10, 10, 9, 8, 10]; (a_max_dist = [10, 9, 8, 8, 8] with the new objective f)
-% include "simple_input.dzn"; 
-
-% 5 couriers, 11 items / Solution -> a_max_dist = [13, 15, 15, 14, 13];
-%include "middle_complexity_input.dzn";
-
-% 5 couriers, 22 items / Solution -> a_max_dist = ????????????
-include "middle_complex_complexity_input.dzn";
-
-% 4 couriers, 47 items / Solution -> a_max_dist = ????????????
-%include "complex_input.dzn";
+include "inst01.dzn";    % 2 couriers, 6 items
+% include "inst02.dzn";    % 6 couriers, 9 items
+% include "inst03.dzn";    % 3 couriers, 7 items
+% include "inst04.dzn";    % 8 couriers, 10 items
+% include "inst05.dzn";    % 2 couriers, 3 items
+% include "inst06.dzn";    % 6 couriers, 8 items
+% include "inst07.dzn";    % 6 couriers, 17 items
+% include "inst08.dzn";    % 8 couriers, 10 items
+% include "inst09.dzn";    % 10 couriers, 13 items
+% include "inst10.dzn";    % 10 couriers, 13 items
+% include "inst11.dzn";    % 20 couriers, 143 items
+% include "inst12.dzn";    % 20 couriers, 95 items
+% include "inst13.dzn";    % 3 couriers, 47 items
+% include "inst14.dzn";    % 20 couriers, 215 items
+% include "inst15.dzn";    % 20 couriers, 239 items
+% include "inst16.dzn";    % 20 couriers, 47 items
+% include "inst17.dzn";    % 20 couriers, 287 items
+% include "inst18.dzn";    % 20 couriers, 191 items
+% include "inst19.dzn";    % 20 couriers, 71 items
+% include "inst20.dzn";    % 20 couriers, 287 items
+% include "inst21.dzn";    % 20 couriers, 143 items
 
 %include "CreateInputFinal/input_test.dzn";
-
 
 % PARAMETERS DECLARATION
 %------------------------------
@@ -54,95 +59,64 @@ set of int: STEPS_NO_FIRST_NO_LAST = 2..(n_items+1);
 % Correspondence between courier and items (chronological order)
 array[STEPS, COURIERS] of var 0..n_items: delivery_order;
 
-% array of max distance for each courier
-array[COURIERS] of var int: a_max_dist;
+% array of the travelled distances for each courier
+array[COURIERS] of var 0..sum(all_distances): courier_dist;
 
 
-% CONSTRAINTS NECESSARIE per risoluzione problema
+% CONSTRAINTS NECESSARY for problem resolution
 %------------------------------
-%Tutti i corrieri partono e tornano all'origine
-% constraint count(delivery_order[1,1..],0,n_couriers); %più lento di qualche ms
-% constraint count(delivery_order[n_items+2,1..],0,n_couriers);
+% All couriers depart and return to the origin
 constraint forall(c in COURIERS)
                   (delivery_order[1,c] == 0 /\ delivery_order[n_items+2,c] == 0);
 
-%Ogni pacco deve essere consegnato una sola volta
+% Each package must be delivered only once
 constraint alldifferent_except_0(delivery_order);
 
-%Ogni pacco deve essere consegnato
-% constraint sum(delivery_order) == sum_items; %old version
-constraint nvalue(n_items+1, delivery_order);
+% Each package must be delivered
+constraint count(delivery_order, 0, (steps*n_couriers)-n_items);
 
-% Ogni corriere non deve superare il suo carico massimo
+% Each carrier must not exceed its maximum load
 constraint forall(c in COURIERS) (
   sum([size_item[delivery_order[i,c]] | i in STEPS where delivery_order[i,c] != 0]) <= max_load[c]);
                   
-% Rimozione soluzioni con 'reload' dai corrieri
+% Removing solutions with 'reload' from couriers
 constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)      
                  (delivery_order[i,c] != 0 \/ sum(delivery_order[i..,c]) == 0);
 
-
-
-
                  
-% CONSTRAINTS per far scendere i tempi di risoluzione del problema
+% CONSTRAINTS to decrease problem resolution time
 %------------------------------
 
-%Each courier deliver at least one item -> not very useful
+% Constraint that guarantees an equal distrubution of the number of items among the couriers (maximum difference is two items)
+constraint forall(c in COURIERS,s in STEPS)
+                 (if c+((s-1)*n_couriers)> n_items+(2*n_couriers) then
+                 delivery_order[s,c] = 0 endif);
+
+% Each courier deliver at least one item -> not very useful
 constraint if max(size_item) <= min(max_load) then 
               forall(c in COURIERS)(delivery_order[2,c] != 0 /\
               sum(delivery_order[steps-n_couriers..,c]) == 0) endif;
-              
+        
 
-
-/*
-constraint forall(k in ITEMS, c in COURIERS, s in STEPS_NO_LAST where delivery_order[s,c] != 0)
-                  (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] <= (all_distances[delivery_order[s,c] + 1,k] + all_distances[delivery_order[s + 1,c] + 1,k]));
-
-
-(CONSTRAINT di base sbagliate, ma da cui si può prendere spunto per qualche idea)
-
-% vincolo con il quale si cerca di dare una logica alla scelta della meta successiva, sviluppare l'idea
-constraint forall(c in COURIERS, s in STEPS_NO_LAST)
-                  (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] <
-                  max(all_distances));
-
-
-%vincolo con il quale si cerca di assegnare meno peso a un corriere con max_load più piccolo 
-constraint forall(c in COURIERS, c1 in COURIERS where max_load[c] <= max_load[c1])(
-                  sum([size_item[delivery_order[i,c]] | i in STEPS where delivery_order[i,c] != 0])
-                    <= sum([size_item[delivery_order[i,c1]] | i in STEPS where delivery_order[i,c1] != 0]));
-*/
-
-
-
-
-
-% OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE (max_dist)
+% OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE - MAXIMIZE FAIRNESS
 %------------------------------
 constraint forall(c in COURIERS)
-                  (a_max_dist[c] = sum(s in STEPS_NO_LAST)
+                  (courier_dist[c] >= sum(s in STEPS_NO_LAST)
                   (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] ));
 
-constraint forall(c in COURIERS) (a_max_dist[c] <= max(a_max_dist)); % with this is a little faster
-var int: max_dist = max(a_max_dist);
+constraint forall(c in COURIERS)(courier_dist[c]<= max(courier_dist));
+% minimize the max of the distances 
+% var int: max_dist = max(courier_dist);
+% solve minimize max_dist;
+
+% minimize the sum between the total length of all the couriers and the difference between the max and the min distance (10x slower)
+var int: obj_fun = (sum(courier_dist)*2)+ max(courier_dist)- min(courier_dist);
+% solve minimize obj_fun;
 
 
-
-
-
-% euristica per la ricerca della soluzione
-
-%provare questo metodo di risoluzione con le colonne ordinate in ordine crescente
-solve minimize max_dist;
-
-
-/*
 solve :: int_search(delivery_order, dom_w_deg, indomain_random)
-      :: relax_and_reconstruct(delivery_order, 85)
-      :: restart_linear(1000)
-minimize max_dist;
- */
+minimize obj_fun;
+
 
 
 

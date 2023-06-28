@@ -4,7 +4,7 @@ np.set_printoptions(threshold=sys.maxsize)
 
 def main():
     # Instantiate variables from file
-    instances_path = "Instances/inst20.dat"   #inserire nome del file
+    instances_path = "instances\inst19.dat"   #inserire nome del file
     data_file = open(instances_path)
     lines = []
     for line in data_file:
