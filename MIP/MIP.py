@@ -90,8 +90,15 @@ def main(num):
 
 
 
-    #objective function (minimize total distance travelled)
-    model.setObjective(quicksum(all_distances[i, j] * x[z][i, j] for z in range(n_couriers) for i,j in G.edges),GRB.MINIMIZE)
+    #objective function (minimize total distance travelled + difference between min and max path normalized)
+    maxTravelled = model.addVar(vtype=GRB.CONTINUOUS, name="maxTravelled")
+    minTravelled = model.addVar(vtype=GRB.CONTINUOUS, name="minTravelled")
+    for z in range(n_couriers):
+        courierTravelled = quicksum(all_distances[i, j] * x[z][i, j] for i, j in G.edges)
+        model.addConstr(courierTravelled <= maxTravelled, f"maxTravelledConstr_{z}")
+        model.addConstr(courierTravelled >= minTravelled, f"minTravelledConstr_{z}")
+    sumOfAllPaths = gp.LinExpr(quicksum(all_distances[i, j] * x[z][i, j] for z in range(n_couriers) for i, j in G.edges))
+    model.setObjective(sumOfAllPaths+n_items*(maxTravelled - minTravelled), GRB.MINIMIZE)
 
 
 
@@ -121,7 +128,7 @@ def main(num):
         model.addConstr(quicksum(size_item[j] * x[z][i, j] for i,j in G.edges) <= max_load[z])
 
 
-    # subtour elimination (Explicit Dantzig-Fulkerson-Johnson formulation)
+    # subtour elimination (Miller-Tucker-Zemlin formulation)
 
     # item delivered by each courier
     #items_delivered = [sum(x[z][i, j].x for i, j in G.edges) for z in range(n_couriers)]
@@ -188,6 +195,10 @@ def main(num):
     # Convert to list to maintain order for nx.draw
     color_list = [node_colors[node] for node in G.nodes]
 
+
+    print(minTravelled.x)
+    print(maxTravelled.x)
+
     nx.draw(G.edge_subgraph(tour_edges), with_labels=True, node_color=color_list)
     plt.show()
 
@@ -198,4 +209,23 @@ def main(num):
 
 
 #passare come parametro solo numero dell'istanza (senza lo 0)
-main(4)
+main(5)
+
+
+"""
+Euristiche per speed up:
+
+
+Warm start: If you have a feasible solution already, you can use that as a starting point for the solver. This can often help to significantly speed up the solution process, especially if your initial solution is good. This is not applicable if you don't have an initial feasible solution.
+
+Adjust solver parameters: There are various parameters in Gurobi that can influence the solving process. Some of them that could be potentially interesting for your problem are:
+
+MIPFocus: This parameter lets you shift the focus of the solver towards finding feasible solutions quickly (MIPFocus=1), proving optimality (MIPFocus=2), or improving the best bound (MIPFocus=3). You can experiment with these settings and see what works best for your problem.
+Heuristics: This parameter controls the amount of time spent in MIP heuristics. You could increase this parameter to find better feasible solutions early.
+Cuts: The aggressiveness of cut generation can be controlled via the Cuts parameter. Cuts can help to improve the LP relaxation bound, but generating and adding them into the model takes time.
+Preprocessing: Gurobi's presolver can often simplify the problem before it is solved, by removing redundant constraints and variables, tightening bounds, etc. This is generally helpful, but in some cases it might be beneficial to turn off some or all of the presolve.
+
+Solution Pool: Gurobi's solution pool feature allows you to gather more than one solution during the MIP solve process. You can control how many solutions you want to collect and also the quality of these solutions. This could be useful if you are more interested in finding good solutions quickly rather than proving optimality.
+
+Using a heuristic solution: You could consider developing a heuristic to find a quick, possibly suboptimal solution, and then feed that solution to the MIP solver as a starting solution. The heuristic could be based on domain-specific knowledge, or a simplification of the problem. For example, you might solve a relaxed version of the problem (ignoring some constraints) as a heuristic.
+"""
