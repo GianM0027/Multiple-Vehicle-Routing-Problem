@@ -70,6 +70,7 @@ v = [[Bool(f"v_{i}_{k}") for k in range(n_couriers)] for i in range(n_items)]  #
 len_bin = int(log2(n_items)) + 1
 u = [[[Bool(f"u_{i}_{b}_{k}") for k in range(n_couriers)] for b in range(len_bin)] for i in range(n_items)]  # encoding in binary of order index of node i
 
+
 # - - - - - - - - - - - - - - - -  CONSTRAINTS - - - - - - - - - - - - -  - - - #
 
 # No routes from any node to itself
@@ -105,8 +106,8 @@ for i in range(n_items):
 
 # If courier k goes from location (i, j) to location (j, f), then courier k must also carry item f
 for k in range(n_couriers):
-    for i in range(n_items):
-        for j in range(n_items):
+    for i in range(n_items+1):
+        for j in range(n_items+1):
             s.add([Implies(And(x[i][j][k], x[j][f][k]), v[f][k]) for f in range(n_items)])
 
 
@@ -121,13 +122,14 @@ for k in range(n_couriers):
                 #print(f"u[i][k]) -> {u[i][k]}")
                 s.add(Implies(x[i][j][k], binary_increment(u[i][k], u[j][k])))"""
 
+
 # If courier k goes from location (i, j), then the next location must be (j, f)
 # and if courier k goes to location (j, f), then the previous location must be (i, j)
 for k in range(n_couriers):
-    for i in range(n_items):
-        for j in range(n_items):
-            for f in range(n_items):
-                s.add(Implies(And(x[i][j][k], x[j][f][k]), And(Or([x[i][j][k] for i in range(n_items)]), Or([x[j][f][k] for f in range(n_items)]))))
+    for i in range(n_items+1):
+        for j in range(n_items+1):
+            for f in range(n_items+1):
+                s.add(Implies(And(x[i][j][k], x[j][f][k]), And(Or([x[i][j][k] for i in range(n_items+1)]), Or([x[j][f][k] for f in range(n_items+1)]))))
 
 
 total_distance = Sum(
