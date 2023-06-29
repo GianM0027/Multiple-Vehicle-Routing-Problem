@@ -104,11 +104,20 @@ for k in range(n_couriers):
 for i in range(n_items):
     s.add(PbEq([(v[i][k], 1) for k in range(n_couriers)], 1))
 
+
+""""
 # If courier k goes from location (i, j) to location (j, f), then courier k must also carry item f
 for k in range(n_couriers):
     for i in range(n_items+1):
         for j in range(n_items+1):
             s.add([Implies(And(x[i][j][k], x[j][f][k]), v[f][k]) for f in range(n_items)])
+           """
+
+# If courier k goes to location (i, j), then courier k must carry item i, j
+for k in range(n_couriers):
+    for i in range(n_items):
+        for j in range(n_items):
+            s.add([Implies(x[i][j][k], And(v[i][k],v[j][k]))])
 
 
 # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
@@ -122,7 +131,7 @@ for k in range(n_couriers):
                 #print(f"u[i][k]) -> {u[i][k]}")
                 s.add(Implies(x[i][j][k], binary_increment(u[i][k], u[j][k])))"""
 
-
+"""
 # If courier k goes from location (i, j), then the next location must be (j, f)
 # and if courier k goes to location (j, f), then the previous location must be (i, j)
 for k in range(n_couriers):
@@ -130,7 +139,7 @@ for k in range(n_couriers):
         for j in range(n_items+1):
             for f in range(n_items+1):
                 s.add(Implies(And(x[i][j][k], x[j][f][k]), And(Or([x[i][j][k] for i in range(n_items+1)]), Or([x[j][f][k] for f in range(n_items+1)]))))
-
+"""
 
 total_distance = Sum(
     [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i in range(n_items + 1) for j in
@@ -167,7 +176,7 @@ if s.check() == sat:
         print("Courier Load = " + str(actual_load))
         print("\n")
 
-        # total distance traveled minimized
+    # total distance traveled minimized
     print(model.evaluate(total_distance))
     print("\n")
 
