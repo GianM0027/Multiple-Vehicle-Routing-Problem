@@ -1,6 +1,5 @@
 import sys
 
-import matplotlib.colors
 import numpy as np
 import gurobipy as gp
 from gurobipy import GRB, quicksum
@@ -86,7 +85,7 @@ def main(num):
 
     #decision variables
     x = [model.addVars(G.edges, vtype=gp.GRB.BINARY) for _ in range(n_couriers)]
-    ordering = [model.addVars(G.nodes, vtype=GRB.INTEGER) for _ in range(n_couriers)] #ordering[z,i] ha valore p se i è la p-esima meta del corriere z
+    ordering = [model.addVars(G.nodes, vtype=GRB.INTEGER, ub=n_items) for _ in range(n_couriers)] #ordering[z,i] ha valore p se i è la p-esima meta del corriere z
 
 
 
@@ -104,7 +103,7 @@ def main(num):
 
     #CONSTRAINTS
 
-    # Every item must be delivered
+    # Every item must be deliveredj
     # (each 3-dimensional raw, must contain only 1 true value, depot not included in this constraint)
     for j in G.nodes:
         if j != 0: #no depot
@@ -119,8 +118,8 @@ def main(num):
     # each courier leaves and enters exactly once in the depot
     # (the number of predecessors and successors of the depot must be exactly one for each courier)
     for z in range(n_couriers):
-        model.addConstr(quicksum(x[z][i, 0] for i in G.predecessors(0)) == 1)
-        model.addConstr(quicksum(x[z][0, j] for j in G.successors(0)) == 1)
+        model.addConstr(quicksum(x[z][i, 0] for i in G.nodes if i != 0) == 1)
+        model.addConstr(quicksum(x[z][0, j] for j in G.nodes if j != 0) == 1)
 
     # each courier does not exceed its max_load
     # sum of size_items must be minor than max_load for each courier
@@ -177,8 +176,8 @@ def main(num):
     # print general information about the problem instance
     print("Number of items: ", n_items)
     print("Number of couriers: ", n_couriers)
-    print("all_distances:\n", all_distances, "\n")
     print("Size_items: ", size_item)
+    print("all_distances:\n", all_distances, "\n")
 
     # print plots
     tour_edges = [edge for edge in G.edges for z in range(n_couriers) if x[z][edge].x >= 1]
@@ -195,10 +194,6 @@ def main(num):
     # Convert to list to maintain order for nx.draw
     color_list = [node_colors[node] for node in G.nodes]
 
-
-    print(minTravelled.x)
-    print(maxTravelled.x)
-
     nx.draw(G.edge_subgraph(tour_edges), with_labels=True, node_color=color_list)
     plt.show()
 
@@ -209,7 +204,7 @@ def main(num):
 
 
 #passare come parametro solo numero dell'istanza (senza lo 0)
-main(5)
+main(2)
 
 
 """
