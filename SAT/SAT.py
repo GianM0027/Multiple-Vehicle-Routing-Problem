@@ -120,6 +120,7 @@ for k in range(n_couriers):
             s.add([Implies(x[i][j][k], And(v[i][k],v[j][k]))])
 
 
+
 # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
 
 """# The order of visiting locations must be consistent with the binary representations

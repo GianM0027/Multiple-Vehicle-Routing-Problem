@@ -1,2 +1,3 @@
 GNM: ciao
 M: Ciao!
+GNMç Che fai?
