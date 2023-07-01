@@ -49,9 +49,9 @@ array[1..n_items+1,1..n_items+1] of int: all_distances;
 set of int: COURIERS = 1..n_couriers;
 set of int: ITEMS = 1..n_items;
 int: steps = n_items+2;
-set of int: STEPS = 1..(n_items+2); 
-set of int: STEPS_NO_LAST = 1..(n_items+1);
-set of int: STEPS_NO_FIRST_NO_LAST = 2..(n_items+1);
+set of int: STEPS = 1..steps; 
+set of int: STEPS_NO_LAST = 1..steps-1;
+set of int: STEPS_NO_FIRST_NO_LAST = 2..steps-1;
 
 
 % DECISION VARIABLES
