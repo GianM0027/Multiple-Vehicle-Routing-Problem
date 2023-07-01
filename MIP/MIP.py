@@ -5,7 +5,6 @@ import gurobipy as gp
 from gurobipy import GRB, quicksum
 import networkx as nx
 import matplotlib.cm as cm
-
 from matplotlib import pyplot as plt
 
 np.set_printoptions(threshold=sys.maxsize)

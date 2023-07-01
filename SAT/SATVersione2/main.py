@@ -2,8 +2,31 @@ from z3 import *
 import numpy as np
 from math import log2
 from itertools import combinations
+import networkx as nx
+import matplotlib.cm as cm
+from matplotlib import pyplot as plt
 
 numero = 2
+
+def createGraph(all_distances):
+    all_dist_size = all_distances.shape[0]
+    size_item = all_distances.shape[0]-1
+    G = nx.DiGraph()
+
+    # Add nodes to the graph
+    G.add_nodes_from(range(all_dist_size))
+
+    # Add double connections between nodes
+    for i in range(all_dist_size):
+        for j in range(i + 1, size_item + 1): #size item + 1 because we enclude also the depot in the graph
+            G.add_edge(i, j)
+            G.add_edge(j, i)
+
+    # Assign edge lengths
+    lengths = {(i, j): all_distances[i][j] for i, j in G.edges()}
+    nx.set_edge_attributes(G, lengths, 'length')
+
+    return G
 
 
 def toBinary(num, length=None):
@@ -107,11 +130,10 @@ def binary_increment(a, b):
 def inputFile(num):
     # Instantiate variables from file
     if num < 10:
-        instances_path = "/Users/maurodore/GitHubRepos/CDMO-project/SAT/instances/inst0" + str(
-            num) + ".dat"  # inserire nome del file
+        instances_path = "instances/inst0"+str(num)+".dat"  # inserire nome del file
     else:
-        instances_path = "/Users/maurodore/GitHubRepos/CDMO-project/SAT/instances/inst" + str(
-            num) + ".dat"  # inserire nome del file
+        instances_path = "instances/inst" + str(num) + ".dat"  # inserire nome del file
+
 
     data_file = open(instances_path)
     lines = []
@@ -157,6 +179,9 @@ v = [[Bool(f"v_{i}_{k}") for k in range(n_couriers)] for i in range(n_items)]  #
 len_bin = int(log2(n_items)) + 1
 u = [[[Bool(f"u_{i}_{k}_{b}") for b in range(len_bin)] for k in range(n_couriers)] for i in
      range(n_items)]  # encoding in binary of order index of node i
+
+# Defining a graph which contain all the possible paths
+G = createGraph(all_distances)
 
 # - - - - - - - - - - - - - - - -  CONSTRAINTS - - - - - - - - - - - - -  - - - #
 
@@ -272,6 +297,24 @@ if s.check() == sat:
     # total distance traveled minimized
     """print(model.evaluate(total_distance))
     print("\n")"""
+
+    # print plots
+    tour_edges = [(i,j) for i,j in G.edges for z in range(n_couriers) if model.evaluate(x[i][j][z])]
+
+    # Calculate the node colors
+    colormap = cm._colormaps.get_cmap("Set3")
+    node_colors = {}
+    for z in range(n_couriers):
+        for i, j in G.edges:
+            if model.evaluate(x[i][j][z]):
+                node_colors[i] = colormap(z)
+                node_colors[j] = colormap(z)
+    node_colors[0] = 'pink'
+    # Convert to list to maintain order for nx.draw
+    color_list = [node_colors[node] for node in G.nodes]
+
+    nx.draw(G.edge_subgraph(tour_edges), with_labels=True, node_color=color_list)
+    plt.show()
 
 
 else:
