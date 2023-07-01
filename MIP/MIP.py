@@ -90,20 +90,21 @@ def main(num):
 
 
     #objective function (minimize total distance travelled + difference between min and max path normalized)
-    maxTravelled = model.addVar(vtype=GRB.CONTINUOUS, name="maxTravelled")
-    minTravelled = model.addVar(vtype=GRB.CONTINUOUS, name="minTravelled")
+    maxTravelled = model.addVar(vtype=GRB.INTEGER, name="maxTravelled")
+    minTravelled = model.addVar(vtype=GRB.INTEGER, name="minTravelled")
     for z in range(n_couriers):
         courierTravelled = quicksum(all_distances[i, j] * x[z][i, j] for i, j in G.edges)
-        model.addConstr(courierTravelled <= maxTravelled, f"maxTravelledConstr_{z}")
-        model.addConstr(courierTravelled >= minTravelled, f"minTravelledConstr_{z}")
+        model.addConstr(courierTravelled <= maxTravelled)
+        model.addConstr(courierTravelled >= minTravelled)
     sumOfAllPaths = gp.LinExpr(quicksum(all_distances[i, j] * x[z][i, j] for z in range(n_couriers) for i, j in G.edges))
+
     model.setObjective(sumOfAllPaths+n_items*(maxTravelled - minTravelled), GRB.MINIMIZE)
 
 
 
     #CONSTRAINTS
 
-    # Every item must be deliveredj
+    # Every item must be delivered
     # (each 3-dimensional raw, must contain only 1 true value, depot not included in this constraint)
     for j in G.nodes:
         if j != 0: #no depot
@@ -113,7 +114,7 @@ def main(num):
     # (number of times a vehicle enters a node is equal to the number of times it leaves that node)
     for z in range(n_couriers):
         for i in G.nodes:
-            model.addConstr(quicksum(x[z][i, j]-x[z][j,i] for j in G.nodes if i != j) == 0)
+            model.addConstr(quicksum(x[z][i,j]-x[z][j,i] for j in G.nodes if i != j) == 0)
 
     # each courier leaves and enters exactly once in the depot
     # (the number of predecessors and successors of the depot must be exactly one for each courier)
@@ -127,7 +128,7 @@ def main(num):
         model.addConstr(quicksum(size_item[j] * x[z][i, j] for i,j in G.edges) <= max_load[z])
 
 
-    # subtour elimination (Miller-Tucker-Zemlin formulation)
+    # subtour elimination
 
     # item delivered by each courier
     #items_delivered = [sum(x[z][i, j].x for i, j in G.edges) for z in range(n_couriers)]
@@ -136,13 +137,14 @@ def main(num):
     for z in range(n_couriers):
         model.addConstr(ordering[z][0] == 0)
 
+
     # all the other points must be visited after the depot
     for z in range(n_couriers):
         for i in G.nodes:
             if i != 0:  # excluding the depot
                 model.addConstr(ordering[z][i] >= 1)
 
-    # MTZ for delivery ordering
+    # delivery ordering -> ordering[z][i], ordering[z][j]
     for z in range(n_couriers):
         for i,j in G.edges:
             if i != j and (i != 0 and j != 0):  # excluding the depot and self loops
@@ -152,8 +154,10 @@ def main(num):
 
     # start solving process
     model.optimize()
+    print("Number of items: ", n_items)
+    print("Number of couriers: ", n_couriers)
 
-
+    """
     #print information about solving process
     print("\n\n\n###############################################################################")
 
@@ -199,12 +203,12 @@ def main(num):
 
 
     print("############################################################################### \n")
-
+    """
 
 
 
 #passare come parametro solo numero dell'istanza (senza lo 0)
-main(2)
+main(4)
 
 
 """
