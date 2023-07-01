@@ -305,13 +305,13 @@ if s.check() == sat:
     colormap = cm._colormaps.get_cmap("Set3")
     node_colors = {}
     for z in range(n_couriers):
-        for i, j in G.edges:
-            if model.evaluate(x[i][j][z]):
+        for i in range(n_items+1):
+            if model.evaluate(v[i-1][z]):
                 node_colors[i] = colormap(z)
-                node_colors[j] = colormap(z)
     node_colors[0] = 'pink'
+
     # Convert to list to maintain order for nx.draw
-    color_list = [node_colors[node] for node in G.nodes]
+    color_list = [node_colors[i] for i in range(n_items+1)]
 
     nx.draw(G.edge_subgraph(tour_edges), with_labels=True, node_color=color_list)
     plt.show()
