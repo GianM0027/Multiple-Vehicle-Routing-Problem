@@ -6,7 +6,7 @@ import networkx as nx
 import matplotlib.cm as cm
 from matplotlib import pyplot as plt
 
-numero = 4
+numero = 8
 
 def createGraph(all_distances):
     all_dist_size = all_distances.shape[0]
@@ -237,6 +237,9 @@ for k in range(n_couriers):
         for j in range(1, n_items + 1):
             s.add([Implies(x[i][j][k], And(Or(v[i - 1][k]), Or(v[j - 1][k])))])
             #s.add([Implies(x[i][j][k], And(v[i - 1][k], v[j - 1][k]))])
+
+for k in range(n_couriers):
+    s.add(at_least_one_np([v[i][k] for i in range(n_items)]))
 
 
 # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #

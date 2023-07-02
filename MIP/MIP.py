@@ -1,3 +1,4 @@
+import json
 import sys
 
 import numpy as np
@@ -76,6 +77,7 @@ def main(num):
 
     #model
     model = gp.Model()
+    model.setParam('TimeLimit', 300)
 
     # Defining a graph which contain all the possible paths
     G = createGraph(all_distances)
@@ -97,17 +99,19 @@ def main(num):
         model.addConstr(courierTravelled >= minTravelled)
     sumOfAllPaths = gp.LinExpr(quicksum(all_distances[i, j] * x[z][i, j] for z in range(n_couriers) for i, j in G.edges))
 
-    model.setObjective(sumOfAllPaths+n_items*(maxTravelled - minTravelled), GRB.MINIMIZE)
+    model.setObjective(sumOfAllPaths, GRB.MINIMIZE)
+    model.setObjectiveN((maxTravelled - minTravelled), GRB.MINIMIZE)
 
 
 
     #CONSTRAINTS
 
     # Every item must be delivered
-    # (each 3-dimensional raw, must contain only 1 true value, depot not included in this constraint)
+    # (each 3-dimensional raw must contain only 1 true value, depot not included in this constraint)
     for j in G.nodes:
         if j != 0: #no depot
             model.addConstr(quicksum(x[z][i, j] for z in range(n_couriers) for i in G.nodes if i != j) == 1)
+
 
     # Every node should be entered and left once and by the same vehicle
     # (number of times a vehicle enters a node is equal to the number of times it leaves that node)
@@ -150,14 +154,45 @@ def main(num):
                 model.addConstr(ordering[z][i] - ordering[z][j] + 1 <= (1 - x[z][i, j]) * quicksum(x[z][k, l] for k,l in G.edges))
 
 
-
     # start solving process
+    #model.setParam("MIPFocus", 0)
+    #model.setParam("ImproveStartGap", 0.1)
+    model.tune()
     model.optimize()
+
+    # print information about solving process (not verbose)
+    print("\n\n\n#####################    SOLVER   ######################")
     print("Number of items: ", n_items)
     print("Number of couriers: ", n_couriers)
+    print("Time taken: ", model.Runtime)
+    print("Objective: ",model.ObjVal)
+    if(model.status == GRB.OPTIMAL):
+        print("Optimal solution found")
+    else:
+        print("Optimal solution not found")
+
+    tot_item = []
+    for z in range(n_couriers):
+        item = []
+        for i, j in G.edges:
+            if x[z][i, j].x >= 1:
+                if i not in item:
+                    item.append(i)
+                if j not in item:
+                    item.append(j)
+        tot_item.append([i for i in item if i != 0])
+    print(tot_item)
+
+    """ JSON
+    output = {}
+    output["time"] = model.Runtime
+    output["optimal"] = model.status == GRB.OPTIMAL
+    output["obj"] = model.ObjVal
+    output["solution"] = tot_item
+    print(json.dumps(output))"""
 
     """
-    #print information about solving process
+    #print information about solving process (verbose)
     print("\n\n\n###############################################################################")
 
     # print general information about each courier
@@ -181,7 +216,7 @@ def main(num):
     print("Number of couriers: ", n_couriers)
     print("Size_items: ", size_item)
     print("all_distances:\n", all_distances, "\n")
-
+    
     # print plots
     tour_edges = [edge for edge in G.edges for z in range(n_couriers) if x[z][edge].x >= 1]
 
@@ -199,31 +234,26 @@ def main(num):
 
     nx.draw(G.edge_subgraph(tour_edges), with_labels=True, node_color=color_list)
     plt.show()
+    """
 
 
     print("############################################################################### \n")
-    """
+
 
 
 
 #passare come parametro solo numero dell'istanza (senza lo 0)
-main(4)
+main(10)
 
 
 """
 Euristiche per speed up:
 
-
-Warm start: If you have a feasible solution already, you can use that as a starting point for the solver. This can often help to significantly speed up the solution process, especially if your initial solution is good. This is not applicable if you don't have an initial feasible solution.
-
-Adjust solver parameters: There are various parameters in Gurobi that can influence the solving process. Some of them that could be potentially interesting for your problem are:
-
-MIPFocus: This parameter lets you shift the focus of the solver towards finding feasible solutions quickly (MIPFocus=1), proving optimality (MIPFocus=2), or improving the best bound (MIPFocus=3). You can experiment with these settings and see what works best for your problem.
 Heuristics: This parameter controls the amount of time spent in MIP heuristics. You could increase this parameter to find better feasible solutions early.
-Cuts: The aggressiveness of cut generation can be controlled via the Cuts parameter. Cuts can help to improve the LP relaxation bound, but generating and adding them into the model takes time.
-Preprocessing: Gurobi's presolver can often simplify the problem before it is solved, by removing redundant constraints and variables, tightening bounds, etc. This is generally helpful, but in some cases it might be beneficial to turn off some or all of the presolve.
+Cuts: The aggressiveness of cut generation can be controlled via the Cuts parameter. Cuts can help to improve the LP relaxation bound, but generating and adding 
+them into the model takes time.
 
-Solution Pool: Gurobi's solution pool feature allows you to gather more than one solution during the MIP solve process. You can control how many solutions you want to collect and also the quality of these solutions. This could be useful if you are more interested in finding good solutions quickly rather than proving optimality.
-
-Using a heuristic solution: You could consider developing a heuristic to find a quick, possibly suboptimal solution, and then feed that solution to the MIP solver as a starting solution. The heuristic could be based on domain-specific knowledge, or a simplification of the problem. For example, you might solve a relaxed version of the problem (ignoring some constraints) as a heuristic.
+Using a heuristic solution: You could consider developing a heuristic to find a quick, possibly suboptimal solution, and then feed that solution to the MIP 
+solver as a starting solution. The heuristic could be based on domain-specific knowledge, or a simplification of the problem. 
+For example, you might solve a relaxed version of the problem (ignoring some constraints) as a heuristic.
 """
