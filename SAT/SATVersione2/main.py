@@ -6,7 +6,7 @@ import networkx as nx
 import matplotlib.cm as cm
 from matplotlib import pyplot as plt
 
-numero = 2
+numero = 4
 
 def createGraph(all_distances):
     all_dist_size = all_distances.shape[0]
@@ -107,9 +107,9 @@ def exactly_one_he(bool_vars, name):
     return And(at_most_one_he(bool_vars, name), at_least_one_he(bool_vars))
 
 
-at_most_one = at_most_one_he
-at_least_one = at_least_one_he
-exactly_one = exactly_one_he
+at_most_one = at_most_one_bw
+at_least_one = at_least_one_bw
+exactly_one = exactly_one_bw
 
 
 def binary_increment(a, b):
@@ -169,8 +169,9 @@ def inputFile(num):
 
 n_couriers, n_items, max_load, size_item, all_distances = inputFile(numero)
 
-s = Solver()
-#s = Optimize()
+#s = Solver()
+s = Optimize()
+#s = SolverFor("QF_BV")
 
 x = [[[Bool(f"x_{i}_{j}_{k}") for k in range(n_couriers)] for j in range(n_items + 1)] for i in
      range(n_items + 1)]  # x[k][i][j] == True : route (i->j) is used by courier k | set of Archs
@@ -192,34 +193,34 @@ for k in range(n_couriers):
 # - - - - - - - - - - - - - - - - -
 # Each node (i, j) is visited only once
 # for each node there is exactly one arc entering and leaving from it
-"""for i in range(1, n_items + 1):  # start from 1 to exclude the depot
+for i in range(1, n_items + 1):  # start from 1 to exclude the depot
     s.add(PbEq([(x[i][j][k], 1) for j in range(n_items + 1) for k in range(n_couriers)],
                1))  # each node is left exactly once by each courier
 
 for j in range(1, n_items + 1):  # start from 1 to exclude the depot
     s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],
-               1))  # each node is entered exactly once by each courier"""
+               1))  # each node is entered exactly once by each courier
 
-# For each node there is exactly one arc entering and leaving from it
+"""# For each node there is exactly one arc entering and leaving from it
 for i in range(1, n_items + 1):
     s.add(exactly_one([x[i][j][k] for j in range(n_items + 1) for k in range(n_couriers)], f"arc_leave{i}"))
 
 # For each node there is exactly one arc entering and leaving from it
 for j in range(1, n_items + 1):
-    s.add(exactly_one([x[i][j][k] for i in range(n_items + 1) for k in range(n_couriers)], f"arc_enter{j}"))
+    s.add(exactly_one([x[i][j][k] for i in range(n_items + 1) for k in range(n_couriers)], f"arc_enter{j}"))"""
+
 # - - - - - - - - - - - - - - - - -
 
 # Each courier ends at the depot
 for k in range(n_couriers):
     #s.add(PbEq([(x[j][0][k], 1) for j in range(1, n_items + 1)], 1))
-    #s.add(exactly_one([x[j][0][k] for j in range(1, n_items + 1)], f"courier_ends_{k}"))
-    s.add(at_most_one([And(v[j-1][k], x[j][0][k]) for j in range(1, n_items + 1)], f"courier_ends_{k}"))
+    s.add(exactly_one([x[j][0][k] for j in range(1, n_items + 1)], f"courier_ends_{k}"))
+    #s.add(exactly_one([And(v[j-1][k], x[j][0][k]) for j in range(1, n_items + 1)], f"courier_deliver_{k}"))
 
 # Each courier depart from the depot
 for k in range(n_couriers):
-    # s.add(PbEq([(x[0][j][k], 1) for j in range(n_items + 1)], 1))
-    #s.add(exactly_one([x[0][j][k] for j in range(1, n_items + 1)], f"courier_starts_{k}"))
-    s.add(at_most_one([And(v[j-1][k], x[0][j][k]) for j in range(1, n_items + 1)], f"courier_starts_{k}"))
+    #s.add(PbEq([(x[0][j][k], 1) for j in range(n_items + 1)], 1))
+    s.add(exactly_one([x[0][j][k] for j in range(1, n_items + 1)], f"courier_starts_{k}"))
 
 # For each vehicle, the total load over its route must be smaller than its max load size
 for k in range(n_couriers):
@@ -234,7 +235,8 @@ for i in range(n_items):
 for k in range(n_couriers):
     for i in range(1, n_items + 1):
         for j in range(1, n_items + 1):
-            s.add([Implies(x[i][j][k], And(v[i - 1][k], v[j - 1][k]))])
+            s.add([Implies(x[i][j][k], And(Or(v[i - 1][k]), Or(v[j - 1][k])))])
+            #s.add([Implies(x[i][j][k], And(v[i - 1][k], v[j - 1][k]))])
 
 
 # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
@@ -253,6 +255,7 @@ for k in range(n_couriers):
                     # print(f"u[{i}]: {u[i]} \n u[{j}]: {u[j]} \n")
                     # print(f"u[{i}_{k}]: {u[i][k]} \n u[{j}_{k}]: {u[j][k]} \n")
                     s.add(Implies(x[i][j][k], funzione_brutta(u[i - 1][k], u[j - 1][k])))
+
 
 """for k in range(n_couriers):
     for i in range(1, n_items + 1):
@@ -283,6 +286,7 @@ if s.check() == sat:
                     route_string += "(" + str(temp[1]) + "-" + str(temp[2]) + ") "
         print(route_string)
 
+    print("\n")
     for k in range(n_couriers):
         actual_load = 0
         for i in range(n_items):
@@ -295,8 +299,8 @@ if s.check() == sat:
         print("\n")
 
     # total distance traveled minimized
-    """print(model.evaluate(total_distance))
-    print("\n")"""
+    #print(model.evaluate(total_distance))
+    print("\n")
 
     # print plots
     tour_edges = [(i,j) for i,j in G.edges for z in range(n_couriers) if model.evaluate(x[i][j][z])]
