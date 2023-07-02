@@ -266,10 +266,6 @@ for k in range(n_couriers):
             s.add(Implies(x[i][j][k], And(Or([x[j][f][k] for f in range(n_items + 1)]),
                                           Or([x[m][i][k] for m in range(n_items + 1)]))))"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
-"""total_distance = Sum(
-    [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i in range(n_items + 1) for j in
-     range(n_items + 1)])
-s.minimize(total_distance)"""
 
 if s.check() == sat:
     model = s.model()
@@ -279,6 +275,40 @@ if s.check() == sat:
 
     # print("R: " + str(r) + "\n")
     # print("UT: " + str(ut) + "\n")
+
+
+    ############ OBJECTIVE
+    total_distance = Sum(
+        [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i in range(n_items + 1) for j in
+         range(n_items + 1)])
+
+    min_dist = 0
+    num_min_courier = 0
+    max_dist = 0
+    num_max_courier = 0
+    for k in range(n_couriers):
+        temp = 0
+        count = True
+        for i in range(n_items + 1):
+            for j in range(n_items + 1):
+                if model.evaluate(x[i][j][k]):
+                    temp += int(all_distances[i][j])
+        if count:
+            min_dist = temp
+            count = False
+        if temp <= min_dist:
+            min_dist = temp
+            num_min_courier = k
+        if temp >= max_dist:
+            max_dist = temp
+            num_max_courier = k
+
+    print("Min dist: " + str(min_dist) + "\n")
+    print("Max dist: " + str(max_dist) + "\n")
+
+    s.minimize(total_distance + (max_dist - min_dist))
+
+
 
     for k in range(n_couriers):
         route_string = ""

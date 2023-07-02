@@ -157,7 +157,7 @@ def main(num):
     # start solving process
     #model.setParam("MIPFocus", 0)
     #model.setParam("ImproveStartGap", 0.1)
-    model.tune()
+    #model.tune()
     model.optimize()
 
     # print information about solving process (not verbose)
@@ -166,6 +166,8 @@ def main(num):
     print("Number of couriers: ", n_couriers)
     print("Time taken: ", model.Runtime)
     print("Objective: ",model.ObjVal)
+    print("Min path: ", minTravelled.x)
+    print("Max path: ", maxTravelled.x)
     if(model.status == GRB.OPTIMAL):
         print("Optimal solution found")
     else:
@@ -243,7 +245,7 @@ def main(num):
 
 
 #passare come parametro solo numero dell'istanza (senza lo 0)
-main(10)
+main(8)
 
 
 """
