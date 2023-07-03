@@ -10,9 +10,17 @@ from matplotlib import pyplot as plt
 
 np.set_printoptions(threshold=sys.maxsize)
 
-# every element in configurations corresponds to a specific configuration of the model
-configurations = ["defaultModel", "impliedConsDefaultModel"]
 
+##################################    POSSIBLE CONFIGURATIONS OF THE MODEL      ###################################
+DEFAULT_MODEL = "defaultModel"
+DEFAULT_IMPLIED_CONS = "impliedConsDefaultModel"
+DEFAULT_SYMM_BREAK_CONS = "symmBreakDefaultModel"
+DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSCons"
+
+
+# every element in configurations corresponds to a specific configuration of the model
+configurations = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS]
+#####################################################################################################################
 
 def inputFile(num):
     # Instantiate variables from file
@@ -105,8 +113,8 @@ def model(num, configuration):
     # CONSTRAINTS
 
     # implied constraints
-    if configuration == "impliedConsDefaultModel":
-        
+    if configuration == DEFAULT_IMPLIED_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS:
+
         # (each 3-dimensional column must contain only 1 true value, depot not included in this constraint)
         for i in G.nodes:
             if i != 0:  # no depot
@@ -114,6 +122,13 @@ def model(num, configuration):
 
         for i,j in G.edges:
             model.addConstr(quicksum(x[z][i,j] for z in range(n_couriers)) <= 1)
+
+    # symmetry breaking couriers
+    if configuration == DEFAULT_SYMM_BREAK_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS:
+        #couriers with lower max_load must bring less weight
+        max_load = sorted(max_load)
+        for z in range(n_couriers-1):
+            model.addConstr(quicksum(size_item[j] * x[z][i, j] for i, j in G.edges) <= quicksum(size_item[j] * x[z+1][i, j] for i, j in G.edges))
 
     # Every item must be delivered
     # (each 3-dimensional raw must contain only 1 true value, depot not included in this constraint)
