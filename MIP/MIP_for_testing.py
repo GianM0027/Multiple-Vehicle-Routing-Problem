@@ -10,7 +10,8 @@ from matplotlib import pyplot as plt
 
 np.set_printoptions(threshold=sys.maxsize)
 
-
+# every element in configurations corresponds to a specific configuration of the model
+configurations = ["defaultModel", "impliedConsDefaultModel"]
 
 
 def inputFile(num):
@@ -73,7 +74,7 @@ def createGraph(all_distances):
     return G
 
 
-def model(num):
+def model(num, configuration):
     n_couriers, n_items, max_load, size_item, all_distances = inputFile(num)
 
     # model
@@ -102,6 +103,17 @@ def model(num):
     model.setObjectiveN((maxTravelled - minTravelled), GRB.MINIMIZE)
 
     # CONSTRAINTS
+
+    # implied constraints
+    if configuration == "impliedConsDefaultModel":
+        
+        # (each 3-dimensional column must contain only 1 true value, depot not included in this constraint)
+        for i in G.nodes:
+            if i != 0:  # no depot
+                model.addConstr(quicksum(x[z][i, j] for z in range(n_couriers) for j in G.nodes if i != j) == 1)
+
+        for i,j in G.edges:
+            model.addConstr(quicksum(x[z][i,j] for z in range(n_couriers)) <= 1)
 
     # Every item must be delivered
     # (each 3-dimensional raw must contain only 1 true value, depot not included in this constraint)
@@ -146,13 +158,17 @@ def model(num):
         for i, j in G.edges:
             if i != j and (i != 0 and j != 0):  # excluding the depot and self loops
                 model.addConstr(
-                    ordering[z][i] - ordering[z][j] + 1 <= (1 - x[z][i, j]) * quicksum(x[z][k, l] for k, l in G.edges))
+                    ordering[z][i] - ordering[z][j] + 1 <= (1 - x[z][i, j]) * quicksum(
+                        x[z][k, l] for k, l in G.edges))
 
     # start solving process
     # model.setParam("MIPFocus", 0)
     # model.setParam("ImproveStartGap", 0.1)
     # model.tune()
     model.optimize()
+
+    if model.status != GRB.OPTIMAL and model.status != GRB.INTERRUPTED:
+        return model.Runtime, False, "INFEASIBLE", []
 
     # print information about solving process (not verbose)
     print("\n\n\n#####################    SOLVER   ######################")
@@ -179,13 +195,6 @@ def model(num):
         tot_item.append([i for i in item if i != 0])
     print(tot_item)
 
-    """ JSON
-    output = {}
-    output["time"] = model.Runtime
-    output["optimal"] = model.status == GRB.OPTIMAL
-    output["obj"] = model.ObjVal
-    output["solution"] = tot_item
-    print(json.dumps(output))"""
 
     """
     #print information about solving process (verbose)
@@ -241,17 +250,14 @@ def model(num):
 #passare come parametro solo numero dell'istanza (senza lo 0)
 def main():
 
-    # every element in configurations corresponds to a specific configuration of the model
-    configurations = ["bruteForceModel"]
-
     # number of instances over which iterate
-    n_istances = 21
+    n_istances = 4
 
     output = {}
     for configuration in configurations:
         instances = {}
         for i in range(n_istances):
-            runTime, status, obj, solution = model(i+1)
+            runTime, status, obj, solution = model(i+1, configuration)
 
             # JSON
             instance = {}
