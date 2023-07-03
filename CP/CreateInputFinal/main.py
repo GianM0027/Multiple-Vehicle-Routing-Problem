@@ -8,13 +8,13 @@ def main(argv):
     gecode = Solver.lookup("gecode")
 
     model = Model()
-    model.add_file("../CDMO-project/CP/mainCode.mzn")
+    model.add_file("mainCode.mzn")
 
     # Transform Model into a instance
     inst = Instance(gecode, model)
 
     # Instantiate variables from file
-    instances_path = "../CDMO-project/CP/CreateInputFinal/Instances_CP/" + str(argv) + ".dzn"
+    instances_path = "Instances_CP_blank/" + str(argv) + ".dzn"
     data_file = open(instances_path)
     lines = []
     for line in data_file:
@@ -62,6 +62,5 @@ def main(argv):
     print("\n\n" + "--> " + str(result.solution))
 
 
-# instance_number = input("Inserire numero Instance [1 -5]")
-# main(instance_number)
-main("2")
+#instance_number = input("Inserire numero Instance [1 -5]")
+main("01")

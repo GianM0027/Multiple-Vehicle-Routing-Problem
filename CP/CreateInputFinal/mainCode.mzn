@@ -4,7 +4,7 @@ include "globals.mzn";
 % CHOOSE THE INPUT FOR THE MODEL
 %------------------------------
 
-include "inst01.dzn";    % 2 couriers, 6 items
+% include "inst01.dzn";    % 2 couriers, 6 items
 % include "inst02.dzn";    % 6 couriers, 9 items
 % include "inst03.dzn";    % 3 couriers, 7 items
 % include "inst04.dzn";    % 8 couriers, 10 items
@@ -26,8 +26,6 @@ include "inst01.dzn";    % 2 couriers, 6 items
 % include "inst20.dzn";    % 20 couriers, 287 items
 % include "inst21.dzn";    % 20 couriers, 143 items
 
-%include "CreateInputFinal/input_test.dzn";
-
 % PARAMETERS DECLARATION
 %------------------------------
 
@@ -45,6 +43,12 @@ array[1..n_items] of int: size_item;
 
 % Array of all distances
 array[1..n_items+1,1..n_items+1] of int: all_distances;
+
+% n_couriers = 2;
+% n_items = 6;
+% max_load = [15, 10];
+% size_item = [3, 2, 6, 5, 4, 4];
+% all_distances = [|0, 2, 3, 4, 3, 4, 4|2, 0, 3, 4, 5, 6, 6|3, 3, 0, 1, 4, 5, 7|4, 4, 1, 0, 5, 6, 6|2, 4, 4, 5, 0, 3, 3|4, 6, 7, 8, 3, 0, 2|4, 6, 7, 8, 3, 2, 0|];
 
 set of int: COURIERS = 1..n_couriers;
 set of int: ITEMS = 1..n_items;
@@ -114,9 +118,12 @@ var int: obj_fun = sum(courier_dist)+ max(courier_dist)- min(courier_dist);
 % solve minimize obj_fun;
 
 
-solve :: int_search(delivery_order, dom_w_deg, indomain_random)
+solve :: int_search(delivery_order, dom_w_deg, indomain_split)
 minimize obj_fun;
 
+% output 
+%    [ "objective = "] ++ [show(obj_fun)] ++
+%    [ ";\n"]
 
 
 
