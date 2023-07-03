@@ -71,7 +71,7 @@ def createGraph(all_distances):
     return G
 
 
-def main(num):
+def model(num):
     n_couriers, n_items, max_load, size_item, all_distances = inputFile(num)
 
     # model
@@ -231,10 +231,39 @@ def main(num):
     """
 
     print("############################################################################### \n")
+    return model.Runtime, model.status == GRB.OPTIMAL, model.ObjVal, tot_item
 
 
-# passare come parametro solo numero dell'istanza (senza lo 0)
-main(4)
+
+
+#passare come parametro solo numero dell'istanza (senza lo 0)
+def main():
+    n_istances = 3 #number of instances over which iterate
+    n_configurations = ["bruteForceModel"]
+
+    output = {}
+    for configuration in n_configurations:
+        instances = {}
+        for i in range(n_istances):
+            runTime, status, obj, solution = model(i+1)
+
+            # JSON
+            instance = {}
+            instance["time"] = runTime
+            instance["optimal"] = status
+            instance["obj"] = obj
+            instance["solution"] = solution
+
+            instances[f"instance {i}"] = instance
+
+        output[configuration] = instances
+
+    print(output)
+
+    json.dumps(output)
+
+
+main()
 
 """
 Euristiche per speed up:

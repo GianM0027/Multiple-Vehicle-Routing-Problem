@@ -5,7 +5,7 @@ import datetime
 
 def main(argv):
     # Create a MiniZinc model
-    gecode = Solver.lookup("gecode")
+    gecode = Solver.lookup("gecode", executable="C:\\Users\gianm\AppData\Local\Programs\Python\Python311\Lib\site-packages")
 
     model = Model()
     model.add_file("mainCode.mzn")
