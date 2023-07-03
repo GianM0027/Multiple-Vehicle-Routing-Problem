@@ -3,9 +3,10 @@ import numpy as np
 import datetime
 
 
+
 def main(argv):
     # Create a MiniZinc model
-    gecode = Solver.lookup("gecode", executable="C:\\Users\gianm\AppData\Local\Programs\Python\Python311\Lib\site-packages")
+    gecode = Solver.lookup("gecode")
 
     model = Model()
     model.add_file("mainCode.mzn")

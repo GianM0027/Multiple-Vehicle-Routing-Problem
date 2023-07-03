@@ -11,6 +11,8 @@ from matplotlib import pyplot as plt
 np.set_printoptions(threshold=sys.maxsize)
 
 
+
+
 def inputFile(num):
     # Instantiate variables from file
     if num < 10:
@@ -238,11 +240,15 @@ def model(num):
 
 #passare come parametro solo numero dell'istanza (senza lo 0)
 def main():
-    n_istances = 3 #number of instances over which iterate
-    n_configurations = ["bruteForceModel"]
+
+    # every element in configurations corresponds to a specific configuration of the model
+    configurations = ["bruteForceModel"]
+
+    # number of instances over which iterate
+    n_istances = 21
 
     output = {}
-    for configuration in n_configurations:
+    for configuration in configurations:
         instances = {}
         for i in range(n_istances):
             runTime, status, obj, solution = model(i+1)
@@ -254,13 +260,13 @@ def main():
             instance["obj"] = obj
             instance["solution"] = solution
 
-            instances[f"instance {i}"] = instance
+            instances[f"instance {i+1}"] = instance
 
         output[configuration] = instances
 
-    print(output)
+    with open("res.json", "w") as file:
+        file.write(json.dumps(output, indent=3))
 
-    json.dumps(output)
 
 
 main()
