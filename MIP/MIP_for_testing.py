@@ -168,13 +168,11 @@ def model(num, configuration):
             if i != 0:  # excluding the depot
                 model.addConstr(ordering[z][i] >= 1)
 
-    # delivery ordering -> ordering[z][i], ordering[z][j]
+    # delivery ordering
     for z in range(n_couriers):
         for i, j in G.edges:
-            if i != j and (i != 0 and j != 0):  # excluding the depot and self loops
-                model.addConstr(
-                    ordering[z][i] - ordering[z][j] + 1 <= (1 - x[z][i, j]) * quicksum(
-                        x[z][k, l] for k, l in G.edges))
+            if i != 0 and j != 0:  # excluding the depot and self loops
+                model.addConstr(x[z][i, j] * ordering[z][j] >= x[z][i, j] * (ordering[z][i] + 1))
 
     # start solving process
     # model.setParam("MIPFocus", 0)
@@ -182,8 +180,14 @@ def model(num, configuration):
     # model.tune()
     model.optimize()
 
-    if model.status != GRB.OPTIMAL and model.status != GRB.INTERRUPTED:
-        return model.Runtime, False, "INFEASIBLE", []
+    try:
+        model.ObjVal
+        minTravelled.x
+        maxTravelled.x
+        x.X
+        ordering.x
+    except:
+        return model.Runtime, False, "Inf", []
 
     # print information about solving process (not verbose)
     print("\n\n\n#####################    SOLVER   ######################")
@@ -266,12 +270,14 @@ def model(num, configuration):
 def main():
 
     # number of instances over which iterate
-    n_istances = 4
+    n_istances = 21
+    count = 1
 
     output = {}
     for configuration in configurations:
         instances = {}
         for i in range(n_istances):
+            print(f"\n\n\n###################    Instance {i}, Configuration {count} out of {len(configurations)}    ####################")
             runTime, status, obj, solution = model(i+1, configuration)
 
             # JSON
@@ -282,7 +288,7 @@ def main():
             instance["solution"] = solution
 
             instances[f"instance {i+1}"] = instance
-
+        count += 1
         output[configuration] = instances
 
     with open("res.json", "w") as file:
@@ -291,15 +297,3 @@ def main():
 
 
 main()
-
-"""
-Euristiche per speed up:
-
-Heuristics: This parameter controls the amount of time spent in MIP heuristics. You could increase this parameter to find better feasible solutions early.
-Cuts: The aggressiveness of cut generation can be controlled via the Cuts parameter. Cuts can help to improve the LP relaxation bound, but generating and adding 
-them into the model takes time.
-
-Using a heuristic solution: You could consider developing a heuristic to find a quick, possibly suboptimal solution, and then feed that solution to the MIP 
-solver as a starting solution. The heuristic could be based on domain-specific knowledge, or a simplification of the problem. 
-For example, you might solve a relaxed version of the problem (ignoring some constraints) as a heuristic.
-"""

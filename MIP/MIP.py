@@ -139,17 +139,17 @@ def main(num):
             if i != 0:  # excluding the depot
                 model.addConstr(ordering[z][i] >= 1)
 
-    # delivery ordering -> ordering[z][i], ordering[z][j]
+    # delivery ordering
     for z in range(n_couriers):
         for i, j in G.edges:
-            if i != j and (i != 0 and j != 0):  # excluding the depot and self loops
-                model.addConstr(
-                    ordering[z][i] - ordering[z][j] + 1 <= (1 - x[z][i, j]) * quicksum(x[z][k, l] for k, l in G.edges))
+            if i != 0 and j != 0:  # excluding the depot and self loops
+                #if j is delivered after i then priority of j >= than priority of i
+                model.addConstr(x[z][i, j]*ordering[z][j] >= x[z][i, j]*(ordering[z][i]+1))
 
     # start solving process
     # model.setParam("MIPFocus", 0)
     # model.setParam("ImproveStartGap", 0.1)
-    # model.tune()
+    #model.tune()
     model.optimize()
 
     # print information about solving process (not verbose)
@@ -210,7 +210,7 @@ def main(num):
     print("Number of couriers: ", n_couriers)
     print("Size_items: ", size_item)
     print("all_distances:\n", all_distances, "\n")
-
+    """
     # print plots
     tour_edges = [edge for edge in G.edges for z in range(n_couriers) if x[z][edge].x >= 1]
 
@@ -228,22 +228,10 @@ def main(num):
 
     nx.draw(G.edge_subgraph(tour_edges), with_labels=True, node_color=color_list)
     plt.show()
-    """
+
 
     print("############################################################################### \n")
 
 
 # passare come parametro solo numero dell'istanza (senza lo 0)
-main(4)
-
-"""
-Euristiche per speed up:
-
-Heuristics: This parameter controls the amount of time spent in MIP heuristics. You could increase this parameter to find better feasible solutions early.
-Cuts: The aggressiveness of cut generation can be controlled via the Cuts parameter. Cuts can help to improve the LP relaxation bound, but generating and adding 
-them into the model takes time.
-
-Using a heuristic solution: You could consider developing a heuristic to find a quick, possibly suboptimal solution, and then feed that solution to the MIP 
-solver as a starting solution. The heuristic could be based on domain-specific knowledge, or a simplification of the problem. 
-For example, you might solve a relaxed version of the problem (ignoring some constraints) as a heuristic.
-"""
+main(3)
