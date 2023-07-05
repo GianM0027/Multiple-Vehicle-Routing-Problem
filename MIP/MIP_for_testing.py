@@ -15,11 +15,19 @@ np.set_printoptions(threshold=sys.maxsize)
 DEFAULT_MODEL = "defaultModel"
 DEFAULT_IMPLIED_CONS = "impliedConsDefaultModel"
 DEFAULT_SYMM_BREAK_CONS = "symmBreakDefaultModel"
-DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSCons"
+DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymmBreakDefaultModel"
 
+SIMPLER_OBJ = "simplerObjective"
+SIMPLER_OBJ_IMPLIED_CONS = "impliedConsSimplerObj"
+SIMPLER_OBJ_SYMM_BREAK_CONS = "symmBreakSimplerObj"
+SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymmBreakSimplerObj"
 
 # every element in configurations corresponds to a specific configuration of the model
-configurations = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS]
+configurations = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS,
+                  SIMPLER_OBJ, SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
+
+configDefaultObj = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS]
+configSimplerObj = [SIMPLER_OBJ, SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
 #####################################################################################################################
 
 def inputFile(num):
@@ -94,26 +102,28 @@ def model(num, configuration):
 
     # decision variables
     x = [model.addVars(G.edges, vtype=gp.GRB.BINARY) for _ in range(n_couriers)]
-    ordering = [model.addVars(G.nodes, vtype=GRB.INTEGER, ub=n_items) for _ in
-                range(n_couriers)]  # ordering[z,i] ha valore p se i è la p-esima meta del corriere z
+    u = model.addVars(G.nodes, vtype=GRB.INTEGER, ub=n_items)
 
     # objective function (minimize total distance travelled + difference between min and max path normalized)
     maxTravelled = model.addVar(vtype=GRB.INTEGER, name="maxTravelled")
-    minTravelled = model.addVar(vtype=GRB.INTEGER, name="minTravelled")
-    for z in range(n_couriers):
-        courierTravelled = quicksum(all_distances[i, j] * x[z][i, j] for i, j in G.edges)
-        model.addConstr(courierTravelled <= maxTravelled)
-        model.addConstr(courierTravelled >= minTravelled)
-    sumOfAllPaths = gp.LinExpr(
-        quicksum(all_distances[i, j] * x[z][i, j] for z in range(n_couriers) for i, j in G.edges))
 
-    model.setObjective(sumOfAllPaths, GRB.MINIMIZE)
-    model.setObjectiveN((maxTravelled - minTravelled), GRB.MINIMIZE)
+    if configuration in configDefaultObj:
+        minTravelled = model.addVar(vtype=GRB.INTEGER, name="minTravelled")
+        for z in range(n_couriers):
+            model.addConstr(quicksum(all_distances[i, j] * x[z][i, j] for i, j in G.edges) <= maxTravelled)
+            model.addConstr(quicksum(all_distances[i, j] * x[z][i, j] for i, j in G.edges) >= minTravelled)
+        sumOfAllPaths = gp.LinExpr(quicksum(all_distances[i, j] * x[z][i, j] for z in range(n_couriers) for i, j in G.edges))
+        model.setObjective(sumOfAllPaths + (maxTravelled - minTravelled), GRB.MINIMIZE)
+
+    if configuration in configSimplerObj:
+        for z in range(n_couriers):
+            model.addConstr(quicksum(all_distances[i, j] * x[z][i, j] for i, j in G.edges) <= maxTravelled)
+        model.setObjective(maxTravelled, GRB.MINIMIZE)
 
     # CONSTRAINTS
 
     # implied constraints
-    if configuration == DEFAULT_IMPLIED_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS:
+    if configuration in [DEFAULT_IMPLIED_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS,SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]:
 
         # (each 3-dimensional column must contain only 1 true value, depot not included in this constraint)
         for i in G.nodes:
@@ -124,7 +134,7 @@ def model(num, configuration):
             model.addConstr(quicksum(x[z][i,j] for z in range(n_couriers)) <= 1)
 
     # symmetry breaking couriers
-    if configuration == DEFAULT_SYMM_BREAK_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS:
+    if configuration in [DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]:
         #couriers with lower max_load must bring less weight
         max_load = sorted(max_load)
         for z in range(n_couriers-1):
@@ -153,26 +163,21 @@ def model(num, configuration):
     for z in range(n_couriers):
         model.addConstr(quicksum(size_item[j] * x[z][i, j] for i, j in G.edges) <= max_load[z])
 
-    # subtour elimination
-
-    # item delivered by each courier
-    # items_delivered = [sum(x[z][i, j].x for i, j in G.edges) for z in range(n_couriers)]
-
+    # sub-tour elimination constraint
     # the depot is always the first point visited
     for z in range(n_couriers):
-        model.addConstr(ordering[z][0] == 0)
+        model.addConstr(u[0] == 1)
 
-    # all the other points must be visited after the depot
+        # all the other points must be visited after the depot
     for z in range(n_couriers):
         for i in G.nodes:
             if i != 0:  # excluding the depot
-                model.addConstr(ordering[z][i] >= 1)
+                model.addConstr(u[i] >= 2)
 
-    # delivery ordering
     for z in range(n_couriers):
         for i, j in G.edges:
-            if i != 0 and j != 0:  # excluding the depot and self loops
-                model.addConstr(x[z][i, j] * ordering[z][j] >= x[z][i, j] * (ordering[z][i] + 1))
+            if i != 0 and j != 0 and i != j:  # excluding the depot
+                model.addConstr(x[z][i, j] * u[j] >= x[z][i, j] * (u[i] + 1))
 
     # start solving process
     # model.setParam("MIPFocus", 0)
@@ -180,16 +185,11 @@ def model(num, configuration):
     # model.tune()
     model.optimize()
 
-    try:
-        model.ObjVal
-        minTravelled.x
-        maxTravelled.x
-        x.X
-        ordering.x
-    except:
+    if model.SolCount == 0:
         return model.Runtime, False, "Inf", []
 
     # print information about solving process (not verbose)
+    """
     print("\n\n\n#####################    SOLVER   ######################")
     print("Number of items: ", n_items)
     print("Number of couriers: ", n_couriers)
@@ -201,7 +201,7 @@ def model(num, configuration):
         print("Optimal solution found")
     else:
         print("Optimal solution not found")
-
+    """
     tot_item = []
     for z in range(n_couriers):
         item = []
@@ -213,7 +213,6 @@ def model(num, configuration):
                     item.append(j)
         tot_item.append([i for i in item if i != 0])
     print(tot_item)
-
 
     """
     #print information about solving process (verbose)
@@ -277,7 +276,7 @@ def main():
     for configuration in configurations:
         instances = {}
         for i in range(n_istances):
-            print(f"\n\n\n###################    Instance {i}, Configuration {count} out of {len(configurations)}    ####################")
+            print(f"\n\n\n###################    Instance {i+1}, Configuration {count} out of {len(configurations)}    ####################")
             runTime, status, obj, solution = model(i+1, configuration)
 
             # JSON

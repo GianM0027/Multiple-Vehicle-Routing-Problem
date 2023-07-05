@@ -83,8 +83,7 @@ def main(num):
 
     # decision variables
     x = [model.addVars(G.edges, vtype=gp.GRB.BINARY) for _ in range(n_couriers)]
-    ordering = [model.addVars(G.nodes, vtype=GRB.INTEGER, ub=n_items) for _ in
-                range(n_couriers)]  # ordering[z,i] ha valore p se i è la p-esima meta del corriere z
+    u = model.addVars(G.nodes, vtype=GRB.INTEGER, ub=n_items)
 
     # objective function (minimize total distance travelled + difference between min and max path normalized)
     maxTravelled = model.addVar(vtype=GRB.INTEGER, name="maxTravelled")
@@ -93,11 +92,11 @@ def main(num):
         courierTravelled = quicksum(all_distances[i, j] * x[z][i, j] for i, j in G.edges)
         model.addConstr(courierTravelled <= maxTravelled)
         model.addConstr(courierTravelled >= minTravelled)
-    sumOfAllPaths = gp.LinExpr(
-        quicksum(all_distances[i, j] * x[z][i, j] for z in range(n_couriers) for i, j in G.edges))
 
-    model.setObjective(sumOfAllPaths, GRB.MINIMIZE)
-    model.setObjectiveN((maxTravelled - minTravelled), GRB.MINIMIZE)
+
+    sumOfAllPaths = gp.LinExpr(quicksum(all_distances[i, j] * x[z][i, j] for z in range(n_couriers) for i, j in G.edges))
+    model.setObjective(sumOfAllPaths+(maxTravelled-minTravelled), GRB.MINIMIZE)
+    #model.setObjective(maxTravelled, GRB.MINIMIZE)
 
     # CONSTRAINTS
 
@@ -124,32 +123,34 @@ def main(num):
     for z in range(n_couriers):
         model.addConstr(quicksum(size_item[j] * x[z][i, j] for i, j in G.edges) <= max_load[z])
 
-    # subtour elimination
 
-    # item delivered by each courier
-    # items_delivered = [sum(x[z][i, j].x for i, j in G.edges) for z in range(n_couriers)]
-
+    #sub-tour elimination constraint
     # the depot is always the first point visited
     for z in range(n_couriers):
-        model.addConstr(ordering[z][0] == 0)
+        model.addConstr(u[0] == 1)
 
-    # all the other points must be visited after the depot
+        # all the other points must be visited after the depot
     for z in range(n_couriers):
         for i in G.nodes:
             if i != 0:  # excluding the depot
-                model.addConstr(ordering[z][i] >= 1)
+                model.addConstr(u[i] >= 2)
 
-    # delivery ordering
     for z in range(n_couriers):
         for i, j in G.edges:
-            if i != 0 and j != 0:  # excluding the depot and self loops
-                #if j is delivered after i then priority of j >= than priority of i
-                model.addConstr(x[z][i, j]*ordering[z][j] >= x[z][i, j]*(ordering[z][i]+1))
+            if i != 0 and j != 0 and i != j:  # excluding the depot
+                model.addConstr(x[z][i, j] * u[j] >= x[z][i, j] * (u[i] + 1))
+
+    """ There are no explicit sub-tour elimination constraints. Instead, the constraints described above,
+       along with the objective function (to minimize the total tour length), implicitly ensure that the resulting
+       solution is a single tour without any sub-tours."""
 
     # start solving process
-    # model.setParam("MIPFocus", 0)
     # model.setParam("ImproveStartGap", 0.1)
     #model.tune()
+    #model.setParam('PoolSolutions', 4)
+    #model.setParam("MIPFocus", 3)
+    #gp.setParam("PoolSearchMode", 2)  # To find better intermediary solution
+    #model.setParam('Presolve', 2)
     model.optimize()
 
     # print information about solving process (not verbose)
@@ -158,7 +159,7 @@ def main(num):
     print("Number of couriers: ", n_couriers)
     print("Time taken: ", model.Runtime)
     print("Objective: ", model.ObjVal)
-    print("Min path: ", minTravelled.x)
+    #print("Min path: ", minTravelled.x)
     print("Max path: ", maxTravelled.x)
     if (model.status == GRB.OPTIMAL):
         print("Optimal solution found")
@@ -171,11 +172,11 @@ def main(num):
         for i, j in G.edges:
             if x[z][i, j].x >= 1:
                 if i not in item:
-                    item.append(i)
+                    item.insert(int(u[i].x),i)
                 if j not in item:
-                    item.append(j)
+                    item.insert(int(u[j].x),j)
         tot_item.append([i for i in item if i != 0])
-    print(tot_item)
+    print("Solution: ",tot_item)
 
     """ JSON
     output = {}
@@ -195,16 +196,12 @@ def main(num):
         print("Max load: ", max_load[z])
         print("Final load: ", quicksum(size_item[j] * x[z][i, j].x for i,j in G.edges))
         print("Total distance: ", quicksum(all_distances[i,j] * x[z][i, j].x for i,j in G.edges))
-
+    
     # print ordering variables
-    z = 0
-    for dictionary in ordering:
-        print(f"\nCourier: {z}")
-        for key in dictionary.keys():
-            print(f"{key}:", dictionary[key].X)
-        print("")
-        z+=1
-
+    print("u variable: ")
+    for key in u.keys():
+        print(f"{key}: ", u[key].X)
+        
     # print general information about the problem instance
     print("Number of items: ", n_items)
     print("Number of couriers: ", n_couriers)
@@ -234,4 +231,4 @@ def main(num):
 
 
 # passare come parametro solo numero dell'istanza (senza lo 0)
-main(3)
+main(4)
