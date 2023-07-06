@@ -18,6 +18,6 @@ inst["b"] = 4
 inst["c"] = 0
 
 # Solve the instance
-result = inst.solve(all_solutions=True)
+result = inst.solve()
 for i in range(len(result)):
     print("x = {}".format(result[i, "x"]))

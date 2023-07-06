@@ -1,21 +1,65 @@
 from minizinc import Instance, Model, Solver
 import numpy as np
 import datetime
+import json
 
-
-
-def main(argv):
-    # Create a MiniZinc model
-    gecode = Solver.lookup("gecode")
-
+def set_model(configuration):
     model = Model()
     model.add_file("mainCode.mzn")
 
+    if configuration == 'impliedConsMaxDist' or configuration == 'impliedConsObjFun':
+        model.add_string("""
+        constraint forall(c in COURIERS,s in STEPS)(if c+((s-1)*n_couriers)> n_items+(2*n_couriers) then delivery_order[s,c] = 0 endif);
+        """)
+
+    if configuration == 'defaultModelMaxDist' or configuration == 'impliedConsMaxDist':
+        model.add_string("""
+        var int: obj_fun = max(courier_dist);
+        solve :: int_search(delivery_order, dom_w_deg, indomain_split) minimize obj_fun;   
+        """)
+
+    if configuration == 'defaultModelObjFun' or configuration == 'impliedConsObjFun':
+        model.add_string("""
+        var int: obj_fun = sum(courier_dist)+ max(courier_dist)- min(courier_dist);
+        solve :: int_search(delivery_order, dom_w_deg, indomain_split) minimize obj_fun;   
+        """)
+
+    return model
+
+def get_results(result, n_couriers, n_items):
+
+    lines = str(result.solution).split("\n")
+    objective = int(lines[0])
+
+    lines[1] = lines[1].strip("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ[]= ;\n").replace(",","")
+    delivery_order = list(lines[1].split(' '))
+    delivery_order = [int(i) for i in delivery_order]
+    delivery_order = np.array(delivery_order).reshape(n_items+2,n_couriers).T 
+
+    sol = list()
+    for i in range(n_couriers):
+        c_sol = list()
+        for j in range(n_items +2):
+            if delivery_order[i][j] != 0:
+                c_sol.append(int(delivery_order[i][j]))
+        sol.append(c_sol)
+
+    runTime = int(result.statistics['time'].total_seconds())
+
+    status = (result.status == result.status.OPTIMAL_SOLUTION)
+
+    return(objective,sol,runTime,status)   
+
+
+def solve_model(n_inst,model,solver_str,timeout):
+
+    solver = Solver.lookup(solver_str)
+
     # Transform Model into a instance
-    inst = Instance(gecode, model)
+    inst = Instance(solver, model)
 
     # Instantiate variables from file
-    instances_path = "Instances_CP_blank/" + str(argv) + ".dzn"
+    instances_path = "Instances_CP_blank/" + str(n_inst) + ".dzn"
     data_file = open(instances_path)
     lines = []
     for line in data_file:
@@ -46,22 +90,55 @@ def main(argv):
     inst["size_item"] = size_item
     inst["all_distances"] = dist
 
-    print("n_couriers = " + str(inst["n_couriers"]) + ";")
-    print("n_items = " + str(inst["n_items"]) + ";")
-    print("max_load = " + str(inst["max_load"]) + ";")
-    print("size_item = " + str(inst["size_item"]) + ";")
-    dist_str = str(dist)
-    dist_str = dist_str[0] + dist_str[1:-1].replace("[", "|").replace("]", "|") + dist_str[-1]
-    dist_str = dist_str.replace("\n", "")
-    dist_str = dist_str[0] + dist_str[1:-1].replace("| |", "|") + dist_str[-1]
-    dist_str = dist_str[0] + dist_str[1:-1].replace(" ", ", ") + dist_str[-1]
-
-    print("all_distances = " + str(dist_str) + ";")
-
     # Output
-    result = inst.solve(timeout=datetime.timedelta(minutes=5))
-    print("\n\n" + "--> " + str(result.solution))
+    result = inst.solve(timeout = timeout)
+    return(result, n_couriers, n_items)
 
 
-#instance_number = input("Inserire numero Instance [1 -5]")
-main("01")
+# Model confugurations
+DEFAULT_MODEL_MAX_DIST = "defaultModelMaxDist"
+DEFAULT_MODEL_OBJ_FUN = "defaultModelObjFun"
+IMPLIED_CONS_MAX_DIST = "impliedConsMaxDist"
+IMPLIED_CONS_OBJ_FUN = "impliedConsObjFun"
+
+# every element in configurations corresponds to a specific configuration of the model
+configurations = [DEFAULT_MODEL_MAX_DIST, DEFAULT_MODEL_OBJ_FUN, IMPLIED_CONS_MAX_DIST, IMPLIED_CONS_OBJ_FUN]
+
+number_of_instances = 1
+instances_list = list()
+for i in range(1,number_of_instances+1):
+    if i < 10:
+        instances_list.append(('0'+str(i)))
+    else:
+        instances_list.append(str(i))
+
+solvers = ["chuffed"]
+timeout = datetime.timedelta(seconds=300)
+
+def main():
+    output = {}
+    for configuration in configurations:
+        model = set_model(configuration)
+        instances = {}
+        for inst in instances_list:
+            for solv in solvers:
+                result, n_couriers, n_items = solve_model(inst,model,solv,timeout)
+                obj,solution,runTime,status = get_results(result, n_couriers, n_items)
+
+                # JSON
+                instance = {}
+                instance["time"] = runTime
+                instance["optimal"] = status
+                instance["obj"] = obj
+                instance["solution"] = solution 
+                
+                instances["instance"] = instance
+
+        output[configuration] = instances
+
+    with open("res.json", "w") as file:
+        file.write(json.dumps(output, indent=3))
+
+
+
+main()

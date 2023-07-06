@@ -4,8 +4,8 @@ include "globals.mzn";
 % CHOOSE THE INPUT FOR THE MODEL
 %------------------------------
 
-include "inst01.dzn";    % 2 couriers, 6 items
-% include "inst02.dzn";    % 6 couriers, 9 items
+% include "inst01.dzn";    % 2 couriers, 6 items
+include "inst02.dzn";    % 6 couriers, 9 items
 % include "inst03.dzn";    % 3 couriers, 7 items
 % include "inst04.dzn";    % 8 couriers, 10 items
 % include "inst05.dzn";    % 2 couriers, 3 items
@@ -88,33 +88,28 @@ constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)
 %------------------------------
 
 % Constraint that guarantees an equal distrubution of the number of items among the couriers (maximum difference is two items)
-constraint forall(c in COURIERS,s in STEPS)
-                 (if c+((s-1)*n_couriers)> n_items+(2*n_couriers) then
-                 delivery_order[s,c] = 0 endif);
+% constraint forall(c in COURIERS,s in STEPS)
+%                  (if c+((s-1)*n_couriers)> n_items+(2*n_couriers) then
+%                  delivery_order[s,c] = 0 endif);
 
-% Each courier deliver at least one item -> not very useful
-constraint if max(size_item) <= min(max_load) then 
-              forall(c in COURIERS)(delivery_order[2,c] != 0 /\
-              sum(delivery_order[steps-n_couriers..,c]) == 0) endif;
+% Each courier deliver at least one item
+constraint forall(c in COURIERS)(delivery_order[2,c] != 0 /\
+              sum(delivery_order[steps-n_couriers+1..,c]) == 0);
         
-
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE - MAXIMIZE FAIRNESS
 %------------------------------
 constraint forall(c in COURIERS)
-                  (courier_dist[c] >= sum(s in STEPS_NO_LAST)
+                  (courier_dist[c] = sum(s in STEPS_NO_LAST)
                   (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] ));
 
-constraint forall(c in COURIERS)(courier_dist[c]<= max(courier_dist));
 % minimize the max of the distances 
-% var int: max_dist = max(courier_dist);
-% solve minimize max_dist;
+var int: obj_fun = max(courier_dist);
 
-% minimize the sum between the total length of all the couriers and the difference between the max and the min distance (10x slower)
-var int: obj_fun = sum(courier_dist)+ max(courier_dist)- min(courier_dist);
-% solve minimize obj_fun;
+% minimize the sum between the total length of all the couriers and the difference between the max and the min distance
+% var int: obj_fun = sum(courier_dist)+ max(courier_dist)- min(courier_dist);
 
 
-solve :: int_search(delivery_order, dom_w_deg, indomain_random)
+solve :: int_search(delivery_order, dom_w_deg, indomain_split)
 minimize obj_fun;
 
 
