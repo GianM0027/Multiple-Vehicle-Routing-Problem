@@ -12,24 +12,25 @@ np.set_printoptions(threshold=sys.maxsize)
 
 
 ##################################    POSSIBLE CONFIGURATIONS OF THE MODEL      ###################################
-DEFAULT_MODEL = "defaultModel"
-DEFAULT_IMPLIED_CONS = "impliedConsDefaultModel"
-DEFAULT_SYMM_BREAK_CONS = "symmBreakDefaultModel"
-DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymmBreakDefaultModel"
+DEFAULT_MODEL = "initialModel"
+DEFAULT_IMPLIED_CONS = "impliedCons_on_initialModel"
+DEFAULT_SYMM_BREAK_CONS = "symmBreak_on_initialModel"
+DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymBreak_on_initialModel"
 
-SIMPLER_OBJ = "simplerObjective"
-SIMPLER_OBJ_IMPLIED_CONS = "impliedConsSimplerObj"
-SIMPLER_OBJ_SYMM_BREAK_CONS = "symmBreakSimplerObj"
-SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymmBreakSimplerObj"
+SIMPLER_OBJ_NO_FOCUS = "model2"
+SIMPLER_OBJ_IMPLIED_CONS = "impliedCons_on_model2"
+SIMPLER_OBJ_SYMM_BREAK_CONS = "symmBreak_on_model2"
+SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymBreak_on_model2"
+SIMPLER_OBJ_FOCUS = "model2_with_focus"
 
 # every element in configurations corresponds to a specific configuration of the model
 configurations = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS,
-                  SIMPLER_OBJ, SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
+                  SIMPLER_OBJ_NO_FOCUS, SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS, SIMPLER_OBJ_FOCUS]
 
 impliedConfiguration = [DEFAULT_IMPLIED_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS,SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
 symmBreakConfiguration = [DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
 configDefaultObj = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS]
-configSimplerObj = [SIMPLER_OBJ, SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
+configSimplerObj = [SIMPLER_OBJ_NO_FOCUS, SIMPLER_OBJ_FOCUS, SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
 #####################################################################################################################
 
 def inputFile(num):
@@ -98,6 +99,10 @@ def model(num, configuration):
     # model
     model = gp.Model()
     model.setParam('TimeLimit', 300)
+
+    #focus more on feasible solutions than optimality
+    if configuration == SIMPLER_OBJ_FOCUS:
+        model.setParam("$MIPFocus", 1)
 
     # Defining a graph which contain all the possible paths
     G = createGraph(all_distances)
@@ -169,14 +174,12 @@ def model(num, configuration):
 
     # sub-tour elimination constraint
     # the depot is always the first point visited
-    for z in range(n_couriers):
-        model.addConstr(u[0] == 1)
+    model.addConstr(u[0] == 1)
 
-        # all the other points must be visited after the depot
-    for z in range(n_couriers):
-        for i in G.nodes:
-            if i != 0:  # excluding the depot
-                model.addConstr(u[i] >= 2)
+    # all the other points must be visited after the depot
+    for i in G.nodes:
+        if i != 0:  # excluding the depot
+            model.addConstr(u[i] >= 2)
 
     for z in range(n_couriers):
         for i, j in G.edges:
@@ -264,8 +267,13 @@ def model(num, configuration):
         tot_item.append([i for i in items if i != 0])
     print("Solution: ", tot_item)
 
+    if configuration in configSimplerObj:
+        objectiveVal = max([sum(all_distances[i, j] * x[z][i, j].x for i, j in G.edges) for z in range(n_couriers)])
+    if configuration in configDefaultObj:
+        objectiveVal = sum(all_distances[i, j] * x[z][i, j].x for z in range(n_couriers) for i, j in G.edges) + (maxTravelled.x - minTravelled.x)
+
     print("############################################################################### \n")
-    return int(model.Runtime), model.status == GRB.OPTIMAL, model.ObjVal, tot_item
+    return int(model.Runtime), model.status == GRB.OPTIMAL, objectiveVal, tot_item
 
 
 
@@ -277,7 +285,7 @@ def main():
     n_istances = 21
 
 
-    for instance in range(7,n_istances):
+    for instance in range(n_istances):
         inst = {}
         count = 1
         for configuration in configurations:
@@ -297,4 +305,4 @@ def main():
         with open(f"res/{instance + 1}.JSON", "w") as file:
             file.write(json.dumps(inst, indent=3))
 
-main() 
+main()

@@ -1,0 +1,50 @@
+{
+   "defaultModel": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "impliedConsDefaultModel": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "symmBreakDefaultModel": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "impliedAndSymmBreakDefaultModel": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "simplerObjective": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "impliedConsSimplerObj": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "symmBreakSimplerObj": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "impliedAndSymmBreakSimplerObj": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   }
+}
