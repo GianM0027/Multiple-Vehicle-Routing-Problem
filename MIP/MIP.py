@@ -94,11 +94,31 @@ def main(num):
         model.addConstr(courierTravelled >= minTravelled)
 
 
-    sumOfAllPaths = gp.LinExpr(quicksum(all_distances[i, j] * x[z][i, j] for z in range(n_couriers) for i, j in G.edges))
-    model.setObjective(sumOfAllPaths+(maxTravelled-minTravelled), GRB.MINIMIZE)
-    #model.setObjective(maxTravelled, GRB.MINIMIZE)
+    #sumOfAllPaths = gp.LinExpr(quicksum(all_distances[i, j] * x[z][i, j] for z in range(n_couriers) for i, j in G.edges))
+    #model.setObjective(sumOfAllPaths+(maxTravelled-minTravelled), GRB.MINIMIZE)
+    model.setObjective(maxTravelled, GRB.MINIMIZE)
 
-    # CONSTRAINTS
+    ################################## CONSTRAINTS ####################################
+
+
+    # implied constraints
+    # (each row for each courier must contain at most 1 true value, depot not included in this constraint)
+    for z in range(n_couriers):
+        for i in G.nodes:
+            model.addConstr(quicksum(x[z][i, j] for j in G.nodes if i != j) <= 1)
+
+    # same values of (i,j) cannot be true in different z (two couriers cannot travel the same sub-path)
+    for i, j in G.edges:
+        model.addConstr(quicksum(x[z][i, j] for z in range(n_couriers)) <= 1)
+    """
+    
+    # symmetry breaking constraint
+    #couriers with lower max_load must bring less weight
+    for z1 in range(n_couriers):
+        for z2 in range(n_couriers):
+            if max_load[z1] > max_load[z2]:
+                model.addConstr(quicksum(size_item[j] * x[z1][i, j] for i, j in G.edges) >= quicksum(size_item[j] * x[z2][i, j] for i, j in G.edges))
+    """
 
     # Every item must be delivered
     # (each 3-dimensional raw must contain only 1 true value, depot not included in this constraint)
@@ -168,14 +188,16 @@ def main(num):
 
     tot_item = []
     for z in range(n_couriers):
-        item = []
-        for i, j in G.edges:
-            if x[z][i, j].x >= 1:
-                if i not in item:
-                    item.insert(int(u[i].x),i)
-                if j not in item:
-                    item.insert(int(u[j].x),j)
-        tot_item.append([i for i in item if i != 0])
+        tour_edges = [(i,j) for i,j in G.edges if x[z][i, j].x >= 1]
+        items = []
+        current = 0
+        while len(tour_edges) > 0:
+            for i, j in tour_edges:
+                if i == current:
+                    items.append(j)
+                    current = j
+                    tour_edges.remove((i,j))
+        tot_item.append([i for i in items if i != 0])
     print("Solution: ",tot_item)
 
     """ JSON

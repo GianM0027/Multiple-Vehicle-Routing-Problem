@@ -1,0 +1,114 @@
+{
+   "defaultModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": 412.0,
+      "solution": [
+         [
+            2
+         ],
+         [
+            1,
+            3
+         ]
+      ]
+   },
+   "impliedConsDefaultModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": 412.0,
+      "solution": [
+         [
+            2
+         ],
+         [
+            1,
+            3
+         ]
+      ]
+   },
+   "symmBreakDefaultModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": 412.0,
+      "solution": [
+         [
+            2
+         ],
+         [
+            1,
+            3
+         ]
+      ]
+   },
+   "impliedAndSymmBreakDefaultModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": 412.0,
+      "solution": [
+         [
+            2
+         ],
+         [
+            1,
+            3
+         ]
+      ]
+   },
+   "simplerObjective": {
+      "time": 0,
+      "optimal": true,
+      "obj": 206.0,
+      "solution": [
+         [
+            2
+         ],
+         [
+            1,
+            3
+         ]
+      ]
+   },
+   "impliedConsSimplerObj": {
+      "time": 0,
+      "optimal": true,
+      "obj": 206.0,
+      "solution": [
+         [
+            2
+         ],
+         [
+            1,
+            3
+         ]
+      ]
+   },
+   "symmBreakSimplerObj": {
+      "time": 0,
+      "optimal": true,
+      "obj": 206.0,
+      "solution": [
+         [
+            2
+         ],
+         [
+            1,
+            3
+         ]
+      ]
+   },
+   "impliedAndSymmBreakSimplerObj": {
+      "time": 0,
+      "optimal": true,
+      "obj": 206.0,
+      "solution": [
+         [
+            2
+         ],
+         [
+            1,
+            3
+         ]
+      ]
+   }
+}

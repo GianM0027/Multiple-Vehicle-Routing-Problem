@@ -26,6 +26,8 @@ SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymmBreakSimplerObj"
 configurations = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS,
                   SIMPLER_OBJ, SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
 
+impliedConfiguration = [DEFAULT_IMPLIED_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS,SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
+symmBreakConfiguration = [DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
 configDefaultObj = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS]
 configSimplerObj = [SIMPLER_OBJ, SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
 #####################################################################################################################
@@ -123,22 +125,24 @@ def model(num, configuration):
     # CONSTRAINTS
 
     # implied constraints
-    if configuration in [DEFAULT_IMPLIED_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS,SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]:
+    if configuration in impliedConfiguration:
+        # (each row for each courier must contain at most 1 true value, depot not included in this constraint)
+        for z in range(n_couriers):
+            for i in G.nodes:
+                model.addConstr(quicksum(x[z][i, j] for j in G.nodes if i != j) <= 1)
 
-        # (each 3-dimensional column must contain only 1 true value, depot not included in this constraint)
-        for i in G.nodes:
-            if i != 0:  # no depot
-                model.addConstr(quicksum(x[z][i, j] for z in range(n_couriers) for j in G.nodes if i != j) == 1)
+        # same values of (i,j) cannot be true in different z (two couriers cannot travel the same sub-path)
+        for i, j in G.edges:
+            model.addConstr(quicksum(x[z][i, j] for z in range(n_couriers)) <= 1)
 
-        for i,j in G.edges:
-            model.addConstr(quicksum(x[z][i,j] for z in range(n_couriers)) <= 1)
 
     # symmetry breaking couriers
-    if configuration in [DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]:
+    if configuration in symmBreakConfiguration:
         #couriers with lower max_load must bring less weight
-        max_load = sorted(max_load)
-        for z in range(n_couriers-1):
-            model.addConstr(quicksum(size_item[j] * x[z][i, j] for i, j in G.edges) <= quicksum(size_item[j] * x[z+1][i, j] for i, j in G.edges))
+        for z1 in range(n_couriers):
+            for z2 in range(n_couriers):
+                if max_load[z1] > max_load[z2]:
+                    model.addConstr(quicksum(size_item[j] * x[z1][i, j] for i, j in G.edges) >= quicksum(size_item[j] * x[z2][i, j] for i, j in G.edges))
 
     # Every item must be delivered
     # (each 3-dimensional raw must contain only 1 true value, depot not included in this constraint)
@@ -186,7 +190,7 @@ def model(num, configuration):
     model.optimize()
 
     if model.SolCount == 0:
-        return model.Runtime, False, "Inf", []
+        return 300, False, "Inf", []
 
     # print information about solving process (not verbose)
     """
@@ -201,20 +205,7 @@ def model(num, configuration):
         print("Optimal solution found")
     else:
         print("Optimal solution not found")
-    """
-    tot_item = []
-    for z in range(n_couriers):
-        item = []
-        for i, j in G.edges:
-            if x[z][i, j].x >= 1:
-                if i not in item:
-                    item.append(i)
-                if j not in item:
-                    item.append(j)
-        tot_item.append([i for i in item if i != 0])
-    print(tot_item)
 
-    """
     #print information about solving process (verbose)
     print("\n\n\n###############################################################################")
 
@@ -259,8 +250,22 @@ def model(num, configuration):
     plt.show()
     """
 
+    tot_item = []
+    for z in range(n_couriers):
+        tour_edges = [(i, j) for i, j in G.edges if x[z][i, j].x >= 1]
+        items = []
+        current = 0
+        while len(tour_edges) > 0:
+            for i, j in tour_edges:
+                if i == current:
+                    items.append(j)
+                    current = j
+                    tour_edges.remove((i, j))
+        tot_item.append([i for i in items if i != 0])
+    print("Solution: ", tot_item)
+
     print("############################################################################### \n")
-    return model.Runtime, model.status == GRB.OPTIMAL, model.ObjVal, tot_item
+    return int(model.Runtime), model.status == GRB.OPTIMAL, model.ObjVal, tot_item
 
 
 
@@ -270,29 +275,26 @@ def main():
 
     # number of instances over which iterate
     n_istances = 21
-    count = 1
 
-    output = {}
-    for configuration in configurations:
-        instances = {}
-        for i in range(n_istances):
-            print(f"\n\n\n###################    Instance {i+1}, Configuration {count} out of {len(configurations)}    ####################")
-            runTime, status, obj, solution = model(i+1, configuration)
+
+    for instance in range(7,n_istances):
+        inst = {}
+        count = 1
+        for configuration in configurations:
+            print(f"\n\n\n###################    Instance {instance + 1}/{n_istances}, Configuration {count} out of {len(configurations)} -> {configuration}    ####################")
+            runTime, status, obj, solution = model(instance + 1, configuration)
 
             # JSON
-            instance = {}
-            instance["time"] = runTime
-            instance["optimal"] = status
-            instance["obj"] = obj
-            instance["solution"] = solution
+            config = {}
+            config["time"] = runTime
+            config["optimal"] = status
+            config["obj"] = obj
+            config["solution"] = solution
 
-            instances[f"instance {i+1}"] = instance
-        count += 1
-        output[configuration] = instances
+            inst[configuration] = config
+            count += 1
 
-    with open("res.json", "w") as file:
-        file.write(json.dumps(output, indent=3))
+        with open(f"res/{instance + 1}.JSON", "w") as file:
+            file.write(json.dumps(inst, indent=3))
 
-
-
-main()
+main() 
