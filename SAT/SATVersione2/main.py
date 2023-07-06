@@ -5,12 +5,43 @@ from itertools import combinations
 import networkx as nx
 import matplotlib.cm as cm
 from matplotlib import pyplot as plt
+import time
 
-numero = 8
+numero = 1
+
+
+def print_graph():
+    # Calculate the node colors
+    colormap = cm._colormaps.get_cmap("Set3")
+    node_colors = {}
+    for z in range(n_couriers):
+        for i in range(n_items + 1):
+            if model.evaluate(v[i - 1][z]):
+                node_colors[i] = colormap(z)
+    node_colors[0] = 'pink'
+
+    # Convert to list to maintain order for nx.draw
+    color_list = [node_colors[i] for i in range(n_items + 1)]
+
+    nx.draw(G.edge_subgraph(tour_edges), with_labels=True, node_color=color_list)
+    plt.show()
+
+
+def find_routes(current_node, remaining_edges, current_route):
+    if current_node == 0 and len(current_route) > 1:
+        routes.append(list(current_route))
+    else:
+        for i in range(len(remaining_edges)):
+            if remaining_edges[i][0] == current_node:
+                next_node = remaining_edges[i][1]
+                current_route.append(remaining_edges[i])
+                find_routes(next_node, remaining_edges[:i] + remaining_edges[i + 1:], current_route)
+                current_route.pop()
+
 
 def createGraph(all_distances):
     all_dist_size = all_distances.shape[0]
-    size_item = all_distances.shape[0]-1
+    size_item = all_distances.shape[0] - 1
     G = nx.DiGraph()
 
     # Add nodes to the graph
@@ -18,7 +49,7 @@ def createGraph(all_distances):
 
     # Add double connections between nodes
     for i in range(all_dist_size):
-        for j in range(i + 1, size_item + 1): #size item + 1 because we enclude also the depot in the graph
+        for j in range(i + 1, size_item + 1):  # size item + 1 because we enclude also the depot in the graph
             G.add_edge(i, j)
             G.add_edge(j, i)
 
@@ -55,6 +86,10 @@ def at_most_one_bw(bool_vars, name):
     return And(constraints)
 
 
+def exactly_one_bw(bool_vars, name):
+    return And(at_least_one_bw(bool_vars), at_most_one_bw(bool_vars, name))
+
+
 def at_least_one_seq(bool_vars):
     return at_least_one_np(bool_vars)
 
@@ -74,10 +109,6 @@ def at_most_one_seq(bool_vars, name):
 
 def exactly_one_seq(bool_vars, name):
     return And(at_least_one_seq(bool_vars), at_most_one_seq(bool_vars, name))
-
-
-def exactly_one_bw(bool_vars, name):
-    return And(at_least_one_bw(bool_vars), at_most_one_bw(bool_vars, name))
 
 
 def at_least_one_np(bool_vars):
@@ -112,28 +143,12 @@ at_least_one = at_least_one_bw
 exactly_one = exactly_one_bw
 
 
-def binary_increment(a, b):
-    constraints = []
-    carry = {}
-    num_digits = len(a)
-    constraints.append(b[0] == Not(a[0]))
-    constraints.append(b[1] == Or(And(a[1], Not(a[0])), And(Not(a[1]), a[0])))
-    carry[1] = a[0]
-
-    for i in range(2, num_digits):
-        carry[i] = And(a[i - 1], carry[i - 1])
-        constraints.append(b[i] == Or(And(a[i], Not(carry[i])), And(Not(a[i]), carry[i])))
-
-    return And(constraints)
-
-
 def inputFile(num):
     # Instantiate variables from file
     if num < 10:
-        instances_path = "instances/inst0"+str(num)+".dat"  # inserire nome del file
+        instances_path = "instances/inst0" + str(num) + ".dat"  # inserire nome del file
     else:
         instances_path = "instances/inst" + str(num) + ".dat"  # inserire nome del file
-
 
     data_file = open(instances_path)
     lines = []
@@ -159,19 +174,14 @@ def inputFile(num):
 
     dist = dist.astype(int)
 
-    # print general information about the problem instance
-    print("Number of items: ", n_items)
-    print("Number of couriers: ", n_couriers)
-    print("")
-
     return n_couriers, n_items, max_load, size_item, dist
 
 
 n_couriers, n_items, max_load, size_item, all_distances = inputFile(numero)
 
-#s = Solver()
+# s = Solver()
 s = Optimize()
-#s = SolverFor("QF_BV")
+# s = SolverFor("QF_BV")
 
 x = [[[Bool(f"x_{i}_{j}_{k}") for k in range(n_couriers)] for j in range(n_items + 1)] for i in
      range(n_items + 1)]  # x[k][i][j] == True : route (i->j) is used by courier k | set of Archs
@@ -215,7 +225,6 @@ for j in range(1, n_items + 1):
 for k in range(n_couriers):
     #s.add(PbEq([(x[j][0][k], 1) for j in range(1, n_items + 1)], 1))
     s.add(exactly_one([x[j][0][k] for j in range(1, n_items + 1)], f"courier_ends_{k}"))
-    #s.add(exactly_one([And(v[j-1][k], x[j][0][k]) for j in range(1, n_items + 1)], f"courier_deliver_{k}"))
 
 # Each courier depart from the depot
 for k in range(n_couriers):
@@ -235,13 +244,18 @@ for i in range(n_items):
 for k in range(n_couriers):
     for i in range(1, n_items + 1):
         for j in range(1, n_items + 1):
-            s.add([Implies(x[i][j][k], And(Or(v[i - 1][k]), Or(v[j - 1][k])))])
-            #s.add([Implies(x[i][j][k], And(v[i - 1][k], v[j - 1][k]))])
+            s.add([Implies(x[i][j][k], And(v[i - 1][k], v[j - 1][k]))])
 
 for k in range(n_couriers):
     s.add(at_least_one_np([v[i][k] for i in range(n_items)]))
 
+# - - - - - - - - - - - - - - - - - SYMMETRY BREAKING - - - - - - - - - - - - - - - - - - - - - - #
 
+"""for k1 in range(n_couriers):
+    for k2 in range(n_couriers):
+        if k1 != k2 and max_load[k1] < max_load[k2]:
+            s.add(PbLe([(v[i][k1], size_item[i]) for i in range(n_items)], [(v[j][k2], size_item[j]) for j in range(n_items)]))
+"""
 # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
 
 def funzione_brutta(a, b):
@@ -255,103 +269,72 @@ for k in range(n_couriers):
         for i in range(n_items + 1):
             if i != j:
                 if len(u[i - 1][k]) >= 3 and len(u[j - 1][k]) >= 3:
-                    # print(f"u[{i}]: {u[i]} \n u[{j}]: {u[j]} \n")
-                    # print(f"u[{i}_{k}]: {u[i][k]} \n u[{j}_{k}]: {u[j][k]} \n")
                     s.add(Implies(x[i][j][k], funzione_brutta(u[i - 1][k], u[j - 1][k])))
 
-
-"""for k in range(n_couriers):
-    for i in range(1, n_items + 1):
-        for j in range(1, n_items + 1):
-            s.add(Implies(x[i][j][k], And(Or([x[j][f][k] for f in range(n_items + 1)]),
-                                          Or([x[m][i][k] for m in range(n_items + 1)]))))"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+start_time = time.time()
 
 if s.check() == sat:
     model = s.model()
-    r = [[[model.evaluate(x[i][j][k]) for k in range(n_couriers)] for j in range(n_items + 1)] for i in
-         range(n_items + 1)]
-    ut = [[model.evaluate(v[i][k]) for k in range(n_couriers)] for i in range(n_items)]
-
-    # print("R: " + str(r) + "\n")
-    # print("UT: " + str(ut) + "\n")
-
 
     ############ OBJECTIVE
     total_distance = Sum(
         [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i in range(n_items + 1) for j in
          range(n_items + 1)])
 
-    min_dist = 0
+    min_dist = float('inf')
     num_min_courier = 0
-    max_dist = 0
+    max_dist = float('-inf')
     num_max_courier = 0
+
     for k in range(n_couriers):
-        temp = 0
-        count = True
-        for i in range(n_items + 1):
-            for j in range(n_items + 1):
-                if model.evaluate(x[i][j][k]):
-                    temp += int(all_distances[i][j])
-        if count:
-            min_dist = temp
-            count = False
-        if temp <= min_dist:
+        temp = sum(int(all_distances[i][j]) for i in range(n_items + 1) for j in range(n_items + 1) if
+                   model.evaluate(x[i][j][k]))
+
+        if temp < min_dist:
             min_dist = temp
             num_min_courier = k
-        if temp >= max_dist:
+
+        if temp > max_dist:
             max_dist = temp
             num_max_courier = k
 
-    print("Min dist: " + str(min_dist) + "\n")
-    print("Max dist: " + str(max_dist) + "\n")
-
     s.minimize(total_distance + (max_dist - min_dist))
 
+    final_time = time.time() - start_time
 
+    # print general information about the problem instance
+    print("\n------- Problem  -------")
+    print("Number of items: ", n_items)
+    print("Number of couriers: ", n_couriers)
+    print("")
 
+    edges_list = [(i, j) for z in range(n_couriers) for i in range(n_items + 1) for j in range(n_items + 1) if
+                  model.evaluate(x[i][j][z])]
+    print(f"Edges List -> {edges_list}")
+
+    print("\n------- Routes  -------")
+    routes = []
+    find_routes(0, edges_list, [])
     for k in range(n_couriers):
-        route_string = ""
-        for i in range(n_items + 1):
-            for j in range(n_items + 1):
-                if model.evaluate(x[i][j][k]):
-                    temp = str(x[i][j][k]).split('_')
-                    route_string += "(" + str(temp[1]) + "-" + str(temp[2]) + ") "
-        print(route_string)
+        actual_load = sum(size_item[i] for i in range(n_items) if model.evaluate(v[i][k]))
 
-    print("\n")
-    for k in range(n_couriers):
-        actual_load = 0
-        for i in range(n_items):
-            if model.evaluate(v[i][k]):
-                temp = str(v[i][k]).split('_')
-                print(f"Item: {int(temp[1]) + 1} <- [{temp[2]}]")
-                actual_load += size_item[i]
-        print("Courier Max Load = " + str(max_load[k]))
-        print("Courier Load = " + str(actual_load))
-        print("\n")
-
-    # total distance traveled minimized
-    #print(model.evaluate(total_distance))
-    print("\n")
+        print(f"Route of Courier [{k}] -> {routes[k]}")
+        print(f"Max Load = {max_load[k]}")
+        print(f"Actual Load = {actual_load}\n")
 
     # print plots
-    tour_edges = [(i,j) for i,j in G.edges for z in range(n_couriers) if model.evaluate(x[i][j][z])]
+    tour_edges = [(i, j) for i, j in G.edges for z in range(n_couriers) if model.evaluate(x[i][j][z])]
 
-    # Calculate the node colors
-    colormap = cm._colormaps.get_cmap("Set3")
-    node_colors = {}
-    for z in range(n_couriers):
-        for i in range(n_items+1):
-            if model.evaluate(v[i-1][z]):
-                node_colors[i] = colormap(z)
-    node_colors[0] = 'pink'
+    print("\n------- Distances  -------")
+    print("Min dist: " + str(min_dist))
+    print("Max dist: " + str(max_dist))
+    print("Total dist: " + str(model.evaluate(total_distance)) + "\n")
 
-    # Convert to list to maintain order for nx.draw
-    color_list = [node_colors[i] for i in range(n_items+1)]
+    print("\n------- Time  -------")
+    print("Time: " + str(final_time))
 
-    nx.draw(G.edge_subgraph(tour_edges), with_labels=True, node_color=color_list)
-    plt.show()
+    # print_graph()
 
 
 else:
