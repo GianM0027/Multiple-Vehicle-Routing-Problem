@@ -1,14 +1,14 @@
 {
-   "defaultModel": {
+   "initialModel": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",
       "solution": []
    },
-   "impliedConsDefaultModel": {
+   "impliedCons_on_initialModel": {
       "time": 300,
       "optimal": false,
-      "obj": 12227.0,
+      "obj": 11271.0,
       "solution": [
          [
             17,
@@ -17,14 +17,7 @@
             112,
             27,
             128,
-            13,
-            7,
-            78,
-            95,
-            12,
-            75,
-            21,
-            1
+            13
          ],
          [
             20,
@@ -53,11 +46,7 @@
             41
          ],
          [
-            49,
-            108,
-            116,
-            18,
-            28
+            44
          ],
          [
             43
@@ -103,14 +92,14 @@
          [
             91,
             62,
-            5,
-            40,
-            102,
-            97,
+            116,
+            82,
+            86,
+            46,
             19,
             106,
-            35,
             66,
+            34,
             53,
             133,
             74
@@ -123,19 +112,18 @@
             143,
             139,
             132,
-            3
+            28
          ],
          [
             103,
-            134,
+            5,
             135,
             2,
-            131,
-            11,
-            129,
-            4,
-            34,
+            56,
+            15,
+            3,
             37,
+            117,
             87
          ],
          [
@@ -146,47 +134,59 @@
             25,
             126,
             124,
-            117,
-            88
+            137,
+            35,
+            4,
+            12,
+            18,
+            113
          ],
          [
             8,
             10,
             127,
-            123,
-            56,
+            40,
+            102,
+            7,
+            78,
+            75,
             24
          ],
          [
-            44,
+            49,
             26,
             32,
             83,
-            86,
             100,
+            95,
+            21,
+            1,
             48,
             90,
             50,
-            113
+            88
          ],
          [
             107,
+            6,
             138,
             30,
-            46,
-            15,
+            131,
             81,
             93,
             47
          ],
          [
             94,
-            6,
-            82,
+            108,
+            134,
+            123,
             96,
             101,
+            97,
+            11,
+            129,
             120,
-            137,
             110,
             121,
             122,
@@ -195,43 +195,43 @@
          ]
       ]
    },
-   "symmBreakDefaultModel": {
+   "symmBreak_on_initialModel": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",
       "solution": []
    },
-   "impliedAndSymmBreakDefaultModel": {
+   "impliedAndSymBreak_on_initialModel": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",
       "solution": []
    },
-   "simplerObjectiveNoFocus": {
+   "model2": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",
       "solution": []
    },
-   "simplerObjectiveWithFocus": {
+   "impliedCons_on_model2": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",
       "solution": []
    },
-   "impliedConsSimplerObj": {
+   "symmBreak_on_model2": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",
       "solution": []
    },
-   "symmBreakSimplerObj": {
+   "impliedAndSymBreak_on_model2": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",
       "solution": []
    },
-   "impliedAndSymmBreakSimplerObj": {
+   "model2_with_focus": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",

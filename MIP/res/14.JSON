@@ -1,47 +1,53 @@
 {
-   "defaultModel": {
+   "initialModel": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",
       "solution": []
    },
-   "impliedConsDefaultModel": {
+   "impliedCons_on_initialModel": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",
       "solution": []
    },
-   "symmBreakDefaultModel": {
+   "symmBreak_on_initialModel": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",
       "solution": []
    },
-   "impliedAndSymmBreakDefaultModel": {
+   "impliedAndSymBreak_on_initialModel": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",
       "solution": []
    },
-   "simplerObjective": {
+   "model2": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",
       "solution": []
    },
-   "impliedConsSimplerObj": {
+   "impliedCons_on_model2": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",
       "solution": []
    },
-   "symmBreakSimplerObj": {
+   "symmBreak_on_model2": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",
       "solution": []
    },
-   "impliedAndSymmBreakSimplerObj": {
+   "impliedAndSymBreak_on_model2": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "model2_with_focus": {
       "time": 300,
       "optimal": false,
       "obj": "Inf",

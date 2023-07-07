@@ -1,5 +1,5 @@
 {
-   "defaultModel": {
+   "initialModel": {
       "time": 2,
       "optimal": true,
       "obj": 1039.0,
@@ -32,7 +32,7 @@
          ]
       ]
    },
-   "impliedConsDefaultModel": {
+   "impliedCons_on_initialModel": {
       "time": 3,
       "optimal": true,
       "obj": 1039.0,
@@ -65,7 +65,7 @@
          ]
       ]
    },
-   "symmBreakDefaultModel": {
+   "symmBreak_on_initialModel": {
       "time": 2,
       "optimal": true,
       "obj": 1039.0,
@@ -98,8 +98,8 @@
          ]
       ]
    },
-   "impliedAndSymmBreakDefaultModel": {
-      "time": 3,
+   "impliedAndSymBreak_on_initialModel": {
+      "time": 4,
       "optimal": true,
       "obj": 1039.0,
       "solution": [
@@ -131,7 +131,7 @@
          ]
       ]
    },
-   "simplerObjectiveNoFocus": {
+   "model2": {
       "time": 1,
       "optimal": true,
       "obj": 220.0,
@@ -164,7 +164,7 @@
          ]
       ]
    },
-   "simplerObjectiveWithFocus": {
+   "impliedCons_on_model2": {
       "time": 1,
       "optimal": true,
       "obj": 220.0,
@@ -197,40 +197,7 @@
          ]
       ]
    },
-   "impliedConsSimplerObj": {
-      "time": 1,
-      "optimal": true,
-      "obj": 220.0,
-      "solution": [
-         [
-            10,
-            7
-         ],
-         [
-            8,
-            9
-         ],
-         [
-            6
-         ],
-         [
-            5
-         ],
-         [
-            4
-         ],
-         [
-            3
-         ],
-         [
-            2
-         ],
-         [
-            1
-         ]
-      ]
-   },
-   "symmBreakSimplerObj": {
+   "symmBreak_on_model2": {
       "time": 1,
       "optimal": true,
       "obj": 220.0,
@@ -263,8 +230,8 @@
          ]
       ]
    },
-   "impliedAndSymmBreakSimplerObj": {
-      "time": 1,
+   "impliedAndSymBreak_on_model2": {
+      "time": 2,
       "optimal": true,
       "obj": 220.0,
       "solution": [
@@ -293,6 +260,39 @@
          ],
          [
             2
+         ]
+      ]
+   },
+   "model2_with_focus": {
+      "time": 1,
+      "optimal": true,
+      "obj": 220.0,
+      "solution": [
+         [
+            10,
+            7
+         ],
+         [
+            8,
+            9
+         ],
+         [
+            6
+         ],
+         [
+            5
+         ],
+         [
+            4
+         ],
+         [
+            3
+         ],
+         [
+            2
+         ],
+         [
+            1
          ]
       ]
    }
