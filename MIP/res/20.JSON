@@ -1,0 +1,56 @@
+{
+   "initialModel": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "impliedCons_on_initialModel": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "symmBreak_on_initialModel": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "impliedAndSymBreak_on_initialModel": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "model2": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "impliedCons_on_model2": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "symmBreak_on_model2": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "impliedAndSymBreak_on_model2": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "model2_with_focus": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   }
+}

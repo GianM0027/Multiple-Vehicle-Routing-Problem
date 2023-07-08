@@ -1,0 +1,26 @@
+{
+   "defaultModel": {
+      "time": 0,
+      "optimal": false,
+      "obj": 0,
+      "solution": []
+   },
+   "impliedConsDefaultModel": {
+      "time": 0,
+      "optimal": false,
+      "obj": 0,
+      "solution": []
+   },
+   "symmBreakDefaultModel": {
+      "time": 0,
+      "optimal": false,
+      "obj": 0,
+      "solution": []
+   },
+   "impliedAndSymmBreakDefaultModel": {
+      "time": 0,
+      "optimal": false,
+      "obj": 0,
+      "solution": []
+   }
+}

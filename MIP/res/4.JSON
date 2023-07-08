@@ -1,0 +1,299 @@
+{
+   "initialModel": {
+      "time": 2,
+      "optimal": true,
+      "obj": 1039.0,
+      "solution": [
+         [
+            10
+         ],
+         [
+            6,
+            8,
+            7
+         ],
+         [
+            5
+         ],
+         [
+            9
+         ],
+         [
+            4
+         ],
+         [
+            3
+         ],
+         [
+            2
+         ],
+         [
+            1
+         ]
+      ]
+   },
+   "impliedCons_on_initialModel": {
+      "time": 3,
+      "optimal": true,
+      "obj": 1039.0,
+      "solution": [
+         [
+            7,
+            8,
+            6
+         ],
+         [
+            9
+         ],
+         [
+            2
+         ],
+         [
+            4
+         ],
+         [
+            1
+         ],
+         [
+            5
+         ],
+         [
+            10
+         ],
+         [
+            3
+         ]
+      ]
+   },
+   "symmBreak_on_initialModel": {
+      "time": 2,
+      "optimal": true,
+      "obj": 1039.0,
+      "solution": [
+         [
+            2
+         ],
+         [
+            3
+         ],
+         [
+            1
+         ],
+         [
+            10
+         ],
+         [
+            4
+         ],
+         [
+            9
+         ],
+         [
+            5
+         ],
+         [
+            7,
+            8,
+            6
+         ]
+      ]
+   },
+   "impliedAndSymBreak_on_initialModel": {
+      "time": 4,
+      "optimal": true,
+      "obj": 1039.0,
+      "solution": [
+         [
+            7,
+            8,
+            6
+         ],
+         [
+            3
+         ],
+         [
+            5
+         ],
+         [
+            10
+         ],
+         [
+            4
+         ],
+         [
+            9
+         ],
+         [
+            1
+         ],
+         [
+            2
+         ]
+      ]
+   },
+   "model2": {
+      "time": 1,
+      "optimal": true,
+      "obj": 220.0,
+      "solution": [
+         [
+            10,
+            7
+         ],
+         [
+            8,
+            9
+         ],
+         [
+            6
+         ],
+         [
+            5
+         ],
+         [
+            4
+         ],
+         [
+            3
+         ],
+         [
+            2
+         ],
+         [
+            1
+         ]
+      ]
+   },
+   "impliedCons_on_model2": {
+      "time": 1,
+      "optimal": true,
+      "obj": 220.0,
+      "solution": [
+         [
+            10,
+            7
+         ],
+         [
+            8,
+            9
+         ],
+         [
+            6
+         ],
+         [
+            5
+         ],
+         [
+            4
+         ],
+         [
+            3
+         ],
+         [
+            2
+         ],
+         [
+            1
+         ]
+      ]
+   },
+   "symmBreak_on_model2": {
+      "time": 1,
+      "optimal": true,
+      "obj": 220.0,
+      "solution": [
+         [
+            10,
+            9
+         ],
+         [
+            8
+         ],
+         [
+            5
+         ],
+         [
+            7
+         ],
+         [
+            6
+         ],
+         [
+            4,
+            3
+         ],
+         [
+            1
+         ],
+         [
+            2
+         ]
+      ]
+   },
+   "impliedAndSymBreak_on_model2": {
+      "time": 2,
+      "optimal": true,
+      "obj": 220.0,
+      "solution": [
+         [
+            10,
+            9
+         ],
+         [
+            8
+         ],
+         [
+            5
+         ],
+         [
+            7
+         ],
+         [
+            6
+         ],
+         [
+            4,
+            3
+         ],
+         [
+            1
+         ],
+         [
+            2
+         ]
+      ]
+   },
+   "model2_with_focus": {
+      "time": 1,
+      "optimal": true,
+      "obj": 220.0,
+      "solution": [
+         [
+            10,
+            7
+         ],
+         [
+            8,
+            9
+         ],
+         [
+            6
+         ],
+         [
+            5
+         ],
+         [
+            4
+         ],
+         [
+            3
+         ],
+         [
+            2
+         ],
+         [
+            1
+         ]
+      ]
+   }
+}
