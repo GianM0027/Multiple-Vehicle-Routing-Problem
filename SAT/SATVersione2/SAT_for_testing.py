@@ -7,7 +7,6 @@ import networkx as nx
 import time
 import json
 
-
 # - - - - - - - - - - - - - - - - - - - - - CONFIGURATIONS - - - - - - - - - - - - - - - - - - - - - #
 DEFAULT_MODEL = "defaultModel"
 DEFAULT_IMPLIED_CONS = "impliedConsDefaultModel"
@@ -166,6 +165,11 @@ def inputFile(num):
     return n_couriers, n_items, max_load, size_item, dist
 
 
+def no_subtour(a, b):
+    return And(b[0] == Not(a[0]), b[1] == Or(And(a[1], Not(a[0])), And(Not(a[1]), a[0])),
+               b[2] == Or(And(a[2], Not(And(a[1], a[0]))), And(Not(a[2]), And(a[1], a[0]))))
+
+
 at_most_one = at_most_one_seq
 at_least_one = at_least_one_seq
 exactly_one = exactly_one_seq
@@ -203,18 +207,6 @@ def model(instance_num, configuration, remaining_time):
     # No routes from any node to itself
     for k in range(n_couriers):
         s.add([Not(x[i][i][k]) for i in range(n_items + 1)])
-
-        """s.add(PbEq([(x[j][0][k], 1) for j in range(1, n_items + 1)], 1))  # 1
-
-        s.add(PbEq([(x[0][j][k], 1) for j in range(1, n_items + 1)], 1))  # 2
-
-        s.add(PbLe([(v[i][k], size_item[i]) for i in range(n_items)], max_load[k]))  # 3
-
-        for i in range(1, n_items + 1):
-            for j in range(1, n_items + 1):
-                s.add([Implies(x[i][j][k], And(v[i - 1][k], v[j - 1][k]))])  # 4
-
-        s.add(at_least_one_np([v[i][k] for i in range(n_items)]))  # 5"""
 
     print("Step 1 finished in ", time.time() - constrain_time)
     # - - - - - - - - - - - - - - - - -
@@ -300,22 +292,11 @@ def model(instance_num, configuration, remaining_time):
 
     # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
 
-    def no_subtour(a, b):
-        return And(b[0] == Not(a[0]), b[1] == Or(And(a[1], Not(a[0])), And(Not(a[1]), a[0])),
-                   b[2] == Or(And(a[2], Not(And(a[1], a[0]))), And(Not(a[2]), And(a[1], a[0]))))
-
-    """# The order of visiting locations must be consistent with the binary representations
+    # The order of visiting locations must be consistent with the binary representations
     for k in range(n_couriers):
         s.add([Implies(x[i][j][k], no_subtour(u[i - 1][k], u[j - 1][k]))
                for i in range(n_items + 1) for j in range(n_items + 1)
-               if len(u[i - 1][k]) >= 3 and len(u[j - 1][k]) >= 3 if i != j])"""
-
-    for k in range(n_couriers):
-        for j in range(n_items + 1):
-            for i in range(n_items + 1):
-                if i != j:
-                    if len(u[i - 1][k]) >= 3 and len(u[j - 1][k]) >= 3:
-                        s.add(Implies(x[i][j][k], no_subtour(u[i - 1][k], u[j - 1][k])))
+               if len(u[i - 1][k]) >= 3 and len(u[j - 1][k]) >= 3 if i != j])
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 
@@ -398,15 +379,13 @@ def model(instance_num, configuration, remaining_time):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 
 def find_best(instance, configuration):
-
     best_total_distance, elapsed_time, best_solution = model(instance, configuration, 300)
-
-    #best_total_distance, elapsed_time, best_solution = model(instance, configuration, 300)
     remaining_time = 300 - elapsed_time
     status = False
-    final_time = elapsed_time
+    final_time = remaining_time
     print("total_distance: ", best_total_distance)
     print("remaining_time: ", remaining_time)
+    print("best_solution: ", best_solution)
 
     while remaining_time > 0:
         temp_total_distance, elapsed_time, temp_solution = model(instance, configuration, remaining_time)
@@ -417,7 +396,7 @@ def find_best(instance, configuration):
 
         print("remaining_time: ", remaining_time)
         print()
-        if temp_total_distance < best_total_distance and temp_total_distance != -1:
+        if temp_total_distance < best_total_distance and temp_total_distance != -1 and remaining_time > 0:
             best_total_distance = temp_total_distance
             status = True
             best_solution = temp_solution
@@ -429,12 +408,15 @@ def find_best(instance, configuration):
 
     return final_time, status, best_total_distance, best_solution
 
+def return_results():
+    return 300, False, 0, []
+
 
 def main():
     # number of instances over which iterate
     n_istances = 21
 
-    for instance in range(11, 12):
+    for instance in range(18, 19):
         inst = {}
         count = 1
         for configuration in configurations:
