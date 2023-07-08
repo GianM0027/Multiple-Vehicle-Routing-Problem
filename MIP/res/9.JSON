@@ -1,5 +1,5 @@
 {
-   "defaultModel": {
+   "initialModel": {
       "time": 1,
       "optimal": true,
       "obj": 1772.0,
@@ -39,8 +39,8 @@
          ]
       ]
    },
-   "impliedConsDefaultModel": {
-      "time": 1,
+   "impliedCons_on_initialModel": {
+      "time": 2,
       "optimal": true,
       "obj": 1772.0,
       "solution": [
@@ -79,8 +79,8 @@
          ]
       ]
    },
-   "symmBreakDefaultModel": {
-      "time": 18,
+   "symmBreak_on_initialModel": {
+      "time": 21,
       "optimal": true,
       "obj": 1772.0,
       "solution": [
@@ -119,29 +119,16 @@
          ]
       ]
    },
-   "impliedAndSymmBreakDefaultModel": {
-      "time": 7,
+   "impliedAndSymBreak_on_initialModel": {
+      "time": 12,
       "optimal": true,
       "obj": 1772.0,
       "solution": [
          [
-            3
+            12
          ],
          [
             1
-         ],
-         [
-            7,
-            5
-         ],
-         [
-            10
-         ],
-         [
-            2
-         ],
-         [
-            12
          ],
          [
             4,
@@ -149,17 +136,30 @@
             13
          ],
          [
-            6
+            10
          ],
          [
             11
          ],
          [
+            3
+         ],
+         [
             9
+         ],
+         [
+            6
+         ],
+         [
+            2
+         ],
+         [
+            7,
+            5
          ]
       ]
    },
-   "simplerObjective": {
+   "model2": {
       "time": 2,
       "optimal": true,
       "obj": 436.0,
@@ -199,7 +199,7 @@
          ]
       ]
    },
-   "impliedConsSimplerObj": {
+   "impliedCons_on_model2": {
       "time": 2,
       "optimal": true,
       "obj": 436.0,
@@ -239,8 +239,8 @@
          ]
       ]
    },
-   "symmBreakSimplerObj": {
-      "time": 103,
+   "symmBreak_on_model2": {
+      "time": 106,
       "optimal": true,
       "obj": 436.0,
       "solution": [
@@ -279,8 +279,8 @@
          ]
       ]
    },
-   "impliedAndSymmBreakSimplerObj": {
-      "time": 89,
+   "impliedAndSymBreak_on_model2": {
+      "time": 88,
       "optimal": true,
       "obj": 436.0,
       "solution": [
@@ -316,6 +316,46 @@
          [
             10,
             1
+         ]
+      ]
+   },
+   "model2_with_focus": {
+      "time": 2,
+      "optimal": true,
+      "obj": 436.0,
+      "solution": [
+         [
+            13
+         ],
+         [
+            12
+         ],
+         [
+            11
+         ],
+         [
+            10
+         ],
+         [
+            9
+         ],
+         [
+            8
+         ],
+         [
+            7
+         ],
+         [
+            6
+         ],
+         [
+            5
+         ],
+         [
+            4,
+            2,
+            1,
+            3
          ]
       ]
    }

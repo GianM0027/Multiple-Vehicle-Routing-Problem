@@ -26,25 +26,34 @@ def set_model(configuration):
 
     return model
 
-def get_results(result, n_couriers, n_items):
+def get_results(result, n_couriers, n_items, timeout):
 
     lines = str(result.solution).split("\n")
-    objective = int(lines[0])
+    try: objective = int(lines[0])
+    except: objective = lines[0]
+    # if lines[0] == None:
+    #     objective = lines[0]
+    # else:
+    #     objective = int(lines[0])
+    if len(lines) > 1:
 
-    lines[1] = lines[1].strip("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ[]= ;\n").replace(",","")
-    delivery_order = list(lines[1].split(' '))
-    delivery_order = [int(i) for i in delivery_order]
-    delivery_order = np.array(delivery_order).reshape(n_items+2,n_couriers).T 
+        delivery_order = lines[1].strip("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ[]= ;\n").replace(",","")
+        delivery_order = list(delivery_order.split(' '))
+        delivery_order = [int(i) for i in delivery_order]
+        delivery_order = np.array(delivery_order).reshape(n_items+2,n_couriers).T 
 
-    sol = list()
-    for i in range(n_couriers):
-        c_sol = list()
-        for j in range(n_items +2):
-            if delivery_order[i][j] != 0:
-                c_sol.append(int(delivery_order[i][j]))
-        sol.append(c_sol)
+        sol = list()
+        for i in range(n_couriers):
+            c_sol = list()
+            for j in range(n_items +2):
+                if delivery_order[i][j] != 0:
+                    c_sol.append(int(delivery_order[i][j]))
+            sol.append(c_sol)
+    else:
+        sol = None
 
-    runTime = int(result.statistics['time'].total_seconds())
+    try: runTime = int(result.statistics['time'].total_seconds())
+    except: runTime = int(timeout.total_seconds())
 
     status = (result.status == result.status.OPTIMAL_SOLUTION)
 
@@ -104,7 +113,7 @@ IMPLIED_CONS_OBJ_FUN = "impliedConsObjFun"
 # every element in configurations corresponds to a specific configuration of the model
 configurations = [DEFAULT_MODEL_MAX_DIST, DEFAULT_MODEL_OBJ_FUN, IMPLIED_CONS_MAX_DIST, IMPLIED_CONS_OBJ_FUN]
 
-number_of_instances = 1
+number_of_instances = 12
 instances_list = list()
 for i in range(1,number_of_instances+1):
     if i < 10:
@@ -112,18 +121,20 @@ for i in range(1,number_of_instances+1):
     else:
         instances_list.append(str(i))
 
-solvers = ["chuffed"]
-timeout = datetime.timedelta(seconds=300)
+solvers = ["chuffed"] # Da aggiungere gecode per i test
+timeout = datetime.timedelta(milliseconds= 300000)
+
 
 def main():
-    output = {}
-    for configuration in configurations:
-        model = set_model(configuration)
-        instances = {}
-        for inst in instances_list:
+    for i in range(10,len(instances_list)):
+        inst = instances_list[i-1]
+        output = {}
+        for configuration in configurations:
+            model = set_model(configuration)
+            solverj = {}
             for solv in solvers:
                 result, n_couriers, n_items = solve_model(inst,model,solv,timeout)
-                obj,solution,runTime,status = get_results(result, n_couriers, n_items)
+                obj,solution,runTime,status = get_results(result, n_couriers, n_items, timeout)
 
                 # JSON
                 instance = {}
@@ -132,13 +143,11 @@ def main():
                 instance["obj"] = obj
                 instance["solution"] = solution 
                 
-                instances["instance"] = instance
+            solverj[solv] = instance
 
-        output[configuration] = instances
+            output[configuration] = solverj
 
-    with open("res.json", "w") as file:
-        file.write(json.dumps(output, indent=3))
-
-
+        with open(str(i)+".json", "w") as file:
+            file.write(json.dumps(output, indent=3))
 
 main()

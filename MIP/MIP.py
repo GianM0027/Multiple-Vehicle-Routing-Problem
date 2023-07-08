@@ -86,6 +86,7 @@ def main(num):
     u = model.addVars(G.nodes, vtype=GRB.INTEGER, ub=n_items)
 
     # objective function (minimize total distance travelled + difference between min and max path normalized)
+
     maxTravelled = model.addVar(vtype=GRB.INTEGER, name="maxTravelled")
     minTravelled = model.addVar(vtype=GRB.INTEGER, name="minTravelled")
     for z in range(n_couriers):
@@ -100,7 +101,7 @@ def main(num):
 
     ################################## CONSTRAINTS ####################################
 
-
+    """
     # implied constraints
     # (each row for each courier must contain at most 1 true value, depot not included in this constraint)
     for z in range(n_couriers):
@@ -110,7 +111,6 @@ def main(num):
     # same values of (i,j) cannot be true in different z (two couriers cannot travel the same sub-path)
     for i, j in G.edges:
         model.addConstr(quicksum(x[z][i, j] for z in range(n_couriers)) <= 1)
-    """
     
     # symmetry breaking constraint
     #couriers with lower max_load must bring less weight
@@ -145,16 +145,15 @@ def main(num):
 
 
     #sub-tour elimination constraint
-    # the depot is always the first point visited
-    for z in range(n_couriers):
-        model.addConstr(u[0] == 1)
+    # the depot is always the first point visited (??????????)
+    model.addConstr(u[0] == 1)
 
-        # all the other points must be visited after the depot
-    for z in range(n_couriers):
-        for i in G.nodes:
-            if i != 0:  # excluding the depot
-                model.addConstr(u[i] >= 2)
+    # all the other points must be visited after the depot (??????????)
+    for i in G.nodes:
+        if i != 0:  # excluding the depot
+            model.addConstr(u[i] >= 2)
 
+    # MTZ core
     for z in range(n_couriers):
         for i, j in G.edges:
             if i != 0 and j != 0 and i != j:  # excluding the depot
@@ -167,8 +166,7 @@ def main(num):
     # start solving process
     # model.setParam("ImproveStartGap", 0.1)
     #model.tune()
-    #model.setParam('PoolSolutions', 4)
-    #model.setParam("MIPFocus", 3)
+    #model.setParam("MIPFocus", 1) #1 -> find feasible solutions quickly \ 2 -> focus on optimality \ focus on objective bound
     #gp.setParam("PoolSearchMode", 2)  # To find better intermediary solution
     #model.setParam('Presolve', 2)
     model.optimize()
@@ -233,6 +231,12 @@ def main(num):
     # print plots
     tour_edges = [edge for edge in G.edges for z in range(n_couriers) if x[z][edge].x >= 1]
 
+    for z in range(n_couriers):
+        print(f"courier {z}: ", [edge for edge in G.edges if x[z][edge].x >= 1], end=" ")
+        print(" -> ", [all_distances[edge] for edge in G.edges if x[z][edge].x >= 1], end=" ")
+        print(" -> ", quicksum(all_distances[i, j] * x[z][i, j].x for i, j in G.edges))
+        print(max([sum(all_distances[i, j] * x[z][i, j].x for i, j in G.edges) for z in range(n_couriers)]))
+
     # Calculate the node colors
     colormap = cm._colormaps.get_cmap("Set3")
     node_colors = {}
@@ -253,4 +257,4 @@ def main(num):
 
 
 # passare come parametro solo numero dell'istanza (senza lo 0)
-main(4)
+main()

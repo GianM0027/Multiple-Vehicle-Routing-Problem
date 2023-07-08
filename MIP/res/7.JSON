@@ -1,11 +1,11 @@
 {
-   "defaultModel": {
+   "initialModel": {
       "time": 300,
       "optimal": false,
       "obj": 834.0,
       "solution": [
          [
-            10
+            15
          ],
          [
             17,
@@ -14,15 +14,15 @@
             13
          ],
          [
-            15
-         ],
-         [
-            9
-         ],
-         [
             7,
             3,
             8
+         ],
+         [
+            10
+         ],
+         [
+            9
          ],
          [
             12,
@@ -35,7 +35,7 @@
          ]
       ]
    },
-   "impliedConsDefaultModel": {
+   "impliedCons_on_initialModel": {
       "time": 300,
       "optimal": false,
       "obj": 834.0,
@@ -71,8 +71,8 @@
          ]
       ]
    },
-   "symmBreakDefaultModel": {
-      "time": 298,
+   "symmBreak_on_initialModel": {
+      "time": 297,
       "optimal": true,
       "obj": 834.0,
       "solution": [
@@ -107,7 +107,7 @@
          ]
       ]
    },
-   "impliedAndSymmBreakDefaultModel": {
+   "impliedAndSymBreak_on_initialModel": {
       "time": 300,
       "optimal": false,
       "obj": 834.0,
@@ -143,7 +143,7 @@
          ]
       ]
    },
-   "simplerObjective": {
+   "model2": {
       "time": 52,
       "optimal": true,
       "obj": 167.0,
@@ -179,7 +179,7 @@
          ]
       ]
    },
-   "impliedConsSimplerObj": {
+   "impliedCons_on_model2": {
       "time": 24,
       "optimal": true,
       "obj": 167.0,
@@ -215,7 +215,7 @@
          ]
       ]
    },
-   "symmBreakSimplerObj": {
+   "symmBreak_on_model2": {
       "time": 104,
       "optimal": true,
       "obj": 167.0,
@@ -251,7 +251,7 @@
          ]
       ]
    },
-   "impliedAndSymmBreakSimplerObj": {
+   "impliedAndSymBreak_on_model2": {
       "time": 37,
       "optimal": true,
       "obj": 167.0,
@@ -284,6 +284,42 @@
          [
             13,
             7
+         ]
+      ]
+   },
+   "model2_with_focus": {
+      "time": 52,
+      "optimal": true,
+      "obj": 167.0,
+      "solution": [
+         [
+            12,
+            1,
+            4,
+            11
+         ],
+         [
+            5,
+            15
+         ],
+         [
+            17,
+            2
+         ],
+         [
+            10,
+            14,
+            16
+         ],
+         [
+            7,
+            3,
+            13
+         ],
+         [
+            9,
+            8,
+            6
          ]
       ]
    }
