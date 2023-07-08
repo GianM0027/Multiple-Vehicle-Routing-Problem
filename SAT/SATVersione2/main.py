@@ -138,9 +138,6 @@ def exactly_one_he(bool_vars, name):
     return And(at_most_one_he(bool_vars, name), at_least_one_he(bool_vars))
 
 
-at_most_one = at_most_one_bw
-at_least_one = at_least_one_bw
-exactly_one = exactly_one_bw
 
 
 def inputFile(num):
@@ -177,10 +174,16 @@ def inputFile(num):
     return n_couriers, n_items, max_load, size_item, dist
 
 
+at_most_one = at_most_one_seq
+at_least_one = at_least_one_seq
+exactly_one = exactly_one_seq
+
 n_couriers, n_items, max_load, size_item, all_distances = inputFile(numero)
 
 # s = Solver()
 s = Optimize()
+s.set("timeout", 300000)
+#s.set("timeout", 10000)
 # s = SolverFor("QF_BV")
 
 x = [[[Bool(f"x_{i}_{j}_{k}") for k in range(n_couriers)] for j in range(n_items + 1)] for i in
@@ -193,6 +196,8 @@ u = [[[Bool(f"u_{i}_{k}_{b}") for b in range(len_bin)] for k in range(n_couriers
 
 # Defining a graph which contain all the possible paths
 G = createGraph(all_distances)
+
+constrain_time = time.time()
 
 # - - - - - - - - - - - - - - - -  CONSTRAINTS - - - - - - - - - - - - -  - - - #
 
@@ -211,6 +216,7 @@ for j in range(1, n_items + 1):  # start from 1 to exclude the depot
     s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],
                1))  # each node is entered exactly once by each courier
 
+
 """# For each node there is exactly one arc entering and leaving from it
 for i in range(1, n_items + 1):
     s.add(exactly_one([x[i][j][k] for j in range(n_items + 1) for k in range(n_couriers)], f"arc_leave{i}"))
@@ -223,13 +229,13 @@ for j in range(1, n_items + 1):
 
 # Each courier ends at the depot
 for k in range(n_couriers):
-    #s.add(PbEq([(x[j][0][k], 1) for j in range(1, n_items + 1)], 1))
-    s.add(exactly_one([x[j][0][k] for j in range(1, n_items + 1)], f"courier_ends_{k}"))
+    s.add(PbEq([(x[j][0][k], 1) for j in range(1, n_items + 1)], 1))
+    #s.add(exactly_one([x[j][0][k] for j in range(1, n_items + 1)], f"courier_ends_{k}"))
 
 # Each courier depart from the depot
 for k in range(n_couriers):
-    #s.add(PbEq([(x[0][j][k], 1) for j in range(n_items + 1)], 1))
-    s.add(exactly_one([x[0][j][k] for j in range(1, n_items + 1)], f"courier_starts_{k}"))
+    s.add(PbEq([(x[0][j][k], 1) for j in range(n_items + 1)], 1))
+    #s.add(exactly_one([x[0][j][k] for j in range(1, n_items + 1)], f"courier_starts_{k}"))
 
 # For each vehicle, the total load over its route must be smaller than its max load size
 for k in range(n_couriers):
@@ -237,8 +243,8 @@ for k in range(n_couriers):
 
 # Each item is carried by exactly one courier
 for i in range(n_items):
-    # s.add(PbEq([(v[i][k], 1) for k in range(n_couriers)], 1))
-    s.add(exactly_one([v[i][k] for k in range(n_couriers)], f"item_carried_{i}"))
+    s.add(PbEq([(v[i][k], 1) for k in range(n_couriers)], 1))
+    #s.add(exactly_one([v[i][k] for k in range(n_couriers)], f"item_carried_{i}"))
 
 # If courier k goes to location (i, j), then courier k must carry item i, j
 for k in range(n_couriers):
@@ -272,10 +278,17 @@ for k in range(n_couriers):
                     s.add(Implies(x[i][j][k], funzione_brutta(u[i - 1][k], u[j - 1][k])))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+
+current_time = time.time()
+duration = current_time - constrain_time
+print("Constraint finished")
+
+
 start_time = time.time()
 
 if s.check() == sat:
     model = s.model()
+    optimal = False
 
     ############ OBJECTIVE
     total_distance = Sum(
@@ -333,9 +346,16 @@ if s.check() == sat:
 
     print("\n------- Time  -------")
     print("Time: " + str(final_time))
-
-    # print_graph()
-
+    optimal = True
+    obj = int(str(model.evaluate(total_distance))) + (max_dist - min_dist)
 
 else:
-    print("UNSATISFIABLE")
+    optimal = False
+    print("No solution Found")
+
+print("\nConstraint time:", duration)
+print("Elapsed time:", s.statistics().get_key_value("time"))
+
+
+
+

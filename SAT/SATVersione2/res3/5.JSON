@@ -1,0 +1,126 @@
+{
+   "defaultModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": 450,
+      "solution": [
+         [
+            [
+               0,
+               2
+            ],
+            [
+               2,
+               0
+            ]
+         ],
+         [
+            [
+               0,
+               1
+            ],
+            [
+               1,
+               3
+            ],
+            [
+               3,
+               0
+            ]
+         ]
+      ]
+   },
+   "impliedConsDefaultModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": 492,
+      "solution": [
+         [
+            [
+               0,
+               1
+            ],
+            [
+               1,
+               3
+            ],
+            [
+               3,
+               0
+            ]
+         ],
+         [
+            [
+               0,
+               2
+            ],
+            [
+               2,
+               0
+            ]
+         ]
+      ]
+   },
+   "symmBreakDefaultModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": 450,
+      "solution": [
+         [
+            [
+               0,
+               2
+            ],
+            [
+               2,
+               0
+            ]
+         ],
+         [
+            [
+               0,
+               1
+            ],
+            [
+               1,
+               3
+            ],
+            [
+               3,
+               0
+            ]
+         ]
+      ]
+   },
+   "impliedAndSymmBreakDefaultModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": 492,
+      "solution": [
+         [
+            [
+               0,
+               1
+            ],
+            [
+               1,
+               3
+            ],
+            [
+               3,
+               0
+            ]
+         ],
+         [
+            [
+               0,
+               2
+            ],
+            [
+               2,
+               0
+            ]
+         ]
+      ]
+   }
+}
