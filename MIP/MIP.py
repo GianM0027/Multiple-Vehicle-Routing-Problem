@@ -257,4 +257,4 @@ def main(num):
 
 
 # passare come parametro solo numero dell'istanza (senza lo 0)
-main(12)
+main()
