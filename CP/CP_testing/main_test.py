@@ -1,7 +1,6 @@
 from minizinc import Instance, Model, Solver
 import numpy as np
 import datetime
-import json
 
 def set_model(configuration):
     model = Model()
@@ -113,41 +112,50 @@ IMPLIED_CONS_OBJ_FUN = "impliedConsObjFun"
 # every element in configurations corresponds to a specific configuration of the model
 configurations = [DEFAULT_MODEL_MAX_DIST, DEFAULT_MODEL_OBJ_FUN, IMPLIED_CONS_MAX_DIST, IMPLIED_CONS_OBJ_FUN]
 
-number_of_instances = 21
-instances_list = list()
-for i in range(1,number_of_instances+1):
-    if i < 10:
-        instances_list.append(('0'+str(i)))
-    else:
-        instances_list.append(str(i))
-
-solvers = ["chuffed"] # Da aggiungere gecode per i test
+solvers = ["gecode","chuffed"]
 timeout = datetime.timedelta(milliseconds= 300000)
 
+valid_in = False
+while not valid_in:
+    n_inst = input("\nSelect the instance number (1-21) = ")
+    if int(n_inst) > 0 and int(n_inst) <= 21:
+        n_inst = int(n_inst)
+        valid_in = True
+    else: print("Please, insert a valid input\n")
+valid_in = False
 
-def main():
-    for i in range(21,len(instances_list)+1):
-        inst = instances_list[i-1]
-        output = {}
-        for configuration in configurations:
-            model = set_model(configuration)
-            solverj = {}
-            for solv in solvers:
-                result, n_couriers, n_items = solve_model(inst,model,solv,timeout)
-                obj,solution,runTime,status = get_results(result, n_couriers, n_items, timeout)
+print("\n1:"+configurations[0])
+print("2:"+configurations[1])
+print("3:"+configurations[2])
+print("4:"+configurations[3])
+while not valid_in:
+    n_conf = input("\nSelect the configuration (1-4) = ")
+    if int(n_conf) > 0 and int(n_conf) <= 4:
+        n_conf = int(n_conf)
+        valid_in = True
+    else: print("Please, insert a valid input\n")
+valid_in = False
 
-                # JSON
-                instance = {}
-                instance["time"] = runTime
-                instance["optimal"] = status
-                instance["obj"] = obj
-                instance["solution"] = solution 
-                
-            solverj[solv] = instance
+print("1:"+solvers[0])
+print("2:"+solvers[1])
+while not valid_in:
+    n_solv = input("\nSelect the solver (1-2) = ")
+    if int(n_solv) > 0 and int(n_solv) <= 2:
+        n_solv = int(n_solv)
+        valid_in = True
+    else: print("Please, insert a valid input\n")
+valid_in = False
 
-            output[configuration] = solverj
+if int(n_inst) < 10:
+    inst = '0'+str(n_inst)
+else:
+    inst = str(n_inst)
 
-        with open(str(i)+".json", "w") as file:
-            file.write(json.dumps(output, indent=3))
-
-main()
+model = set_model(configurations[n_conf-1])
+result, n_couriers, n_items = solve_model(inst,model,solvers[n_solv-1],timeout)
+obj,solution,runTime,status = get_results(result, n_couriers, n_items, timeout)
+print("\n###### RESULTS ######\n")
+print("Time = ", runTime)
+print("Optimal = ", status)
+print("Objective = ", obj)
+print("Solution = ", solution)

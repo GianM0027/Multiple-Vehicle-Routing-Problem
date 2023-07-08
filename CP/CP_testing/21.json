@@ -1,0 +1,34 @@
+{
+   "defaultModelMaxDist": {
+      "chuffed": {
+         "time": 10,
+         "optimal": false,
+         "obj": "None",
+         "solution": null
+      }
+   },
+   "defaultModelObjFun": {
+      "chuffed": {
+         "time": 10,
+         "optimal": false,
+         "obj": "None",
+         "solution": null
+      }
+   },
+   "impliedConsMaxDist": {
+      "chuffed": {
+         "time": 10,
+         "optimal": false,
+         "obj": "None",
+         "solution": null
+      }
+   },
+   "impliedConsObjFun": {
+      "chuffed": {
+         "time": 10,
+         "optimal": false,
+         "obj": "None",
+         "solution": null
+      }
+   }
+}
