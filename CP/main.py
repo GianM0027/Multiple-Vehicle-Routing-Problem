@@ -38,7 +38,6 @@ def get_results(result, n_couriers, n_items, timeout):
         delivery_order = list(delivery_order.split(' '))
         delivery_order = [int(i) for i in delivery_order]
         delivery_order = np.array(delivery_order).reshape(n_items+2,n_couriers).T 
-        print (delivery_order)
 
         sol = list()
         for i in range(n_couriers):
@@ -52,11 +51,12 @@ def get_results(result, n_couriers, n_items, timeout):
 
     status = (result.status == result.status.OPTIMAL_SOLUTION)
     if status:
-        try: runTime = int(result.statistics['time'].total_seconds())
+        try: runTime = int(result.statistics['solveTime'].total_seconds())
         except: runTime = int(timeout.total_seconds())
     else: runTime = int(timeout.total_seconds())
 
     return(objective,sol,runTime,status)   
+   
 
 
 def solve_model(n_inst,model,solver_str,timeout):
@@ -110,8 +110,7 @@ IMPLIED_CONS_MAX_DIST = "impliedConsMaxDist"
 IMPLIED_CONS_OBJ_FUN = "impliedConsObjFun"
 
 # every element in configurations corresponds to a specific configuration of the model
-# configurations = [DEFAULT_MODEL_MAX_DIST, DEFAULT_MODEL_OBJ_FUN, IMPLIED_CONS_MAX_DIST, IMPLIED_CONS_OBJ_FUN]
-configurations = [IMPLIED_CONS_MAX_DIST, IMPLIED_CONS_OBJ_FUN]
+configurations = [DEFAULT_MODEL_MAX_DIST, DEFAULT_MODEL_OBJ_FUN, IMPLIED_CONS_MAX_DIST, IMPLIED_CONS_OBJ_FUN]
 
 number_of_instances = 21
 instances_list = list()
@@ -121,34 +120,42 @@ for i in range(1,number_of_instances+1):
     else:
         instances_list.append(str(i))
 
-solvers = ["chuffed"] # Da aggiungere gecode per i test
+solvers = ["gecode","chuffed"]
 timeout = datetime.timedelta(milliseconds= 300000)
+timeout_int = int(int(timeout.total_seconds()))
 
 
 def main():
-    for i in range(21,len(instances_list)+1):
+    for i in range(1,len(instances_list)+1):
         inst = instances_list[i-1]
         output = {}
         for configuration in configurations:
             model = set_model(configuration)
             solverj = {}
             for solv in solvers:
-                result, n_couriers, n_items = solve_model(inst,model,solv,timeout)
-                obj,solution,runTime,status = get_results(result, n_couriers, n_items, timeout)
-                print(configuration)
+                print('  inst  ',i,'  conf  ',configuration,'  solv  ',solv)
+                try: # Bypass the minizinc timeout error, given in millisecond as asked, still rise the error (with lower values dont!)
+                    result, n_couriers, n_items = solve_model(inst,model,solv,timeout)
+                    obj,solution,runTime,status = get_results(result, n_couriers, n_items, timeout)
 
-                # JSON
-                instance = {}
-                instance["time"] = runTime
-                instance["optimal"] = status
-                instance["obj"] = obj
-                instance["solution"] = solution 
+                    # JSON
+                    instance = {}
+                    instance["time"] = runTime
+                    instance["optimal"] = status
+                    instance["obj"] = obj
+                    instance["solution"] = solution 
+                except:
+                    instance = {}
+                    instance["time"] = timeout_int
+                    instance["optimal"] = False
+                    instance["obj"] = None
+                    instance["solution"] = None
                 
             solverj[solv] = instance
 
             output[configuration] = solverj
 
-        with open(str(i)+".json", "w") as file:
+        with open("results/"+str(i)+".json", "w") as file:
             file.write(json.dumps(output, indent=3))
 
 main()

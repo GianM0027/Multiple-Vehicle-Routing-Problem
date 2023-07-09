@@ -1,6 +1,7 @@
 from minizinc import Instance, Model, Solver
 import numpy as np
 import datetime
+import json
 
 def set_model(configuration):
     model = Model()
@@ -8,7 +9,9 @@ def set_model(configuration):
 
     if configuration == 'impliedConsMaxDist' or configuration == 'impliedConsObjFun':
         model.add_string("""
-        constraint forall(c in COURIERS,s in STEPS)(if c+((s-1)*n_couriers)> n_items+(2*n_couriers) then delivery_order[s,c] = 0 endif);
+        constraint forall(c in COURIERS,s in STEPS)
+            (if c+((s-1)*n_couriers)> n_items+(2*n_couriers) 
+            then delivery_order[s,c] = 0 endif);
         """)
 
     if configuration == 'defaultModelMaxDist' or configuration == 'impliedConsMaxDist':
@@ -30,6 +33,7 @@ def get_results(result, n_couriers, n_items, timeout):
     lines = str(result.solution).split("\n")
     try: objective = int(lines[0])
     except: objective = lines[0]
+
     if len(lines) > 1:
 
         delivery_order = lines[1].strip("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ[]= ;\n").replace(",","")
@@ -47,10 +51,11 @@ def get_results(result, n_couriers, n_items, timeout):
     else:
         sol = None
 
-    try: runTime = int(result.statistics['time'].total_seconds())
-    except: runTime = int(timeout.total_seconds())
-
     status = (result.status == result.status.OPTIMAL_SOLUTION)
+    if status:
+        try: runTime = int(result.statistics['solveTime'].total_seconds())
+        except: runTime = int(timeout.total_seconds())
+    else: runTime = int(timeout.total_seconds())
 
     return(objective,sol,runTime,status)   
 
@@ -147,11 +152,19 @@ if int(n_inst) < 10:
 else:
     inst = str(n_inst)
 
+
 model = set_model(configurations[n_conf-1])
-result, n_couriers, n_items = solve_model(inst,model,solvers[n_solv-1],timeout)
-obj,solution,runTime,status = get_results(result, n_couriers, n_items, timeout)
-print("\n###### RESULTS ######\n")
-print("Time = ", runTime)
-print("Optimal = ", status)
-print("Objective = ", obj)
-print("Solution = ", solution)
+try: # Bypass the minizinc timeout error, given in millisecond as asked, still rise the error (with lower values dont!)
+    result, n_couriers, n_items = solve_model(inst,model,solvers[n_solv-1],timeout)
+    obj,solution,runTime,status = get_results(result, n_couriers, n_items, timeout)
+    print("\n###### RESULTS ######\n")
+    print("Time = ", runTime)
+    print("Optimal = ", status)
+    print("Objective = ", obj)
+    print("Solution = ", solution)
+except:
+    print("\n###### RESULTS ######\n", "Rised the minizinc timeout error")
+    print("Time = ", "300")
+    print("Optimal = ", "false")
+    print("Objective = ", "None")
+    print("Solution = ", "None")
