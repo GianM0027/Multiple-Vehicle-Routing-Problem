@@ -9,4 +9,4 @@ RUN apt-get update \
     && apt-get install -y python3-pip \
     && python3 -m pip install -r requirements.txt
 
-CMD python3 main_test_4.py
+CMD python3 main.py

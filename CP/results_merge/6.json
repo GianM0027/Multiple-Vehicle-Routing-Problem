@@ -1,0 +1,118 @@
+{
+   "defaultModelMaxDist": {
+      "chuffed": {
+         "time": 14,
+         "optimal": true,
+         "obj": 322,
+         "solution": [
+            [
+               1,
+               8,
+               7
+            ],
+            [
+               2
+            ],
+            [
+               3
+            ],
+            [
+               4
+            ],
+            [
+               5
+            ],
+            [
+               6
+            ]
+         ]
+      }
+   },
+   "defaultModelObjFun": {
+      "chuffed": {
+         "time": 59,
+         "optimal": true,
+         "obj": 1096,
+         "solution": [
+            [
+               1,
+               5,
+               8
+            ],
+            [
+               2
+            ],
+            [
+               3
+            ],
+            [
+               4
+            ],
+            [
+               6
+            ],
+            [
+               7
+            ]
+         ]
+      }
+   },
+   "impliedConsMaxDist": {
+      "chuffed": {
+         "time": 1,
+         "optimal": true,
+         "obj": 322,
+         "solution": [
+            [
+               1,
+               8,
+               7
+            ],
+            [
+               2
+            ],
+            [
+               3
+            ],
+            [
+               4
+            ],
+            [
+               5
+            ],
+            [
+               6
+            ]
+         ]
+      }
+   },
+   "impliedConsObjFun": {
+      "chuffed": {
+         "time": 31,
+         "optimal": true,
+         "obj": 1096,
+         "solution": [
+            [
+               1,
+               5,
+               8
+            ],
+            [
+               2
+            ],
+            [
+               3
+            ],
+            [
+               4
+            ],
+            [
+               6
+            ],
+            [
+               7
+            ]
+         ]
+      }
+   }
+}

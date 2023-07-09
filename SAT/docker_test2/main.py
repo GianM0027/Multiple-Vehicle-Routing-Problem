@@ -117,7 +117,6 @@ def model(instance_num, configuration, remaining_time):
     n_couriers, n_items, max_load, size_item, all_distances = inputFile(instance_num)
 
     s = Solver()
-    print("remaining_time dopo solver: ", remaining_time)
     s.set("timeout", (int(remaining_time) * 1000 + 1))
 
     x = [[[Bool(f"x_{i}_{j}_{k}") for k in range(n_couriers)] for j in range(n_items + 1)] for i in
