@@ -103,7 +103,15 @@ def print_result(num_instance, configuration, best_time, optimal, obj, solution)
     print("Time: " + str(best_time))
     print("Optimal: " + str(optimal))
     print("Objective: " + str(obj))
-    print("Solution: " + str(solution))
+    solution_route = []
+    for i in range(len(solution)):
+        temp_route = []
+        for s in solution[i]:
+            temp_route.append(s[0])
+        temp_route = temp_route[1:]
+        solution_route.append(temp_route)
+
+    print("Solution: " + str(solution_route))
 
 
 at_most_one = at_most_one_seq
