@@ -4,7 +4,7 @@ from math import log2
 import time
 
 instance_num = 1
-configuration_num = 2
+configuration_num = 0
 
 # - - - - - - - - - - - - - - - - - - - - - CONFIGURATIONS - - - - - - - - - - - - - - - - - - - - - #
 DEFAULT_MODEL = "defaultModel"
@@ -243,7 +243,7 @@ def model(instance_num, configuration, remaining_time, solver_flag):
         [If(x[i][j][0], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
     max_distance = Sum(
         [If(x[i][j][0], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
-
+    
     if solver_flag:
         for k in range(n_couriers):
             temp = Sum(
@@ -317,6 +317,8 @@ def find_best(instance, config):
     if not best_solution:
         final_time = 300
         best_total_distance = 0
+
+
 
     return final_time, status, best_total_distance, best_solution
 
