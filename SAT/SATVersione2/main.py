@@ -4,7 +4,7 @@ from math import log2
 import time
 
 instance_num = 1
-configuration_num = 1
+configuration_num = 2
 
 # - - - - - - - - - - - - - - - - - - - - - CONFIGURATIONS - - - - - - - - - - - - - - - - - - - - - #
 DEFAULT_MODEL = "defaultModel"
@@ -15,6 +15,7 @@ DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymmBreakDefaultModel"
 configurations = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS]
 
 configuration = configurations[configuration_num]
+
 
 # - - - - - - - - - - - - - - - - - - - - - FUNCTIONS - - - - - - - - - - - - - - - - - - - - - #
 
@@ -110,18 +111,22 @@ at_least_one = at_least_one_seq
 exactly_one = exactly_one_seq
 
 
-def model(instance_num, configuration, remaining_time):
+def model(instance_num, configuration, remaining_time, solver_flag):
     obj = 0
     routes = []
 
     n_couriers, n_items, max_load, size_item, all_distances = inputFile(instance_num)
 
-    s = Solver()
-    print("remaining_time dopo solver: ", remaining_time)
-    s.set("timeout", (int(remaining_time) * 1000 + 1))
+    if not solver_flag:
+        s = Solver()
+    else:
+        s = Optimize()
+
+    print(f"[{instance_num} - {configuration}] Remaining time: {remaining_time}")
+    s.set("timeout", (int(remaining_time) * 1000))
 
     x = [[[Bool(f"x_{i}_{j}_{k}") for k in range(n_couriers)] for j in range(n_items + 1)] for i in
-         range(n_items + 1)]  # x[k][i][j] == True : route (i->j) is used by courier k | set of Archs
+         range(n_items + 1)]  # x[i][j][k] == True : route (i->j) is used by courier k | set of Archs
 
     v = [[Bool(f"v_{i}_{k}") for k in range(n_couriers)] for i in range(n_items)]  # vehicle k is assigned to node i
 
@@ -156,17 +161,17 @@ def model(instance_num, configuration, remaining_time):
 
     # - - - - - - - - - - - - - - - - -
 
-    # Each courier ends at the depot #1
+    # Each courier ends at the depot
     for k in range(n_couriers):
         s.add(PbEq([(x[j][0][k], 1) for j in range(1, n_items + 1)], 1))
         # s.add(exactly_one([x[j][0][k] for j in range(1, n_items + 1)], f"courier_ends_{k}"))
 
-    # Each courier depart from the depot #2
+    # Each courier depart from the depot
     for k in range(n_couriers):
         s.add(PbEq([(x[0][j][k], 1) for j in range(1, n_items + 1)], 1))
         # s.add(exactly_one([x[0][j][k] for j in range(1, n_items + 1)], f"courier_starts_{k}"))
 
-    # For each vehicle, the total load over its route must be smaller than its max load size #3
+    # For each vehicle, the total load over its route must be smaller than its max load size
     for k in range(n_couriers):
         s.add(PbLe([(v[i][k], size_item[i]) for i in range(n_items)], max_load[k]))
 
@@ -175,14 +180,15 @@ def model(instance_num, configuration, remaining_time):
         s.add(PbEq([(v[i][k], 1) for k in range(n_couriers)], 1))
         # s.add(exactly_one([v[i][k] for k in range(n_couriers)], f"item_carried_{i}"))
 
-    # If courier k goes to location (i, j), then courier k must carry item i, j #4
+    # If courier k goes to location (i, j), then courier k must carry item i, j
     for k in range(n_couriers):
         for i in range(1, n_items + 1):
             for j in range(1, n_items + 1):
                 s.add([Implies(x[i][j][k], And(v[i - 1][k], v[j - 1][k]))])
 
+    # Each courier carries at least one item
     for k in range(n_couriers):
-        s.add(at_least_one_np([v[i][k] for i in range(n_items)]))  # 5
+        s.add(at_least_one_np([v[i][k] for i in range(n_items)]))
 
     # If (i, j) == True than --> for all the other k (i, j) != True
     if configuration == DEFAULT_IMPLIED_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS:
@@ -248,6 +254,9 @@ def model(instance_num, configuration, remaining_time):
 
         routes = find_routes([], 0, edges_list, [])
 
+        if solver_flag:
+            s.minimize(total_distance + (max_dist - min_dist))
+
         obj = int(str(model.evaluate(total_distance))) + (max_dist - min_dist)
 
         return obj, elapsed_time, routes
@@ -256,22 +265,30 @@ def model(instance_num, configuration, remaining_time):
         obj = -1
         return obj, time.time() - start_time, []
 
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 
-def find_best(instance, configuration):
-    best_total_distance, elapsed_time, best_solution = model(instance, configuration, 300)
+def find_best(instance, config):
+    print(f"\n------- Find a solution started -------")
+    best_total_distance, elapsed_time, best_solution = model(instance, config, 300, False)
     remaining_time = 300 - elapsed_time
     status = False
-    final_time = remaining_time
+    final_time = elapsed_time
+    if remaining_time < 0:
+        return 300, status, 0, []
 
-    while remaining_time > 0:
-        temp_total_distance, elapsed_time, temp_solution = model(instance, configuration, remaining_time)
+    if remaining_time > 0:
+        temp_total_distance, elapsed_time, temp_solution = model(instance, config, remaining_time, True)
+        print("First distance: ", best_total_distance)
+        print("Distance minimized: ", temp_total_distance)
         remaining_time = remaining_time - elapsed_time
-        if temp_total_distance < best_total_distance and temp_total_distance != -1 and remaining_time > 0:
-            best_total_distance = temp_total_distance
+        if temp_total_distance != -1 and remaining_time > 0:
             status = True
-            best_solution = temp_solution
-            final_time = 300 - remaining_time
+            if temp_total_distance <= best_total_distance:
+                best_total_distance = temp_total_distance
+                best_solution = temp_solution
+                final_time = 300 - remaining_time
+
 
     if not best_solution:
         final_time = 300

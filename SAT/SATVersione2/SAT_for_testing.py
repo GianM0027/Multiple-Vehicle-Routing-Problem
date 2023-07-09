@@ -178,15 +178,19 @@ exactly_one = exactly_one_seq
 # - - - - - - - - - - - - - - - - - - - - - MODEL - - - - - - - - - - - - - - - - - - - - - #
 
 
-def model(instance_num, configuration, remaining_time):
+def model(instance_num, configuration, remaining_time, solver_flag):
     obj = 0
     routes = []
 
     n_couriers, n_items, max_load, size_item, all_distances = inputFile(instance_num)
 
-    s = Solver()
-    print("remaining_time dopo solver: ", remaining_time)
-    s.set("timeout", (int(remaining_time) * 1000 + 1))
+    if not solver_flag:
+        s = Solver()
+    else:
+        s = Optimize()
+
+    print(f"[{instance_num} - {configuration}] Remaining time: {remaining_time}")
+    s.set("timeout", (int(remaining_time) * 1000))
 
     x = [[[Bool(f"x_{i}_{j}_{k}") for k in range(n_couriers)] for j in range(n_items + 1)] for i in
          range(n_items + 1)]  # x[k][i][j] == True : route (i->j) is used by courier k | set of Archs
@@ -197,18 +201,12 @@ def model(instance_num, configuration, remaining_time):
     u = [[[Bool(f"u_{i}_{k}_{b}") for b in range(len_bin)] for k in range(n_couriers)] for i in
          range(n_items)]  # encoding in binary of order index of node i
 
-    # Defining a graph which contain all the possible paths
-    G = createGraph(all_distances)
-
-    constrain_time = time.time()
-
     # - - - - - - - - - - - - - - - -  CONSTRAINTS - - - - - - - - - - - - -  - - - #
 
     # No routes from any node to itself
     for k in range(n_couriers):
         s.add([Not(x[i][i][k]) for i in range(n_items + 1)])
 
-    print("Step 1 finished in ", time.time() - constrain_time)
     # - - - - - - - - - - - - - - - - -
     # Each node (i, j) is visited only once
     # for each node there is exactly one arc entering and leaving from it
@@ -229,7 +227,6 @@ def model(instance_num, configuration, remaining_time):
         s.add(exactly_one([x[i][j][k] for i in range(n_items + 1) for k in range(n_couriers)], f"arc_enter{j}"))"""
 
     # - - - - - - - - - - - - - - - - -
-    print("Step 2 finished in ", time.time() - constrain_time)
 
     # Each courier ends at the depot #1
     for k in range(n_couriers):
@@ -257,11 +254,9 @@ def model(instance_num, configuration, remaining_time):
                 s.add([Implies(x[i][j][k], And(v[i - 1][k], v[j - 1][k]))])
 
     for k in range(n_couriers):
-        s.add(at_least_one_np([v[i][k] for i in range(n_items)]))  # 5
+        s.add(at_least_one_np([v[i][k] for i in range(n_items)]))
 
-    print("Step 3 finished in ", time.time() - constrain_time)
-
-    # Se i, j == True allora per gli altri k diverso da True --> Implied
+    # If (i, j) == True than --> for all the other k (i, j) != True
     if configuration == DEFAULT_IMPLIED_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS:
         for i in range(n_items + 1):
             for j in range(n_items + 1):
@@ -269,14 +264,12 @@ def model(instance_num, configuration, remaining_time):
                     other_couriers = [k_prime for k_prime in range(n_couriers) if k_prime != k]
                     s.add(Implies(x[i][j][k], And([Not(x[i][j][k_prime]) for k_prime in other_couriers])))
 
-        # Ogni riga non tridimensionale contiene un solo 1 --> Implied
+        # For every courier, each row contains only one True
         for i in range(n_items + 1):
             for k in range(n_couriers):
                 for j in range(n_items + 1):
                     other_destinations = [j_prime for j_prime in range(n_items + 1) if j_prime != j]
                     s.add(Implies(x[i][j][k], And([Not(x[i][j_prime][k]) for j_prime in other_destinations])))
-
-        print("Step 4 finished in ", time.time() - constrain_time)
 
     # - - - - - - - - - - - - - - - - - SYMMETRY BREAKING - - - - - - - - - - - - - - - - - - - - - - #
 
@@ -288,8 +281,6 @@ def model(instance_num, configuration, remaining_time):
                     load_k2 = Sum([If(v[i][k2], size_item[i], 0) for i in range(n_items)])
                     s.add(Implies(max_load[k1] < max_load[k2], load_k1 <= load_k2))
 
-    print("Step 5 finished in ", time.time() - constrain_time)
-
     # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
 
     # The order of visiting locations must be consistent with the binary representations
@@ -299,8 +290,6 @@ def model(instance_num, configuration, remaining_time):
                if len(u[i - 1][k]) >= 3 and len(u[j - 1][k]) >= 3 if i != j])
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
-
-    print("Constraint finished in ", time.time() - constrain_time)
 
     start_time = time.time()
 
@@ -326,81 +315,46 @@ def model(instance_num, configuration, remaining_time):
             if temp > max_dist:
                 max_dist = temp
 
-        # objective = total_distance + (max_dist - min_dist)
-        # s.minimize(objective)
-
-        # print general information about the problem instance
-        print("\n------- Problem  -------")
-        print("Number of items: ", n_items)
-        print("Number of couriers: ", n_couriers)
-        print("")
-
         edges_list = [(i, j) for z in range(n_couriers) for i in range(n_items + 1) for j in range(n_items + 1) if
                       model.evaluate(x[i][j][z])]
-        print(f"Edges List -> {edges_list}")
-
-        print("\n------- Routes  -------")
 
         routes = find_routes([], 0, edges_list, [])
 
-        for k in range(n_couriers):
-            actual_load = sum(size_item[i] for i in range(n_items) if model.evaluate(v[i][k]))
+        if solver_flag:
+            s.minimize(total_distance + (max_dist - min_dist))
 
-            print(f"Route of Courier [{k}] -> {routes[k]}")
-            print(f"Max Load = {max_load[k]}")
-            print(f"Actual Load = {actual_load}\n")
-
-        # print plots
-        tour_edges = [(i, j) for i, j in G.edges for z in range(n_couriers) if model.evaluate(x[i][j][z])]
-
-        print("\n------- Distances  -------")
-        print("Min dist: " + str(min_dist))
-        print("Max dist: " + str(max_dist))
-        print("Total dist: " + str(model.evaluate(total_distance)) + "\n")
-
-        print("\n------- Time  -------")
-        print("Time: " + str(elapsed_time))
-
-        print("\n------- Objective  -------")
         obj = int(str(model.evaluate(total_distance))) + (max_dist - min_dist)
-        print("Objective: " + str(obj))
-
-        print("Timeot", s.statistics().get_key_value("time"))
 
         return obj, elapsed_time, routes
 
     else:
         obj = -1
-        print("No solution Found")
-        print("No solution time impiegato: ", time.time() - start_time)
         return obj, time.time() - start_time, []
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 
-def find_best(instance, configuration):
-    best_total_distance, elapsed_time, best_solution = model(instance, configuration, 300)
+def find_best(instance, config):
+    print("Stated  to find a solution")
+    best_total_distance, elapsed_time, best_solution = model(instance, config, 300, False)
     remaining_time = 300 - elapsed_time
     status = False
-    final_time = remaining_time
-    print("total_distance: ", best_total_distance)
-    print("remaining_time: ", remaining_time)
-    print("best_solution: ", best_solution)
+    final_time = elapsed_time
+    if remaining_time < 0:
+        return 300, status, 0, []
 
-    while remaining_time > 0:
-        temp_total_distance, elapsed_time, temp_solution = model(instance, configuration, remaining_time)
-        print("remaining_time: ", remaining_time)
-        print("elapsed_time: ", elapsed_time)
-
+    if remaining_time > 0:
+        temp_total_distance, elapsed_time, temp_solution = model(instance, config, remaining_time, True)
+        print("temp_total_distance", temp_total_distance)
+        print("best_total_distance", best_total_distance)
         remaining_time = remaining_time - elapsed_time
-
-        print("remaining_time: ", remaining_time)
-        print()
-        if temp_total_distance < best_total_distance and temp_total_distance != -1 and remaining_time > 0:
-            best_total_distance = temp_total_distance
+        if temp_total_distance != -1 and remaining_time > 0:
             status = True
-            best_solution = temp_solution
-            final_time = 300 - remaining_time
+            if temp_total_distance <= best_total_distance:
+                best_total_distance = temp_total_distance
+                best_solution = temp_solution
+                final_time = 300 - remaining_time
+
 
     if not best_solution:
         final_time = 300
@@ -408,21 +362,20 @@ def find_best(instance, configuration):
 
     return final_time, status, best_total_distance, best_solution
 
-def return_results():
-    return 300, False, 0, []
-
 
 def main():
     # number of instances over which iterate
     n_istances = 21
+    test_instances = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 19]
+    night_test = [16, 19, 13, 11, 12, 14, 15, 17, 18, 20, 21]
 
-    for instance in range(18, 19):
+    for instance in test_instances:
         inst = {}
         count = 1
         for configuration in configurations:
             print(
-                f"\n\n\n###################    Instance {instance + 1}/{n_istances}, Configuration {count} out of {len(configurations)} -> {configuration}    ####################")
-            run_time, status, obj, solution = find_best(instance + 1, configuration)
+                f"\n\n\n###################    Instance {instance}/{n_istances}, Configuration {count} out of {len(configurations)} -> {configuration}    ####################")
+            run_time, status, obj, solution = find_best(instance, configuration)
 
             # JSON
             config = {}
@@ -434,9 +387,9 @@ def main():
             inst[configuration] = config
             count += 1
 
-        if not os.path.exists("res_test/"):
-            os.makedirs("res_test/")
-        with open(f"res_test/{instance + 1}.JSON", "w") as file:
+        if not os.path.exists("res_testFinale/"):
+            os.makedirs("res_testFinale/")
+        with open(f"res_testFinale/{instance}.JSON", "w") as file:
             file.write(json.dumps(inst, indent=3))
 
 
