@@ -202,39 +202,32 @@ constrain_time = time.time()
 
 # No routes from any node to itself
 for k in range(n_couriers):
-    s.add([Not(x[i][i][k]) for i in range(n_items + 1)])
+    for i in range(n_items + 1):
+        s.add([Not(x[i][i][k])])
+
+print("Step 1 finished in ", time.time() - constrain_time)
 
 # - - - - - - - - - - - - - - - - -
 # Each node (i, j) is visited only once
 # for each node there is exactly one arc entering and leaving from it
 for i in range(1, n_items + 1):  # start from 1 to exclude the depot
-    s.add(PbEq([(x[i][j][k], 1) for j in range(n_items + 1) for k in range(n_couriers)],
-               1))  # each node is left exactly once by each courier
+    s.add(PbEq([(x[i][j][k], 1) for j in range(n_items + 1) for k in range(n_couriers)], 1))  # each node is left exactly once by each courier
 
 for j in range(1, n_items + 1):  # start from 1 to exclude the depot
-    s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],
-               1))  # each node is entered exactly once by each courier
+    s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],1))  # each node is entered exactly once by each courier
 
 
-"""# For each node there is exactly one arc entering and leaving from it
-for i in range(1, n_items + 1):
-    s.add(exactly_one([x[i][j][k] for j in range(n_items + 1) for k in range(n_couriers)], f"arc_leave{i}"))
-
-# For each node there is exactly one arc entering and leaving from it
-for j in range(1, n_items + 1):
-    s.add(exactly_one([x[i][j][k] for i in range(n_items + 1) for k in range(n_couriers)], f"arc_enter{j}"))"""
+print("Step 2 finished in ", time.time() - constrain_time)
 
 # - - - - - - - - - - - - - - - - -
 
 # Each courier ends at the depot
 for k in range(n_couriers):
     s.add(PbEq([(x[j][0][k], 1) for j in range(1, n_items + 1)], 1))
-    #s.add(exactly_one([x[j][0][k] for j in range(1, n_items + 1)], f"courier_ends_{k}"))
 
 # Each courier depart from the depot
 for k in range(n_couriers):
     s.add(PbEq([(x[0][j][k], 1) for j in range(n_items + 1)], 1))
-    #s.add(exactly_one([x[0][j][k] for j in range(1, n_items + 1)], f"courier_starts_{k}"))
 
 # For each vehicle, the total load over its route must be smaller than its max load size
 for k in range(n_couriers):
@@ -243,7 +236,6 @@ for k in range(n_couriers):
 # Each item is carried by exactly one courier
 for i in range(n_items):
     s.add(PbEq([(v[i][k], 1) for k in range(n_couriers)], 1))
-    #s.add(exactly_one([v[i][k] for k in range(n_couriers)], f"item_carried_{i}"))
 
 # If courier k goes to location (i, j), then courier k must carry item i, j
 for k in range(n_couriers):
@@ -253,6 +245,8 @@ for k in range(n_couriers):
 
 for k in range(n_couriers):
     s.add(at_least_one_np([v[i][k] for i in range(n_items)]))
+
+print("Step 3 finished in ", time.time() - constrain_time)
 
 # - - - - - - - - - - - - - - - - - SYMMETRY BREAKING - - - - - - - - - - - - - - - - - - - - - - #
 
@@ -282,7 +276,7 @@ for k in range(n_couriers):
 
 current_time = time.time()
 duration = current_time - constrain_time
-print("Constraint finished")
+print("Constraint finished in ", duration)
 
 
 start_time = time.time()
