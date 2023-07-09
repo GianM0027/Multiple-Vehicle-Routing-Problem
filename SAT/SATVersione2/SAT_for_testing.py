@@ -178,6 +178,7 @@ exactly_one = exactly_one_seq
 # - - - - - - - - - - - - - - - - - - - - - MODEL - - - - - - - - - - - - - - - - - - - - - #
 
 
+
 def model(instance_num, configuration, remaining_time, solver_flag):
     obj = 0
     routes = []
@@ -193,7 +194,7 @@ def model(instance_num, configuration, remaining_time, solver_flag):
     s.set("timeout", (int(remaining_time) * 1000))
 
     x = [[[Bool(f"x_{i}_{j}_{k}") for k in range(n_couriers)] for j in range(n_items + 1)] for i in
-         range(n_items + 1)]  # x[k][i][j] == True : route (i->j) is used by courier k | set of Archs
+         range(n_items + 1)]  # x[i][j][k] == True : route (i->j) is used by courier k | set of Archs
 
     v = [[Bool(f"v_{i}_{k}") for k in range(n_couriers)] for i in range(n_items)]  # vehicle k is assigned to node i
 
@@ -210,49 +211,50 @@ def model(instance_num, configuration, remaining_time, solver_flag):
     # - - - - - - - - - - - - - - - - -
     # Each node (i, j) is visited only once
     # for each node there is exactly one arc entering and leaving from it
-    for i in range(1, n_items + 1):  # start from 1 to exclude the depot
+    """for i in range(1, n_items + 1):  # start from 1 to exclude the depot
         s.add(PbEq([(x[i][j][k], 1) for j in range(n_items + 1) for k in range(n_couriers)],
                    1))  # each node is left exactly once by each courier
 
     for j in range(1, n_items + 1):  # start from 1 to exclude the depot
         s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],
-                   1))  # each node is entered exactly once by each courier
+                   1))  # each node is entered exactly once by each courier"""
 
-    """# For each node there is exactly one arc entering and leaving from it
+    # For each node there is exactly one arc entering and leaving from it
     for i in range(1, n_items + 1):
         s.add(exactly_one([x[i][j][k] for j in range(n_items + 1) for k in range(n_couriers)], f"arc_leave{i}"))
 
     # For each node there is exactly one arc entering and leaving from it
     for j in range(1, n_items + 1):
-        s.add(exactly_one([x[i][j][k] for i in range(n_items + 1) for k in range(n_couriers)], f"arc_enter{j}"))"""
+        s.add(exactly_one([x[i][j][k] for i in range(n_items + 1) for k in range(n_couriers)], f"arc_enter{j}"))
 
     # - - - - - - - - - - - - - - - - -
 
-    # Each courier ends at the depot #1
+    # Each courier ends at the depot
     for k in range(n_couriers):
-        s.add(PbEq([(x[j][0][k], 1) for j in range(1, n_items + 1)], 1))
-        # s.add(exactly_one([x[j][0][k] for j in range(1, n_items + 1)], f"courier_ends_{k}"))
+        #s.add(PbEq([(x[j][0][k], 1) for j in range(1, n_items + 1)], 1))
+        s.add(exactly_one([x[j][0][k] for j in range(1, n_items + 1)], f"courier_ends_{k}"))
 
-    # Each courier depart from the depot #2
+    # Each courier depart from the depot
     for k in range(n_couriers):
-        s.add(PbEq([(x[0][j][k], 1) for j in range(1, n_items + 1)], 1))
-        # s.add(exactly_one([x[0][j][k] for j in range(1, n_items + 1)], f"courier_starts_{k}"))
+        #s.add(PbEq([(x[0][j][k], 1) for j in range(1, n_items + 1)], 1))
+        s.add(exactly_one([x[0][j][k] for j in range(1, n_items + 1)], f"courier_starts_{k}"))
 
-    # For each vehicle, the total load over its route must be smaller than its max load size #3
+    # For each vehicle, the total load over its route must be smaller than its max load size
     for k in range(n_couriers):
         s.add(PbLe([(v[i][k], size_item[i]) for i in range(n_items)], max_load[k]))
 
     # Each item is carried by exactly one courier
     for i in range(n_items):
-        s.add(PbEq([(v[i][k], 1) for k in range(n_couriers)], 1))
-        # s.add(exactly_one([v[i][k] for k in range(n_couriers)], f"item_carried_{i}"))
+        #s.add(PbEq([(v[i][k], 1) for k in range(n_couriers)], 1))
+        s.add(exactly_one([v[i][k] for k in range(n_couriers)], f"item_carried_{i}"))
 
-    # If courier k goes to location (i, j), then courier k must carry item i, j #4
+    # If courier k goes to location (i, j), then courier k must carry item i, j
     for k in range(n_couriers):
         for i in range(1, n_items + 1):
             for j in range(1, n_items + 1):
                 s.add([Implies(x[i][j][k], And(v[i - 1][k], v[j - 1][k]))])
 
+    # Each courier carries at least one item
     for k in range(n_couriers):
         s.add(at_least_one_np([v[i][k] for i in range(n_items)]))
 
@@ -293,14 +295,30 @@ def model(instance_num, configuration, remaining_time, solver_flag):
 
     start_time = time.time()
 
+    total_distance = Sum(
+        [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i in range(n_items + 1) for j in
+         range(n_items + 1)])
+
+    min_distance = Sum(
+        [If(x[i][j][0], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
+    max_distance = Sum(
+        [If(x[i][j][0], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
+
+    objective = None
+    if solver_flag:
+        for k in range(n_couriers):
+            temp = Sum(
+                [If(x[i][j][k], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
+            min_distance = If(temp < min_distance, temp, min_distance)
+            max_distance = If(temp > max_distance, temp, max_distance)
+
+        objective = s.minimize(total_distance + (max_distance - min_distance))
+
     if s.check() == sat:
         elapsed_time = time.time() - start_time
         model = s.model()
 
-        # - - - - - - - OBJECTIVE - - - - - - - #
-        total_distance = Sum(
-            [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i in range(n_items + 1) for j in
-             range(n_items + 1)])
+        # - - - - - - - - - - - - - - #
 
         min_dist = float('inf')
         max_dist = float('-inf')
@@ -315,15 +333,17 @@ def model(instance_num, configuration, remaining_time, solver_flag):
             if temp > max_dist:
                 max_dist = temp
 
+        # - - - - - - - - - - - - - - #
+
         edges_list = [(i, j) for z in range(n_couriers) for i in range(n_items + 1) for j in range(n_items + 1) if
                       model.evaluate(x[i][j][z])]
 
         routes = find_routes([], 0, edges_list, [])
 
         if solver_flag:
-            s.minimize(total_distance + (max_dist - min_dist))
-
-        obj = int(str(model.evaluate(total_distance))) + (max_dist - min_dist)
+            obj = int(str(s.lower(objective)))
+        else:
+            obj = int(str(model.evaluate(total_distance))) + (int(str(model.evaluate(max_distance))) - int(str(model.evaluate(min_distance))))
 
         return obj, elapsed_time, routes
 
@@ -374,9 +394,9 @@ def main():
     # number of instances over which iterate
     n_istances = 21
     test_instances = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 19]
-    night_test = [13]
+    single_test = [1]
 
-    for instance in night_test:
+    for instance in single_test:
         inst = {}
         count = 1
         for configuration in configurations:
