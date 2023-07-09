@@ -1,4 +1,2 @@
 numpy
-z3
-math
-time
+z3-solver

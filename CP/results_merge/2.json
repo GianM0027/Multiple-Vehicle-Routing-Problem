@@ -1,0 +1,122 @@
+{
+   "defaultModelMaxDist": {
+      "chuffed": {
+         "time": 45,
+         "optimal": true,
+         "obj": 226,
+         "solution": [
+            [
+               1
+            ],
+            [
+               2
+            ],
+            [
+               3,
+               7,
+               9
+            ],
+            [
+               4
+            ],
+            [
+               5
+            ],
+            [
+               6,
+               8
+            ]
+         ]
+      }
+   },
+   "defaultModelObjFun": {
+      "chuffed": {
+         "time": 299,
+         "optimal": false,
+         "obj": 1146,
+         "solution": [
+            [
+               1,
+               4
+            ],
+            [
+               3
+            ],
+            [
+               5,
+               2
+            ],
+            [
+               6,
+               8
+            ],
+            [
+               7
+            ],
+            [
+               9
+            ]
+         ]
+      }
+   },
+   "impliedConsMaxDist": {
+      "chuffed": {
+         "time": 19,
+         "optimal": true,
+         "obj": 226,
+         "solution": [
+            [
+               1
+            ],
+            [
+               2
+            ],
+            [
+               3,
+               7,
+               9
+            ],
+            [
+               4
+            ],
+            [
+               5
+            ],
+            [
+               6,
+               8
+            ]
+         ]
+      }
+   },
+   "impliedConsObjFun": {
+      "chuffed": {
+         "time": 299,
+         "optimal": false,
+         "obj": 1146,
+         "solution": [
+            [
+               1,
+               4
+            ],
+            [
+               3
+            ],
+            [
+               5,
+               2
+            ],
+            [
+               6,
+               8
+            ],
+            [
+               7
+            ],
+            [
+               9
+            ]
+         ]
+      }
+   }
+}

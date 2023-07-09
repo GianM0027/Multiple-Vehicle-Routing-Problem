@@ -9,7 +9,9 @@ def set_model(configuration):
 
     if configuration == 'impliedConsMaxDist' or configuration == 'impliedConsObjFun':
         model.add_string("""
-        constraint forall(c in COURIERS,s in STEPS)(if c+((s-1)*n_couriers)> n_items+(2*n_couriers) then delivery_order[s,c] = 0 endif);
+        constraint forall(c in COURIERS,s in STEPS)
+            (if c+((s-1)*n_couriers)> n_items+(2*n_couriers) 
+            then delivery_order[s,c] = 0 endif);
         """)
 
     if configuration == 'defaultModelMaxDist' or configuration == 'impliedConsMaxDist':
@@ -31,10 +33,7 @@ def get_results(result, n_couriers, n_items, timeout):
     lines = str(result.solution).split("\n")
     try: objective = int(lines[0])
     except: objective = lines[0]
-    # if lines[0] == None:
-    #     objective = lines[0]
-    # else:
-    #     objective = int(lines[0])
+
     if len(lines) > 1:
 
         delivery_order = lines[1].strip("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ[]= ;\n").replace(",","")
@@ -52,10 +51,16 @@ def get_results(result, n_couriers, n_items, timeout):
     else:
         sol = None
 
-    try: runTime = int(result.statistics['time'].total_seconds())
-    except: runTime = int(timeout.total_seconds())
-
-    status = (result.status == result.status.OPTIMAL_SOLUTION)
+    if result.status == result.status.SATISFIED:
+        print(result.status)
+        status = False
+        runTime = int(timeout.total_seconds())
+    elif result.status == result.status.OPTIMAL_SOLUTION:
+        print(result.status)
+        status = True
+        try: runTime = int(result.statistics['time'].total_seconds())
+        except: 
+            runTime = int(timeout.total_seconds())
 
     return(objective,sol,runTime,status)   
 
@@ -125,17 +130,17 @@ while not valid_in:
     else: print("Please, insert a valid input\n")
 valid_in = False
 
-print("\n1:"+configurations[0])
-print("2:"+configurations[1])
-print("3:"+configurations[2])
-print("4:"+configurations[3])
-while not valid_in:
-    n_conf = input("\nSelect the configuration (1-4) = ")
-    if int(n_conf) > 0 and int(n_conf) <= 4:
-        n_conf = int(n_conf)
-        valid_in = True
-    else: print("Please, insert a valid input\n")
-valid_in = False
+# print("\n1:"+configurations[0])
+# print("2:"+configurations[1])
+# print("3:"+configurations[2])
+# print("4:"+configurations[3])
+# while not valid_in:
+#     n_conf = input("\nSelect the configuration (1-4) = ")
+#     if int(n_conf) > 0 and int(n_conf) <= 4:
+#         n_conf = int(n_conf)
+#         valid_in = True
+#     else: print("Please, insert a valid input\n")
+# valid_in = False
 
 print("1:"+solvers[0])
 print("2:"+solvers[1])
@@ -152,11 +157,13 @@ if int(n_inst) < 10:
 else:
     inst = str(n_inst)
 
-model = set_model(configurations[n_conf-1])
-result, n_couriers, n_items = solve_model(inst,model,solvers[n_solv-1],timeout)
-obj,solution,runTime,status = get_results(result, n_couriers, n_items, timeout)
-print("\n###### RESULTS ######\n")
-print("Time = ", runTime)
-print("Optimal = ", status)
-print("Objective = ", obj)
-print("Solution = ", solution)
+for conf in configurations:  
+    print(conf)  
+    model = set_model(conf)
+    result, n_couriers, n_items = solve_model(inst,model,solvers[n_solv-1],timeout)
+    obj,solution,runTime,status = get_results(result, n_couriers, n_items, timeout)
+    print("\n###### RESULTS ######\n")
+    print("Time = ", runTime)
+    print("Optimal = ", status)
+    print("Objective = ", obj)
+    print("Solution = ", solution)

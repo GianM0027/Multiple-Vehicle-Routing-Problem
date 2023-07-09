@@ -30,10 +30,6 @@ def get_results(result, n_couriers, n_items, timeout):
     lines = str(result.solution).split("\n")
     try: objective = int(lines[0])
     except: objective = lines[0]
-    # if lines[0] == None:
-    #     objective = lines[0]
-    # else:
-    #     objective = int(lines[0])
     if len(lines) > 1:
 
         delivery_order = lines[1].strip("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ[]= ;\n").replace(",","")
