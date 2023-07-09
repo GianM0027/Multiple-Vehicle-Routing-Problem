@@ -355,21 +355,28 @@ def find_best(instance, config):
                 best_solution = temp_solution
                 final_time = 300 - remaining_time
 
-
     if not best_solution:
         final_time = 300
         best_total_distance = 0
 
-    return final_time, status, best_total_distance, best_solution
+    solution_route = []
+    for i in range(len(best_solution)):
+        temp_route = []
+        for s in best_solution[i]:
+            temp_route.append(s[0])
+        temp_route = temp_route[1:]
+        solution_route.append(temp_route)
+
+    return final_time, status, best_total_distance, solution_route
 
 
 def main():
     # number of instances over which iterate
     n_istances = 21
     test_instances = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 19]
-    night_test = [16, 19, 13, 11, 12, 14, 15, 17, 18, 20, 21]
+    night_test = [13]
 
-    for instance in test_instances:
+    for instance in night_test:
         inst = {}
         count = 1
         for configuration in configurations:
