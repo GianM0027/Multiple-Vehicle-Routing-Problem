@@ -51,16 +51,11 @@ def get_results(result, n_couriers, n_items, timeout):
     else:
         sol = None
 
-    if result.status == result.status.SATISFIED:
-        print(result.status)
-        status = False
-        runTime = int(timeout.total_seconds())
-    elif result.status == result.status.OPTIMAL_SOLUTION:
-        print(result.status)
-        status = True
-        try: runTime = int(result.statistics['time'].total_seconds())
-        except: 
-            runTime = int(timeout.total_seconds())
+    status = (result.status == result.status.OPTIMAL_SOLUTION)
+    if status:
+        try: runTime = int(result.statistics['solveTime'].total_seconds())
+        except: runTime = int(timeout.total_seconds())
+    else: runTime = int(timeout.total_seconds())
 
     return(objective,sol,runTime,status)   
 
@@ -130,17 +125,17 @@ while not valid_in:
     else: print("Please, insert a valid input\n")
 valid_in = False
 
-# print("\n1:"+configurations[0])
-# print("2:"+configurations[1])
-# print("3:"+configurations[2])
-# print("4:"+configurations[3])
-# while not valid_in:
-#     n_conf = input("\nSelect the configuration (1-4) = ")
-#     if int(n_conf) > 0 and int(n_conf) <= 4:
-#         n_conf = int(n_conf)
-#         valid_in = True
-#     else: print("Please, insert a valid input\n")
-# valid_in = False
+print("\n1:"+configurations[0])
+print("2:"+configurations[1])
+print("3:"+configurations[2])
+print("4:"+configurations[3])
+while not valid_in:
+    n_conf = input("\nSelect the configuration (1-4) = ")
+    if int(n_conf) > 0 and int(n_conf) <= 4:
+        n_conf = int(n_conf)
+        valid_in = True
+    else: print("Please, insert a valid input\n")
+valid_in = False
 
 print("1:"+solvers[0])
 print("2:"+solvers[1])
@@ -157,9 +152,9 @@ if int(n_inst) < 10:
 else:
     inst = str(n_inst)
 
-for conf in configurations:  
-    print(conf)  
-    model = set_model(conf)
+
+model = set_model(configurations[n_conf-1])
+try: # Bypass the minizinc timeout error, given in millisecond as asked, still rise the error (with lower values dont!)
     result, n_couriers, n_items = solve_model(inst,model,solvers[n_solv-1],timeout)
     obj,solution,runTime,status = get_results(result, n_couriers, n_items, timeout)
     print("\n###### RESULTS ######\n")
@@ -167,3 +162,9 @@ for conf in configurations:
     print("Optimal = ", status)
     print("Objective = ", obj)
     print("Solution = ", solution)
+except:
+    print("\n###### RESULTS ######\n", "Rised the minizinc timeout error")
+    print("Time = ", "300")
+    print("Optimal = ", "false")
+    print("Objective = ", "None")
+    print("Solution = ", "None")
