@@ -1,0 +1,170 @@
+{
+   "defaultModelMaxDist": {
+      "gecode": {
+         "time": 0,
+         "optimal": true,
+         "obj": 12,
+         "solution": [
+            [
+               5,
+               4,
+               2
+            ],
+            [
+               3,
+               7
+            ],
+            [
+               1,
+               6
+            ]
+         ]
+      },
+      "chuffed": {
+         "time": 0,
+         "optimal": true,
+         "obj": 12,
+         "solution": [
+            [
+               3,
+               6,
+               5
+            ],
+            [
+               2,
+               4
+            ],
+            [
+               1,
+               7
+            ]
+         ]
+      }
+   },
+   "defaultModelObjFun": {
+      "gecode": {
+         "time": 0,
+         "optimal": true,
+         "obj": 36,
+         "solution": [
+            [
+               5,
+               4,
+               2
+            ],
+            [
+               3,
+               7
+            ],
+            [
+               1,
+               6
+            ]
+         ]
+      },
+      "chuffed": {
+         "time": 0,
+         "optimal": true,
+         "obj": 36,
+         "solution": [
+            [
+               3,
+               6,
+               5
+            ],
+            [
+               2,
+               4
+            ],
+            [
+               1,
+               7
+            ]
+         ]
+      }
+   },
+   "impliedConsMaxDist": {
+      "gecode": {
+         "time": 0,
+         "optimal": true,
+         "obj": 12,
+         "solution": [
+            [
+               5,
+               4,
+               2
+            ],
+            [
+               7,
+               3
+            ],
+            [
+               1,
+               6
+            ]
+         ]
+      },
+      "chuffed": {
+         "time": 0,
+         "optimal": true,
+         "obj": 12,
+         "solution": [
+            [
+               3,
+               6,
+               5
+            ],
+            [
+               2,
+               4
+            ],
+            [
+               1,
+               7
+            ]
+         ]
+      }
+   },
+   "impliedConsObjFun": {
+      "gecode": {
+         "time": 0,
+         "optimal": true,
+         "obj": 36,
+         "solution": [
+            [
+               5,
+               4,
+               2
+            ],
+            [
+               3,
+               7
+            ],
+            [
+               1,
+               6
+            ]
+         ]
+      },
+      "chuffed": {
+         "time": 0,
+         "optimal": true,
+         "obj": 36,
+         "solution": [
+            [
+               3,
+               6,
+               5
+            ],
+            [
+               2,
+               4
+            ],
+            [
+               1,
+               7
+            ]
+         ]
+      }
+   }
+}
