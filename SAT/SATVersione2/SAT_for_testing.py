@@ -30,6 +30,22 @@ def find_routes(routes, current_node, remaining_edges, current_route):
                 current_route.pop()
     return routes
 
+def print_result(num_instance, configuration, best_time, optimal, obj, solution):
+    print(f"\n------- InstanceNumber: {num_instance} | Configuration: {configuration} -------")
+
+    print("Time: " + str(best_time))
+    print("Optimal: " + str(optimal))
+    print("Objective: " + str(obj))
+    solution_route = []
+    for i in range(len(solution)):
+        temp_route = []
+        for s in solution[i]:
+            temp_route.append(s[0])
+        temp_route = temp_route[1:]
+        solution_route.append(temp_route)
+
+    print("Solution: " + str(solution_route))
+
 
 def createGraph(all_distances):
     all_dist_size = all_distances.shape[0]
@@ -413,6 +429,8 @@ def find_best(instance, config):
         temp_route = temp_route[1:]
         solution_route.append(temp_route)
 
+    print("AAAAAAAAAAAA", solution_route)
+
     return final_time, status, best_total_distance, solution_route
 
 
@@ -439,6 +457,8 @@ def main():
 
             inst[configuration] = config
             count += 1
+
+
 
         if not os.path.exists("res_testFinale/"):
             os.makedirs("res_testFinale/")
