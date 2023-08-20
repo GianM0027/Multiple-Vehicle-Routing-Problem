@@ -28,7 +28,6 @@ def find_routes(routes, current_node, remaining_edges, current_route):
                 current_route.append(remaining_edges[i])
                 find_routes(routes, next_node, remaining_edges[:i] + remaining_edges[i + 1:], current_route)
                 current_route.pop()
-
     return routes
 
 
@@ -131,6 +130,31 @@ def exactly_one_he(bool_vars, name):
     return And(at_most_one_he(bool_vars, name), at_least_one_he(bool_vars))
 
 
+def at_least_k_seq(bool_vars, k, name):
+    return at_most_k_seq([Not(var) for var in bool_vars], len(bool_vars) - k, name)
+
+
+def at_most_k_seq(bool_vars, k, name):
+    constraints = []
+    n = len(bool_vars)
+    s = [[Bool(f"s_{name}_{i}_{j}") for j in range(k)] for i in range(n - 1)]
+    constraints.append(Or(Not(bool_vars[0]), s[0][0]))
+    constraints += [Not(s[0][j]) for j in range(1, k)]
+    for i in range(1, n - 1):
+        constraints.append(Or(Not(bool_vars[i]), s[i][0]))
+        constraints.append(Or(Not(s[i - 1][0]), s[i][0]))
+        constraints.append(Or(Not(bool_vars[i]), Not(s[i - 1][k - 1])))
+        for j in range(1, k):
+            constraints.append(Or(Not(bool_vars[i]), Not(s[i - 1][j - 1]), s[i][j]))
+            constraints.append(Or(Not(s[i - 1][j]), s[i][j]))
+    constraints.append(Or(Not(bool_vars[n - 1]), Not(s[n - 2][k - 1])))
+    return And(constraints)
+
+
+def exactly_k_seq(bool_vars, k, name):
+    return And(at_most_k_seq(bool_vars, k, name), at_least_k_seq(bool_vars, k, name))
+
+
 def inputFile(num):
     # Instantiate variables from file
     if num < 10:
@@ -176,7 +200,6 @@ exactly_one = exactly_one_seq
 
 
 # - - - - - - - - - - - - - - - - - - - - - MODEL - - - - - - - - - - - - - - - - - - - - - #
-
 
 
 def model(instance_num, configuration, remaining_time, solver_flag):
@@ -231,12 +254,12 @@ def model(instance_num, configuration, remaining_time, solver_flag):
 
     # Each courier ends at the depot
     for k in range(n_couriers):
-        #s.add(PbEq([(x[j][0][k], 1) for j in range(1, n_items + 1)], 1))
+        # s.add(PbEq([(x[j][0][k], 1) for j in range(1, n_items + 1)], 1))
         s.add(exactly_one([x[j][0][k] for j in range(1, n_items + 1)], f"courier_ends_{k}"))
 
     # Each courier depart from the depot
     for k in range(n_couriers):
-        #s.add(PbEq([(x[0][j][k], 1) for j in range(1, n_items + 1)], 1))
+        # s.add(PbEq([(x[0][j][k], 1) for j in range(1, n_items + 1)], 1))
         s.add(exactly_one([x[0][j][k] for j in range(1, n_items + 1)], f"courier_starts_{k}"))
 
     # For each vehicle, the total load over its route must be smaller than its max load size
@@ -245,7 +268,7 @@ def model(instance_num, configuration, remaining_time, solver_flag):
 
     # Each item is carried by exactly one courier
     for i in range(n_items):
-        #s.add(PbEq([(v[i][k], 1) for k in range(n_couriers)], 1))
+        # s.add(PbEq([(v[i][k], 1) for k in range(n_couriers)], 1))
         s.add(exactly_one([v[i][k] for k in range(n_couriers)], f"item_carried_{i}"))
 
     # If courier k goes to location (i, j), then courier k must carry item i, j
@@ -256,7 +279,7 @@ def model(instance_num, configuration, remaining_time, solver_flag):
 
     # Each courier carries at least one item
     for k in range(n_couriers):
-        s.add(at_least_one_np([v[i][k] for i in range(n_items)]))
+        s.add(at_least_one_seq([v[i][k] for i in range(n_items)]))
 
     # If (i, j) == True than --> for all the other k (i, j) != True
     if configuration == DEFAULT_IMPLIED_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS:
@@ -291,6 +314,12 @@ def model(instance_num, configuration, remaining_time, solver_flag):
                for i in range(n_items + 1) for j in range(n_items + 1)
                if len(u[i - 1][k]) >= 3 and len(u[j - 1][k]) >= 3 if i != j])
 
+    """for k in range(n_couriers):
+        for i in range(1, n_items + 1):
+            for j in range(1, n_items + 1):
+                    s.add(Implies(x[i][j][k], And(Or([x[j][f][k] for f in range(n_items + 1)]),
+                                                  Or([x[m][i][k] for m in range(n_items + 1)]))))"""
+
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 
     start_time = time.time()
@@ -304,36 +333,19 @@ def model(instance_num, configuration, remaining_time, solver_flag):
     max_distance = Sum(
         [If(x[i][j][0], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
 
+    for k in range(n_couriers):
+        temp = Sum(
+            [If(x[i][j][k], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
+        min_distance = If(temp < min_distance, temp, min_distance)
+        max_distance = If(temp > max_distance, temp, max_distance)
+
     objective = None
     if solver_flag:
-        for k in range(n_couriers):
-            temp = Sum(
-                [If(x[i][j][k], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
-            min_distance = If(temp < min_distance, temp, min_distance)
-            max_distance = If(temp > max_distance, temp, max_distance)
-
-        objective = s.minimize(total_distance + (max_distance - min_distance))
+        objective = s.minimize(Sum(total_distance, (max_distance - min_distance)))
 
     if s.check() == sat:
         elapsed_time = time.time() - start_time
         model = s.model()
-
-        # - - - - - - - - - - - - - - #
-
-        min_dist = float('inf')
-        max_dist = float('-inf')
-
-        for k in range(n_couriers):
-            temp = sum(int(all_distances[i][j]) for i in range(n_items + 1) for j in range(n_items + 1) if
-                       model.evaluate(x[i][j][k]))
-
-            if temp < min_dist:
-                min_dist = temp
-
-            if temp > max_dist:
-                max_dist = temp
-
-        # - - - - - - - - - - - - - - #
 
         edges_list = [(i, j) for z in range(n_couriers) for i in range(n_items + 1) for j in range(n_items + 1) if
                       model.evaluate(x[i][j][z])]
@@ -342,8 +354,20 @@ def model(instance_num, configuration, remaining_time, solver_flag):
 
         if solver_flag:
             obj = int(str(s.lower(objective)))
+            print("Objective: ", objective.value())
+            print("Total distance: ", model.evaluate(total_distance))
+            print("Max: ", model.evaluate(max_distance))
+            print("Min: ", model.evaluate(min_distance))
+            print("Lower: ", obj)
         else:
-            obj = int(str(model.evaluate(total_distance))) + (int(str(model.evaluate(max_distance))) - int(str(model.evaluate(min_distance))))
+            print("Total distance: ", model.evaluate(total_distance))
+            print("Max: ", model.evaluate(max_distance))
+            print("Min: ", model.evaluate(min_distance))
+            min_final = int(str(model.evaluate(min_distance)))
+            max_final = int(str(model.evaluate(max_distance)))
+            obj = (int(str(model.evaluate(total_distance))) + (max_final - min_final))
+            print("Objective: ", obj)
+            print("- - - - - - - - - - - - - - - - - - - - - - - -")
 
         return obj, elapsed_time, routes
 
@@ -365,15 +389,17 @@ def find_best(instance, config):
 
     if remaining_time > 0:
         temp_total_distance, elapsed_time, temp_solution = model(instance, config, remaining_time, True)
-        print("temp_total_distance", temp_total_distance)
-        print("best_total_distance", best_total_distance)
         remaining_time = remaining_time - elapsed_time
+        print("Temp Distance -> ", temp_total_distance)
+
         if temp_total_distance != -1 and remaining_time > 0:
             status = True
             if temp_total_distance <= best_total_distance:
                 best_total_distance = temp_total_distance
                 best_solution = temp_solution
                 final_time = 300 - remaining_time
+
+        print("Best Distance -> ", best_total_distance)
 
     if not best_solution:
         final_time = 300
