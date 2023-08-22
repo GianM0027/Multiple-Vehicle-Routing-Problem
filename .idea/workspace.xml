@@ -5,8 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c10b6bae-c2cd-41a6-b17d-cda731b8b241" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/SAT/SATVersione2/SAT_for_testing.py" beforeDir="false" afterPath="$PROJECT_DIR$/SAT/SATVersione2/SAT_for_testing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SAT/SATVersione2/sat_new_version.py" beforeDir="false" afterPath="$PROJECT_DIR$/SAT/SATVersione2/sat_new_version.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SMT/newSMT.py" beforeDir="false" afterPath="$PROJECT_DIR$/SMT/newSMT.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,10 +38,10 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/scheda sd/2-magistrale/Anno 1/Semestre 2/Combinatorial decision making/progetto CDMO/CDMO-project/SAT/SATVersione2/sat_new_version.py"
+    "last_opened_file_path": "D:/scheda sd/2-magistrale/Anno 1/Semestre 2/Combinatorial decision making/progetto CDMO/CDMO-project/SMT/newSMT.py"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.SAT">
+  <component name="RunManager" selected="Python.SMT">
     <configuration name="MIP" type="PythonConfigurationType" factoryName="Python">
       <module name="CDMO-project" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -86,9 +86,32 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="SMT" type="PythonConfigurationType" factoryName="Python">
+      <module name="CDMO-project" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="Python 3.11" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/SMT/newSMT.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="Python.MIP" />
       <item itemvalue="Python.SAT" />
+      <item itemvalue="Python.SMT" />
     </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />

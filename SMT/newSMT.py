@@ -39,7 +39,29 @@ def inputFile(num):
 
     dist = dist.astype(int)
 
-    return n_couriers, n_items, max_load, size_item, dist
+    return n_couriers, n_items, max_load, [0] + size_item, dist
+
+
+def find_routes(routes, current_node, remaining_edges, current_route):
+    if current_node == 0 and len(current_route) > 1:
+        routes.append(list(current_route))
+    else:
+        for i in range(len(remaining_edges)):
+            if remaining_edges[i][0] == current_node:
+                next_node = remaining_edges[i][1]
+                current_route.append(remaining_edges[i])
+                find_routes(routes, next_node, remaining_edges[:i] + remaining_edges[i + 1:], current_route)
+                current_route.pop()
+
+    solution_route = []
+    for i in range(len(routes)):
+        temp_route = []
+        for s in routes[i]:
+            temp_route.append(s[0])
+        temp_route = temp_route[1:]
+        solution_route.append(temp_route)
+
+    return solution_route
 
 
 def createGraph(all_distances):
@@ -83,9 +105,20 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
     # Every item must be delivered
     # (each 3-dimensional column must contain only 1 true value, depot not included in this constraint)
+    def exactly_one(variables):
+        # At least one of the variables must be true
+        at_least_one = Or(variables)
+
+        # At most one of the variables must be true
+        at_most_one = And(
+            [Implies(variables[i], And([Not(variables[j]) for j in range(len(variables)) if j != i])) for i in
+             range(len(variables))])
+
+        return And(at_least_one, at_most_one)
+
     for j in G.nodes:
         if j != 0:  # no depot
-            s.add(PbEq([x[i][j][k] for k in range(n_couriers) for i in G.nodes if i != j], 1))
+            s.add(exactly_one([x[i][j][k] for k in range(n_couriers) for i in G.nodes if i != j]))
 
     # Every node should be entered and left once and by the same vehicle
     # (number of times a vehicle enters a node is equal to the number of times it leaves that node)
@@ -107,3 +140,76 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     for k in range(n_couriers):
         s.add(Implies(x[i][j][k],
                       Sum([size_item[j] for i in range(n_items + 1) for j in range(n_items + 1)]) <= max_load[k]))
+
+
+    # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
+    u = [Int("u") for _ in G.nodes]
+
+    s.add(u[0] == 1)
+
+    # all the other points must be visited after the depot
+    for i in G.nodes:
+        if i != 0:  # excluding the depot
+            s.add(u[i] >= 2)
+
+    # MTZ approach core
+    for z in range(n_couriers):
+        for i, j in G.edges:
+            if i != 0 and j != 0 and i != j:  # excluding the depot
+                s.add(x[i][j][z] * u[j] >= x[i][j][z] * (u[i] + 1))
+
+
+    # - - - - - - - - - - - - - - - - - SOLVING - - - - - - - - - - - - - - - - - - - - - - #
+
+    total_distance = Sum(
+        [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i in range(n_items + 1) for j in
+         range(n_items + 1)])
+
+    min_distance = Sum(
+        [If(x[i][j][0], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
+
+    max_distance = Sum(
+        [If(x[i][j][0], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
+
+    for k in range(n_couriers):
+        temp = Sum(
+            [If(x[i][j][k], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
+        min_distance = If(temp < min_distance, temp, min_distance)
+        max_distance = If(temp > max_distance, temp, max_distance)
+
+    if upper_bound is None:
+        objective = Int('objective')
+        s.add(objective >= Sum(total_distance, (max_distance - min_distance)))
+    else:
+        objective = Int('objective')
+        s.add(objective >= Sum(total_distance, (max_distance - min_distance)))
+        s.add(upper_bound > objective)
+
+    if s.check() == sat:
+        model = s.model()
+
+        edges_list = [(i, j) for z in range(n_couriers) for i,j in G.edges if model.evaluate(x[i][j][z])]
+
+        routes = find_routes([], 0, edges_list, [])
+
+        print("\nEdge List: ", edges_list)
+        print("Routes: ", routes)
+        print("- - - - - - - - - - - - - - - -")
+        print("Upper bound: ", upper_bound)
+        print("Objective: ", model.evaluate(objective))
+        print("Min Distance: ", model.evaluate(min_distance))
+        print("Max Distance: ", model.evaluate(max_distance))
+        print("Total Distance: ", model.evaluate(total_distance))
+
+        new_objective = model.evaluate(objective)
+
+        return new_objective
+    else:
+        print("\nMERDA")
+        return 0
+
+
+inst = 1
+solution = None
+while type(solution) != int:
+    solution = main(inst, 300, solution)
