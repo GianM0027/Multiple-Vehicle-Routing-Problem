@@ -1,0 +1,54 @@
+{
+   "defaultModel": {
+      "time": 22,
+      "optimal": true,
+      "obj": 20,
+      "solution": [
+         [
+            5
+         ],
+         [
+            1
+         ]
+      ]
+   },
+   "impliedConsDefaultModel": {
+      "time": 18,
+      "optimal": true,
+      "obj": 20,
+      "solution": [
+         [
+            6
+         ],
+         [
+            1
+         ]
+      ]
+   },
+   "symmBreakDefaultModel": {
+      "time": 17,
+      "optimal": true,
+      "obj": 20,
+      "solution": [
+         [
+            5
+         ],
+         [
+            1
+         ]
+      ]
+   },
+   "impliedAndSymmBreakDefaultModel": {
+      "time": 19,
+      "optimal": true,
+      "obj": 20,
+      "solution": [
+         [
+            6
+         ],
+         [
+            1
+         ]
+      ]
+   }
+}

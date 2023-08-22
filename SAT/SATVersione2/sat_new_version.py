@@ -152,7 +152,7 @@ def inputFile(num):
 
     dist = dist.astype(int)
 
-    return n_couriers, n_items, max_load, size_item, dist
+    return n_couriers, n_items, max_load, [0] + size_item, dist
 
 
 def find_routes(routes, current_node, remaining_edges, current_route):
@@ -212,8 +212,8 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     for k in range(n_couriers):  # Each courier depart from the depot
         s.add(exactly_one([x[0][j][k] for j in range(1, n_items + 1)], f"courier_starts_{k}"))
 
-    for k in range(
-            n_couriers):  # For each vehicle, the total load over its route must be smaller than its max load size
+    # For each vehicle, the total load over its route must be smaller than its max load size
+    for k in range(n_couriers):
         s.add(PbLe([(v[i][k], size_item[i]) for i in range(n_items)], max_load[k]))
 
     for i in range(n_items):  # Each item is carried by exactly one courier
@@ -250,6 +250,7 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
     min_distance = Sum(
         [If(x[i][j][0], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
+
     max_distance = Sum(
         [If(x[i][j][0], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
 
@@ -260,10 +261,12 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         max_distance = If(temp > max_distance, temp, max_distance)
 
     if upper_bound is None:
-        objective = Sum(total_distance, (max_distance - min_distance))
+        objective = Int('objective')
+        s.add(objective >= Sum(total_distance, (max_distance - min_distance)))
     else:
-        objective = Sum(total_distance, (max_distance - min_distance))
-        s.add(upper_bound <= objective)
+        objective = Int('objective')
+        s.add(objective >= Sum(total_distance, (max_distance - min_distance)))
+        s.add(upper_bound > objective)
 
     if s.check() == sat:
         model = s.model()
@@ -276,23 +279,25 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         print("\nEdge List: ", edges_list)
         print("Routes: ", routes)
         print("- - - - - - - - - - - - - - - -")
+        print("Upper bound: ", upper_bound)
         print("Objective: ", model.evaluate(objective))
         print("Min Distance: ", model.evaluate(min_distance))
         print("Max Distance: ", model.evaluate(max_distance))
         print("Total Distance: ", model.evaluate(total_distance))
 
-        new_objective = objective
+        new_objective = model.evaluate(objective)
 
         return new_objective
     else:
         print("\nMERDA")
+        return 0
 
 
-upper = main(1, 300, None)
-upper2 = main(1, 300, upper)
-upper3 = main(1, 300, upper2)
-upper4 = main(1, 300, upper3)
-upper5 = main(1, 300, upper4)
+inst = 1
+solution = None
+while type(solution) != int:
+    solution = main(inst, 300, solution)
+
 
 
 

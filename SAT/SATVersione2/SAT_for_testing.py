@@ -313,23 +313,23 @@ def model(instance_num, configuration, remaining_time, solver_flag):
                     s.add(Implies(x[i][j][k], And([Not(x[i][j_prime][k]) for j_prime in other_destinations])))
 
     # - - - - - - - - - - - - - - - - - SYMMETRY BREAKING - - - - - - - - - - - - - - - - - - - - - - #
-
+    """
     if configuration == DEFAULT_SYMM_BREAK_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS:
         for k1 in range(n_couriers):
             for k2 in range(n_couriers):
                 if k1 != k2:
                     load_k1 = Sum([If(v[i][k1], size_item[i], 0) for i in range(n_items)])
                     load_k2 = Sum([If(v[i][k2], size_item[i], 0) for i in range(n_items)])
-                    s.add(Implies(max_load[k1] < max_load[k2], load_k1 <= load_k2))
+                    s.add(Implies(max_load[k1] < max_load[k2], load_k1 <= load_k2))"""
 
     # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
-
+    """
     # The order of visiting locations must be consistent with the binary representations
     for k in range(n_couriers):
         s.add([Implies(x[i][j][k], no_subtour(u[i - 1][k], u[j - 1][k]))
                for i in range(n_items + 1) for j in range(n_items + 1)
                if len(u[i - 1][k]) >= 3 and len(u[j - 1][k]) >= 3 if i != j])
-
+    """
     """for k in range(n_couriers):
         for i in range(1, n_items + 1):
             for j in range(1, n_items + 1):
@@ -429,7 +429,7 @@ def find_best(instance, config):
         temp_route = temp_route[1:]
         solution_route.append(temp_route)
 
-    print("AAAAAAAAAAAA", solution_route)
+    print("AAAAAAAAAAAA -> ", solution_route)
 
     return final_time, status, best_total_distance, solution_route
 
