@@ -28,7 +28,17 @@ def find_routes(routes, current_node, remaining_edges, current_route):
                 current_route.append(remaining_edges[i])
                 find_routes(routes, next_node, remaining_edges[:i] + remaining_edges[i + 1:], current_route)
                 current_route.pop()
-    return routes
+
+    solution_route = []
+    for i in range(len(routes)):
+        temp_route = []
+        for s in routes[i]:
+            temp_route.append(s[0])
+        temp_route = temp_route[1:]
+        solution_route.append(temp_route)
+
+    return solution_route
+
 
 def print_result(num_instance, configuration, best_time, optimal, obj, solution):
     print(f"\n------- InstanceNumber: {num_instance} | Configuration: {configuration} -------")
@@ -210,6 +220,18 @@ def no_subtour(a, b):
                b[2] == Or(And(a[2], Not(And(a[1], a[0]))), And(Not(a[2]), And(a[1], a[0]))))
 
 
+def print_loads(print_routes, max_l, s_item):
+    print("\n- - Print Loads - -")
+    print("Size Items: ", s_item)
+    for r in print_routes:
+        print(f"{print_routes.index(r)} - Max Load: {max_l[print_routes.index(r)]}")
+        load = 0
+        print(r)
+        for s_route in r:
+            load += s_item[s_route-1]
+        print(f"Total Load: {load}\n")
+
+
 at_most_one = at_most_one_seq
 at_least_one = at_least_one_seq
 exactly_one = exactly_one_seq
@@ -281,6 +303,8 @@ def model(instance_num, configuration, remaining_time, solver_flag):
     # For each vehicle, the total load over its route must be smaller than its max load size
     for k in range(n_couriers):
         s.add(PbLe([(v[i][k], size_item[i]) for i in range(n_items)], max_load[k]))
+        #s.add(PbLe([(x[i][j][k], size_item[i - 1]) for i in range(1, n_items + 1) for j in range(1, n_items + 1)],
+                   #max_load[k]))
 
     # Each item is carried by exactly one courier
     for i in range(n_items):
@@ -385,6 +409,8 @@ def model(instance_num, configuration, remaining_time, solver_flag):
             print("Objective: ", obj)
             print("- - - - - - - - - - - - - - - - - - - - - - - -")
 
+        print_loads(routes, max_load, size_item)
+
         return obj, elapsed_time, routes
 
     else:
@@ -457,8 +483,6 @@ def main():
 
             inst[configuration] = config
             count += 1
-
-
 
         if not os.path.exists("res_testFinale/"):
             os.makedirs("res_testFinale/")

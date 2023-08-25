@@ -99,13 +99,13 @@ def createGraph(all_distances):
 
 def print_loads(print_routes, max_l, s_item):
     print("\n- - Print Loads - -")
-    # print("Size Items: ", s_item)
+    print("Size Items: ", s_item)
     for r in print_routes:
         print(f"{print_routes.index(r)} - Max Load: {max_l[print_routes.index(r)]}")
         load = 0
         print(r)
-        for s_route in r:
-            load += s_item[s_route]
+        for i in range(1, len(r)):
+            load += s_item[r[i]]
         print(f"Total Load: {load}\n")
 
 
@@ -122,9 +122,23 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
     u = [Int(f"u_{j}") for j in G.nodes]
 
-    v = [[Bool(f"v_{i}_{k}") for k in range(n_couriers)] for i in range(n_items)]  # vehicle k is assigned to node i
+    objective = Int('objective')
 
     # - - - - - - - - CONSTRAINTS - - - - - - - - #
+
+    # No routes from any node to itself
+    for k in range(n_couriers):
+        s.add([Not(x[i][i][k]) for i in range(n_items + 1)])
+
+    for i in range(1, n_items + 1):  # start from 1 to exclude the depot
+        s.add(PbEq([(x[i][j][k], 1) for j in range(n_items + 1) for k in range(n_couriers)],
+                   1))  # each node is left exactly once by each courier
+
+    for j in range(1, n_items + 1):  # start from 1 to exclude the depot
+        s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],
+                   1))  # each node is entered exactly once by each courier
+
+    # - - - - - - - - PARTE FATTA IN CHIAMATA - - - - - - - - #
 
     # Every item must be delivered
     # (each 3-dimensional column must contain only 1 true value, depot not included in this constraint)
@@ -150,22 +164,22 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
     # For each vehicle, the total load over its route must be smaller than its max load size
     for k in range(n_couriers):
-        #s.add(PbLe([(v[i][k], size_item[i]) for i in range(n_items)], max_load[k]))
-        s.add(PbLe([(x[i][j][k], size_item[i-1]) for i in range(1, n_items + 1) for j in range(1, n_items + 1)],
+        #s.add(PbLe([(v[i][k], size_item[i+1]) for i in range(n_items)], max_load[k]))
+        s.add(PbLe([(x[i+1][j+1][k], size_item[i]) for i in range(n_items) for j in range(n_items)],
                    max_load[k]))
 
     # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
 
-    """#  Miller-Tucker-Zemlin formulation
+    #  Miller-Tucker-Zemlin formulation
     for k in range(n_couriers):
         for i in range(n_items):
             for j in range(n_items):
                 s.add(u[i] + If(x[i][j][k], 1, 0) <= u[j] + n_items * (1 - If(x[i][j][k], 1, 0)))
-                s.add(u[i] > 0)"""
+                s.add(u[i] > 0)
 
     # - - - - - - - MTZ BUSACCHI - - - - - - - #
 
-    s.add(u[0] == 1)
+    """s.add(u[0] == 1)
 
     # all the other points must be visited after the depot
     for i in G.nodes:
@@ -176,7 +190,7 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     for z in range(n_couriers):
         for i, j in G.edges:
             if i != 0 and j != 0 and i != j:  # excluding the depot
-                s.add(x[i][j][z] * u[j] >= x[i][j][z] * (u[i] + 1))
+                s.add(x[i][j][z] * u[j] >= x[i][j][z] * (u[i] + 1))"""
 
     # - - - - - - - - - - - - - - - - - SOLVING - - - - - - - - - - - - - - - - - - - - - - #
 
@@ -197,11 +211,9 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         max_distance = If(temp > max_distance, temp, max_distance)
 
     if upper_bound is None:
-        objective = Int('objective')
-        s.add(objective >= Sum(total_distance, (max_distance - min_distance)))
+        s.add(objective == Sum(total_distance, (max_distance - min_distance)))
     else:
-        objective = Int('objective')
-        s.add(objective > Sum(total_distance, (max_distance - min_distance)))
+        s.add(objective == Sum(total_distance, (max_distance - min_distance)))
         s.add(upper_bound > objective)
 
     if s.check() == sat:
@@ -233,5 +245,5 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 inst = 1
 temp = main(inst, 300)
 
-for _ in range(7):
+for _ in range(10):
     temp = main(inst, 300, temp)
