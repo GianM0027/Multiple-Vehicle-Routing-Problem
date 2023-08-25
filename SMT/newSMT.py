@@ -8,6 +8,18 @@ import time
 import json
 
 
+def exactly_one(variables):
+    # At least one of the variables must be true
+    at_least_one = Or(variables)
+
+    # At most one of the variables must be true
+    at_most_one = And(
+        [Implies(variables[i], And([Not(variables[j]) for j in range(len(variables)) if j != i])) for i in
+         range(len(variables))])
+
+    return And(at_least_one, at_most_one)
+
+
 def inputFile(num):
     # Instantiate variables from file
     if num < 10:
@@ -85,6 +97,18 @@ def createGraph(all_distances):
     return G
 
 
+def print_loads(print_routes, max_l, s_item):
+    print("\n- - Print Loads - -")
+    # print("Size Items: ", s_item)
+    for r in print_routes:
+        print(f"{print_routes.index(r)} - Max Load: {max_l[print_routes.index(r)]}")
+        load = 0
+        print(r)
+        for s_route in r:
+            load += s_item[s_route]
+        print(f"Total Load: {load}\n")
+
+
 def main(instance_num=1, remaining_time=300, upper_bound=None):
     n_couriers, n_items, max_load, size_item, all_distances = inputFile(instance_num)
     s = Solver()
@@ -96,26 +120,14 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     x = [[[Bool(f"x_{i}_{j}_{k}") for k in range(n_couriers)] for j in range(n_items + 1)] for i in
          range(n_items + 1)]  # x[i][j][k] == True : route (i->j) is used by courier k | set of Archs
 
+    u = [Int(f"u_{j}") for j in G.nodes]
+
     v = [[Bool(f"v_{i}_{k}") for k in range(n_couriers)] for i in range(n_items)]  # vehicle k is assigned to node i
-
-
-
 
     # - - - - - - - - CONSTRAINTS - - - - - - - - #
 
     # Every item must be delivered
     # (each 3-dimensional column must contain only 1 true value, depot not included in this constraint)
-    def exactly_one(variables):
-        # At least one of the variables must be true
-        at_least_one = Or(variables)
-
-        # At most one of the variables must be true
-        at_most_one = And(
-            [Implies(variables[i], And([Not(variables[j]) for j in range(len(variables)) if j != i])) for i in
-             range(len(variables))])
-
-        return And(at_least_one, at_most_one)
-
     for j in G.nodes:
         if j != 0:  # no depot
             s.add(exactly_one([x[i][j][k] for k in range(n_couriers) for i in G.nodes if i != j]))
@@ -123,11 +135,12 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     # Every node should be entered and left once and by the same vehicle
     # (number of times a vehicle enters a node is equal to the number of times it leaves that node)
     for i in range(1, n_items + 1):  # start from 1 to exclude the depot
-        s.add(PbEq([(x[i][j][k], 1) for j in range(n_items + 1) for k in range(n_couriers)],1))  # each node is left exactly once by each courier
+        s.add(PbEq([(x[i][j][k], 1) for j in range(n_items + 1) for k in range(n_couriers)],
+                   1))  # each node is left exactly once by each courier
 
     for j in range(1, n_items + 1):  # start from 1 to exclude the depot
-        s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],1))  # each node is entered exactly once by each courier
-
+        s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],
+                   1))  # each node is entered exactly once by each courier
 
     # each courier leaves and enters exactly once in the depot
     # (the number of predecessors and successors of the depot must be exactly one for each courier)
@@ -135,15 +148,22 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         s.add(Sum([x[i][0][k] for i in range(n_items + 1) if i != 0]) == 1)
         s.add(Sum([x[0][j][k] for j in range(n_items + 1) if j != 0]) == 1)
 
-    # each courier does not exceed its max_load
-    # sum of size_items must be minor than max_load for each courier
+    # For each vehicle, the total load over its route must be smaller than its max load size
     for k in range(n_couriers):
-        s.add(Implies(x[i][j][k],
-                      Sum([size_item[j] for i in range(n_items + 1) for j in range(n_items + 1)]) <= max_load[k]))
-
+        #s.add(PbLe([(v[i][k], size_item[i]) for i in range(n_items)], max_load[k]))
+        s.add(PbLe([(x[i][j][k], size_item[i-1]) for i in range(1, n_items + 1) for j in range(1, n_items + 1)],
+                   max_load[k]))
 
     # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
-    u = [Int("u") for _ in G.nodes]
+
+    """#  Miller-Tucker-Zemlin formulation
+    for k in range(n_couriers):
+        for i in range(n_items):
+            for j in range(n_items):
+                s.add(u[i] + If(x[i][j][k], 1, 0) <= u[j] + n_items * (1 - If(x[i][j][k], 1, 0)))
+                s.add(u[i] > 0)"""
+
+    # - - - - - - - MTZ BUSACCHI - - - - - - - #
 
     s.add(u[0] == 1)
 
@@ -157,7 +177,6 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         for i, j in G.edges:
             if i != 0 and j != 0 and i != j:  # excluding the depot
                 s.add(x[i][j][z] * u[j] >= x[i][j][z] * (u[i] + 1))
-
 
     # - - - - - - - - - - - - - - - - - SOLVING - - - - - - - - - - - - - - - - - - - - - - #
 
@@ -182,13 +201,13 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         s.add(objective >= Sum(total_distance, (max_distance - min_distance)))
     else:
         objective = Int('objective')
-        s.add(objective >= Sum(total_distance, (max_distance - min_distance)))
+        s.add(objective > Sum(total_distance, (max_distance - min_distance)))
         s.add(upper_bound > objective)
 
     if s.check() == sat:
         model = s.model()
 
-        edges_list = [(i, j) for z in range(n_couriers) for i,j in G.edges if model.evaluate(x[i][j][z])]
+        edges_list = [(i, j) for z in range(n_couriers) for i, j in G.edges if model.evaluate(x[i][j][z])]
 
         routes = find_routes([], 0, edges_list, [])
 
@@ -201,6 +220,8 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         print("Max Distance: ", model.evaluate(max_distance))
         print("Total Distance: ", model.evaluate(total_distance))
 
+        print_loads(routes, max_load, size_item)
+
         new_objective = model.evaluate(objective)
 
         return new_objective
@@ -210,6 +231,7 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
 
 inst = 1
-solution = None
-while type(solution) != int:
-    solution = main(inst, 300, solution)
+temp = main(inst, 300)
+
+for _ in range(7):
+    temp = main(inst, 300, temp)
