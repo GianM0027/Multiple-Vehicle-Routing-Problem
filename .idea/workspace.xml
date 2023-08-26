@@ -32,15 +32,15 @@
     <option name="showLibraryContents" value="true" />
     <option name="showScratchesAndConsoles" value="false" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/scheda sd/2-magistrale/Anno 1/Semestre 2/Combinatorial decision making/progetto CDMO/CDMO-project/SMT/newSMT.py"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/scheda sd/2-magistrale/Anno 1/Semestre 2/Combinatorial decision making/progetto CDMO/CDMO-project/SMT/newSMT.py&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Python.SMT">
     <configuration name="MIP" type="PythonConfigurationType" factoryName="Python">
       <module name="CDMO-project" />
