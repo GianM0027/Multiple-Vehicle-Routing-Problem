@@ -148,16 +148,6 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     for k in range(n_couriers):
         s.add([Not(x[i][i][k]) for i in range(n_items + 1)])
 
-    for i in range(1, n_items + 1):  # start from 1 to exclude the depot
-        s.add(PbEq([(x[i][j][k], 1) for j in range(n_items + 1) for k in range(n_couriers)],
-                   1))  # each node is left exactly once by each courier
-
-    for j in range(1, n_items + 1):  # start from 1 to exclude the depot
-        s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],
-                   1))  # each node is entered exactly once by each courier
-
-    # - - - - - - - - PARTE FATTA IN CHIAMATA - - - - - - - - #
-
     # Every item must be delivered
     # (each 3-dimensional column must contain only 1 true value, depot not included in this constraint)
     for j in G.nodes:
@@ -166,19 +156,18 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
     # Every node should be entered and left once and by the same vehicle
     # (number of times a vehicle enters a node is equal to the number of times it leaves that node)
-    for i in range(1, n_items + 1):  # start from 1 to exclude the depot
-        s.add(PbEq([(x[i][j][k], 1) for j in range(n_items + 1) for k in range(n_couriers)],
-                   1))  # each node is left exactly once by each courier
 
-    for j in range(1, n_items + 1):  # start from 1 to exclude the depot
-        s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],
-                   1))  # each node is entered exactly once by each courier
+    for i in range(1, n_items + 1):  # start from 1 to exclude the depot (each node is left exactly once by each courier)
+        s.add(PbEq([(x[i][j][k], 1) for j in G.nodes for k in range(n_couriers)],1))
+
+    for j in range(1, n_items + 1):  # start from 1 to exclude the depot (# each node is entered exactly once by each courier)
+        s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],1))
 
     # each courier leaves and enters exactly once in the depot
     # (the number of predecessors and successors of the depot must be exactly one for each courier)
     for k in range(n_couriers):
-        s.add(Sum([x[i][0][k] for i in range(n_items + 1) if i != 0]) == 1)
-        s.add(Sum([x[0][j][k] for j in range(n_items + 1) if j != 0]) == 1)
+        s.add(Sum([x[i][0][k] for i in G.nodes if i != 0]) == 1)
+        s.add(Sum([x[0][j][k] for j in G.nodes if j != 0]) == 1)
 
     # For each vehicle, the total load over its route must be smaller than its max load size
     for k in range(n_couriers):
@@ -188,17 +177,6 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         s.add(courier_loads[k] <= max_load[k])
 
     # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
-
-    #  Miller-Tucker-Zemlin formulation
-    """
-    for k in range(n_couriers):
-        for i in range(n_items):
-            for j in range(n_items):
-                s.add(u[i] + If(x[i][j][k], 1, 0) <= u[j] + n_items * (1 - If(x[i][j][k], 1, 0)))
-                s.add(u[i] > 0)
-    """
-
-    # - - - - - - - MTZ BUSACHI - - - - - - - #
 
     s.add(u[0] == 1)
 
@@ -266,7 +244,7 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
         new_objective = model.evaluate(objective)
 
-        print_graph(G, n_couriers, edges_list, x, model)
+        #print_graph(G, n_couriers, edges_list, x, model)
 
         return new_objective
     else:
