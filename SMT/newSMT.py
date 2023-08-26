@@ -115,13 +115,12 @@ def print_graph(G, n_couriers, tour_edges, x, model):
 
 
 def print_loads(model, print_routes, max_l, loads, s_item):
-    s_item = s_item[1:]
     print("\n- - Print Loads - -")
     print("Size Items: ", s_item)
-    for r in print_routes:
-        print(f"{print_routes.index(r)} - Max Load: {max_l[print_routes.index(r)]}")
-        print(r)
-        print(f"Total Load: {model.evaluate(loads[print_routes.index(r)])}\n")
+    for k in range(len(max_l)):
+        print(f"{k} - Max Load: {max_l[k]}")
+        print(print_routes[k])
+        print(f"Total Load: {model.evaluate(loads[k])}\n")
 
 
 def main(instance_num=1, remaining_time=300, upper_bound=None):
@@ -141,6 +140,8 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     u = [Int(f"u_{j}") for j in G.nodes]
 
     objective = Int('objective')
+
+
 
     # - - - - - - - - CONSTRAINTS - - - - - - - - #
 
@@ -223,6 +224,7 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     else:
         s.add(objective == max_distance)
         s.add(upper_bound > objective)
+
 
     if s.check() == sat:
         model = s.model()
