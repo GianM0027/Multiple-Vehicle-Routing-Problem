@@ -244,7 +244,6 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
         routes = find_routes([], 0, edges_list, [])
 
-
         print("\nEdge List: ", edges_list)
         print("Routes: ", routes)
         for z in range(n_couriers):

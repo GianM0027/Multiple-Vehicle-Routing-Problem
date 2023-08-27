@@ -155,6 +155,27 @@ def inputFile(num):
     return n_couriers, n_items, max_load, [0] + size_item, dist
 
 
+def createGraph(all_distances):
+    all_dist_size = all_distances.shape[0]
+    size_item = all_distances.shape[0] - 1
+    G = nx.DiGraph()
+
+    # Add nodes to the graph
+    G.add_nodes_from(range(all_dist_size))
+
+    # Add double connections between nodes
+    for i in range(all_dist_size):
+        for j in range(i + 1, size_item + 1):  # size item + 1 because we enclude also the depot in the graph
+            G.add_edge(i, j)
+            G.add_edge(j, i)
+
+    # Assign edge lengths
+    lengths = {(i, j): all_distances[i][j] for i, j in G.edges()}
+    nx.set_edge_attributes(G, lengths, 'length')
+
+    return G
+
+
 def find_routes(routes, current_node, remaining_edges, current_route):
     if current_node == 0 and len(current_route) > 1:
         routes.append(list(current_route))
@@ -182,12 +203,13 @@ def find_routes(routes, current_node, remaining_edges, current_route):
 def main(instance_num=1, remaining_time=300, upper_bound=None):
     n_couriers, n_items, max_load, size_item, all_distances = inputFile(instance_num)
 
+    G = createGraph(all_distances)
+
     s = Solver()
 
     s.set("timeout", (int(remaining_time) * 1000))
 
-    x = [[[Bool(f"x_{i}_{j}_{k}") for k in range(n_couriers)] for j in range(n_items + 1)] for i in
-         range(n_items + 1)]  # x[i][j][k] == True : route (i->j) is used by courier k | set of Archs
+    x = [[[Bool(f"x_{i}_{j}_{k}") for k in range(n_couriers)] for j in G.nodes] for i in G.nodes]  # x[i][j][k] == True : route (i->j) is used by courier k | set of Archs
 
     v = [[Bool(f"v_{i}_{k}") for k in range(n_couriers)] for i in range(n_items)]  # vehicle k is assigned to node i
 
@@ -198,13 +220,20 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     # - - - - - - - - CONSTRAINTS - - - - - - - - #
 
     for k in range(n_couriers):  # No routes from any node to itself
-        s.add([Not(x[i][i][k]) for i in range(n_items + 1)])
+        s.add([Not(x[i][i][k]) for i in G.nodes])
 
     for i in range(1, n_items + 1):  # For each node there is exactly one arc entering and leaving from it
-        s.add(exactly_one([x[i][j][k] for j in range(n_items + 1) for k in range(n_couriers)], f"arc_leave{i}"))
+        s.add(exactly_one([x[i][j][k] for j in G.nodes for k in range(n_couriers)], f"arc_leave{i}"))
 
     for j in range(1, n_items + 1):  # For each node there is exactly one arc entering and leaving from it
-        s.add(exactly_one([x[i][j][k] for i in range(n_items + 1) for k in range(n_couriers)], f"arc_enter{j}"))
+        s.add(exactly_one([x[i][j][k] for i in G.nodes for k in range(n_couriers)], f"arc_enter{j}"))
+
+    # this constraint should merge the last two constraints above (currently not working)
+    """for k in range(n_couriers):
+        for i in G.nodes:
+            s1 = Sum([x[i][j][k] for j in G.nodes if i != j])
+            s2 = Sum([x[j][i][k] for j in G.nodes if i != j])
+            s.add(s1 == s2)"""
 
     for k in range(n_couriers):  # Each courier ends at the depot
         s.add(exactly_one([x[j][0][k] for j in range(1, n_items + 1)], f"courier_ends_{k}"))
@@ -231,32 +260,23 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
     # The order of visiting locations must be consistent with the binary representations
     for k in range(n_couriers):  # The order of visiting locations must be consistent with the binary representations
-        s.add([Implies(x[i][j][k], no_subtour(u[i - 1][k], u[j - 1][k]))
-               for i in range(n_items + 1) for j in range(n_items + 1)
+        s.add([Implies(x[i][j][k], no_subtour(u[i - 1][k], u[j - 1][k])) for i,j in G.edges
                if len(u[i - 1][k]) >= 3 and len(u[j - 1][k]) >= 3 if i != j])
-    """
-    for k in range(n_couriers):
-        for i in range(1, n_items + 1):
-            for j in range(1, n_items + 1):
-                s.add(Implies(x[i][j][k], And(Or([x[j][f][k] for f in range(n_items + 1)]),
-                                              Or([x[m][i][k] for m in range(n_items + 1)]))))
-    """
 
     # - - - - - - - - - - - - - - - - - SOLVING - - - - - - - - - - - - - - - - - - - - - - #
 
     total_distance = Sum(
-        [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i in range(n_items + 1) for j in
-         range(n_items + 1)])
+        [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i,j in G.edges])
 
     min_distance = Sum(
-        [If(x[i][j][0], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
+        [If(x[i][j][0], int(all_distances[i][j]), 0) for i,j in G.edges])
 
     max_distance = Sum(
-        [If(x[i][j][0], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
+        [If(x[i][j][0], int(all_distances[i][j]), 0) for i,j in G.edges])
 
     for k in range(n_couriers):
         temp = Sum(
-            [If(x[i][j][k], int(all_distances[i][j]), 0) for i in range(n_items + 1) for j in range(n_items + 1)])
+            [If(x[i][j][k], int(all_distances[i][j]), 0) for i,j in G.edges])
         min_distance = If(temp < min_distance, temp, min_distance)
         max_distance = If(temp > max_distance, temp, max_distance)
 
@@ -271,13 +291,15 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     if s.check() == sat:
         model = s.model()
 
-        edges_list = [(i, j) for z in range(n_couriers) for i in range(n_items + 1) for j in range(n_items + 1) if
-                      model.evaluate(x[i][j][z])]
+        edges_list = [(i, j) for z in range(n_couriers) for i,j in G.edges if model.evaluate(x[i][j][z])]
 
         routes = find_routes([], 0, edges_list, [])
 
         print("\nEdge List: ", edges_list)
         print("Routes: ", routes)
+        for z in range(n_couriers):
+            tour_edges = [(i, j) for i, j in G.edges if model.evaluate(x[i][j][z])]
+            print(f"Courier {z} tour (by Gian): ", tour_edges)
         print("- - - - - - - - - - - - - - - -")
         print("Upper bound: ", upper_bound)
         print("Objective: ", model.evaluate(objective))
