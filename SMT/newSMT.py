@@ -177,6 +177,15 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         s.add(courier_loads[k] > 0)
         s.add(courier_loads[k] <= max_load[k])
 
+    # for each courier, if it goes from i to j, it must also go from j to h
+    for k in range(n_couriers):
+        for i,j in G.edges:
+            if i != j:
+                for h in G.nodes:
+                    s.add(Implies(x[i][j][k], x[j][h][k]))
+
+
+
     # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
 
     s.add(u[0] == 1)
@@ -233,6 +242,7 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
         routes = find_routes([], 0, edges_list, [])
 
+
         print("\nEdge List: ", edges_list)
         print("Routes: ", routes)
         for z in range(n_couriers):
@@ -250,6 +260,11 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         new_objective = model.evaluate(objective)
 
         #print_graph(G, n_couriers, edges_list, x, model)
+
+        """for z in range(n_couriers):
+            for i,j in G.edges:
+                if model.evaluate(x[i][j][z]):
+                    print(x[i][j][z])"""
 
         return new_objective
     else:
