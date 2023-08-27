@@ -155,6 +155,7 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         if j != 0:  # no depot
             s.add(exactly_one([x[i][j][k] for k in range(n_couriers) for i in G.nodes if i != j]))
 
+    """
     # Every node should be entered and left once and by the same vehicle
     # (number of times a vehicle enters a node is equal to the number of times it leaves that node)
 
@@ -162,7 +163,15 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         s.add(PbEq([(x[i][j][k], 1) for j in G.nodes for k in range(n_couriers)],1))
 
     for j in range(1, n_items + 1):  # start from 1 to exclude the depot (# each node is entered exactly once by each courier)
-        s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],1))
+        s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],1))"""
+
+    # Every node should be entered and left once and by the same vehicle
+    # (number of times a vehicle enters a node is equal to the number of times it leaves that node)
+    for k in range(n_couriers):
+        for i in G.nodes:
+            s1 = Sum([x[i][j][k] for j in G.nodes if i != j])
+            s2 = Sum([x[j][i][k] for j in G.nodes if i != j])
+            s.add(s1 == s2)
 
     # each courier leaves and enters exactly once in the depot
     # (the number of predecessors and successors of the depot must be exactly one for each courier)
@@ -176,13 +185,6 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         s.add(courier_loads[k] == Sum([If(x[i][j][k], size_item[i],0) for i, j in G.edges]))
         s.add(courier_loads[k] > 0)
         s.add(courier_loads[k] <= max_load[k])
-
-    # for each courier, if it goes from i to j, it must also go from j to h
-    for k in range(n_couriers):
-        for i,j in G.edges:
-            if i != j:
-                for h in G.nodes:
-                    s.add(Implies(x[i][j][k], x[j][h][k]))
 
 
 
@@ -261,18 +263,12 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
         #print_graph(G, n_couriers, edges_list, x, model)
 
-        """for z in range(n_couriers):
-            for i,j in G.edges:
-                if model.evaluate(x[i][j][z]):
-                    print(x[i][j][z])"""
-
         return new_objective
     else:
         print("\nMERDA")
-        print(all_distances)
         return 0
 
-inst = 1
+inst = 5
 temp = main(inst, 300)
 
 for _ in range(10):

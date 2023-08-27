@@ -40,7 +40,7 @@
     &quot;last_opened_file_path&quot;: &quot;D:/scheda sd/2-magistrale/Anno 1/Semestre 2/Combinatorial decision making/progetto CDMO/CDMO-project/SMT/newSMT.py&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.SMT">
+  <component name="RunManager" selected="Python.SAT">
     <configuration name="MIP" type="PythonConfigurationType" factoryName="Python">
       <module name="CDMO-project" />
       <option name="INTERPRETER_OPTIONS" value="" />
