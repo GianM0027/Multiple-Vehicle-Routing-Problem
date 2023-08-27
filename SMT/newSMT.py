@@ -235,6 +235,11 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
         print("\nEdge List: ", edges_list)
         print("Routes: ", routes)
+        tot_item = []
+        for z in range(n_couriers):
+            tour_edges = [(i, j) for i, j in G.edges if model.evaluate(x[i][j][z])]
+            print(f"Courier {z} tour (by Gian): ", tour_edges)
+        print("Solution: ", tot_item)
         print("- - - - - - - - - - - - - - - -")
         print("Upper bound: ", upper_bound)
         print("Objective: ", model.evaluate(objective))
