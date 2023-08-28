@@ -149,21 +149,11 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     for k in range(n_couriers):
         s.add([Not(x[i][i][k]) for i in range(n_items + 1)])
 
-    # Every item must be delivered
+    # Every item must be delivered (and only once)
     # (each 3-dimensional column must contain only 1 true value, depot not included in this constraint)
     for j in G.nodes:
         if j != 0:  # no depot
             s.add(exactly_one([x[i][j][k] for k in range(n_couriers) for i in G.nodes if i != j]))
-
-    """
-    # Every node should be entered and left once and by the same vehicle
-    # (number of times a vehicle enters a node is equal to the number of times it leaves that node)
-
-    for i in range(1, n_items + 1):  # start from 1 to exclude the depot (each node is left exactly once by each courier)
-        s.add(PbEq([(x[i][j][k], 1) for j in G.nodes for k in range(n_couriers)],1))
-
-    for j in range(1, n_items + 1):  # start from 1 to exclude the depot (# each node is entered exactly once by each courier)
-        s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],1))"""
 
     # Every node should be entered and left once and by the same vehicle
     # (number of times a vehicle enters a node is equal to the number of times it leaves that node)

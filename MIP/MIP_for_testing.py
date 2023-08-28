@@ -284,7 +284,6 @@ def main():
     # number of instances over which iterate
     n_istances = 21
 
-
     for instance in range(n_istances):
         inst = {}
         count = 1
