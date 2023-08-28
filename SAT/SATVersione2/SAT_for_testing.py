@@ -13,7 +13,9 @@ DEFAULT_IMPLIED_CONS = "impliedConsDefaultModel"
 DEFAULT_SYMM_BREAK_CONS = "symmBreakDefaultModel"
 DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymmBreakDefaultModel"
 
-configurations = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS]
+#configurations = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS]
+
+configurations = [DEFAULT_MODEL]
 
 
 # - - - - - - - - - - - - - - - - - - - - - FUNCTIONS - - - - - - - - - - - - - - - - - - - - - #
@@ -483,6 +485,10 @@ def main():
 
             inst[configuration] = config
             count += 1
+
+            print(type(status))
+            print(type(obj))
+            print(type(solution))
 
         if not os.path.exists("res_testFinale/"):
             os.makedirs("res_testFinale/")

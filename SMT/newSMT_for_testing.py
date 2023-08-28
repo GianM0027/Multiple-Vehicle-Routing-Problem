@@ -8,7 +8,16 @@ import networkx as nx
 import time
 import json
 
+# - - - - - - - - - - - - - - - - - - - - - CONFIGURATIONS - - - - - - - - - - - - - - - - - - - - - #
+DEFAULT_MODEL = "defaultModel"
+DEFAULT_IMPLIED_CONS = "impliedConsDefaultModel"
+DEFAULT_SYMM_BREAK_CONS = "symmBreakDefaultModel"
+DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymmBreakDefaultModel"
 
+configurations = [DEFAULT_MODEL]
+
+
+# - - - - - - - - - - - - - - - - - - - - - FUNCTIONS - - - - - - - - - - - - - - - - - - - - - #
 def exactly_one(variables):
     # At least one of the variables must be true
     at_least_one = Or(variables)
@@ -97,6 +106,7 @@ def createGraph(all_distances):
 
     return G
 
+
 def print_graph(G, n_couriers, tour_edges, x, model):
     # Calculate the node colors
     colormap = cm._colormaps.get_cmap("Set3")
@@ -123,7 +133,9 @@ def print_loads(model, print_routes, max_l, loads, s_item):
         print(f"Total Load: {model.evaluate(loads[k])}\n")
 
 
-def main(instance_num=1, remaining_time=300, upper_bound=None):
+# - - - - - - - - - - - - - - - - - - - - - MAIN - - - - - - - - - - - - - - - - - - - - - #
+
+def find_model(instance_num, remaining_time=300, upper_bound=None):
     n_couriers, n_items, max_load, size_item, all_distances = inputFile(instance_num)
     s = Solver()
     s.set("timeout", (int(remaining_time) * 1000))
@@ -141,9 +153,7 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
     objective = Int('objective')
 
-
-
-    # - - - - - - - - CONSTRAINTS - - - - - - - - #
+    # - - - - - - - - - - - - - - - - CONSTRAINTS - - - - - - - - - - - - - - - - #
 
     # No routes from any node to itself
     for k in range(n_couriers):
@@ -154,16 +164,6 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     for j in G.nodes:
         if j != 0:  # no depot
             s.add(exactly_one([x[i][j][k] for k in range(n_couriers) for i in G.nodes if i != j]))
-
-    """
-    # Every node should be entered and left once and by the same vehicle
-    # (number of times a vehicle enters a node is equal to the number of times it leaves that node)
-
-    for i in range(1, n_items + 1):  # start from 1 to exclude the depot (each node is left exactly once by each courier)
-        s.add(PbEq([(x[i][j][k], 1) for j in G.nodes for k in range(n_couriers)],1))
-
-    for j in range(1, n_items + 1):  # start from 1 to exclude the depot (# each node is entered exactly once by each courier)
-        s.add(PbEq([(x[i][j][k], 1) for i in range(n_items + 1) for k in range(n_couriers)],1))"""
 
     # Every node should be entered and left once and by the same vehicle
     # (number of times a vehicle enters a node is equal to the number of times it leaves that node)
@@ -181,14 +181,11 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
     # For each vehicle, the total load over its route must be smaller than its max load size
     for k in range(n_couriers):
-        #s.add(PbLe([(v[i][k], size_item[i+1]) for i in range(n_items)], max_load[k]))
-        s.add(courier_loads[k] == Sum([If(x[i][j][k], size_item[i],0) for i, j in G.edges]))
+        s.add(courier_loads[k] == Sum([If(x[i][j][k], size_item[i], 0) for i, j in G.edges]))
         s.add(courier_loads[k] > 0)
         s.add(courier_loads[k] <= max_load[k])
 
-
-
-    # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
+    # - - - - - - - - - - - - - - - - NO SUBTOUR PROBLEM - - - - - - - - - - - - - - - - #
 
     s.add(u[0] == 1)
 
@@ -203,31 +200,31 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
             if i != 0 and j != 0 and i != j:  # excluding the depot
                 s.add(x[i][j][z] * u[j] >= x[i][j][z] * (u[i] + 1))
 
-    # - - - - - - - - - - - - - - - - - SOLVING - - - - - - - - - - - - - - - - - - - - - - #
+    # - - - - - - - - - - - - - - - - SOLVING - - - - - - - - - - - - - - - - #
 
     total_distance = Sum(
-        [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i,j in G.edges])
+        [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i, j in G.edges])
 
     min_distance = Sum(
-        [If(x[i][j][0], int(all_distances[i][j]), 0) for i,j in G.edges])
+        [If(x[i][j][0], int(all_distances[i][j]), 0) for i, j in G.edges])
 
     max_distance = Sum(
-        [If(x[i][j][0], int(all_distances[i][j]), 0) for i,j in G.edges])
+        [If(x[i][j][0], int(all_distances[i][j]), 0) for i, j in G.edges])
 
     for k in range(n_couriers):
         temp = Sum(
-            [If(x[i][j][k], int(all_distances[i][j]), 0) for i,j in G.edges])
+            [If(x[i][j][k], int(all_distances[i][j]), 0) for i, j in G.edges])
         min_distance = If(temp < min_distance, temp, min_distance)
         max_distance = If(temp > max_distance, temp, max_distance)
 
     """  
-    # OBJECTIVE 1
-    if upper_bound is None:
-        s.add(objective == Sum(total_distance, (max_distance - min_distance)))
-    else:
-        s.add(objective == Sum(total_distance, (max_distance - min_distance)))
-        s.add(upper_bound > objective)
-    """
+        # OBJECTIVE 1
+        if upper_bound is None:
+            s.add(objective == Sum(total_distance, (max_distance - min_distance)))
+        else:
+            s.add(objective == Sum(total_distance, (max_distance - min_distance)))
+            s.add(upper_bound > objective)
+        """
 
     # OBJECTIVE 2
     if upper_bound is None:
@@ -236,12 +233,16 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         s.add(objective == max_distance)
         s.add(upper_bound > objective)
 
-
+    start_time = time.time()
     if s.check() == sat:
+        elapsed_time = time.time() - start_time
         model = s.model()
+
+        routes = []
 
         for z in range(n_couriers):
             tour_edges = [(i, j) for i, j in G.edges if model.evaluate(x[i][j][z])]
+            routes += [tour_edges]
             print(f"Courier {z} tour (by Gian): ", tour_edges)
         print("- - - - - - - - - - - - - - - -")
         print("Upper bound: ", upper_bound)
@@ -252,15 +253,60 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
         new_objective = model.evaluate(objective)
 
-        return new_objective
+        return elapsed_time, new_objective, routes
     else:
-        print("\nMERDA")
-        return 0
+        print("minimal solution found")
+        elapsed_time = time.time() - start_time
+        return elapsed_time, -1, []
 
-inst = 1
-temp = main(inst, 300)
 
-for _ in range(10):
-    temp = main(inst, 300, temp)
-    if temp == 0:
-        break
+def find_best(instance, config):
+    print("Stated  to find a solution, configuration: ", config)
+    run_time, temp_obj, temp_solution = find_model(instance, 300, None)
+    remaining_time = 300 - run_time
+    print("remaining_time: ", remaining_time)
+    best_obj, best_solution = temp_obj, temp_solution
+
+    while remaining_time > 0:
+        run_time, temp_obj, temp_solution = find_model(instance, remaining_time, temp_obj)
+        remaining_time = remaining_time - run_time
+        if temp_obj == -1:
+            return remaining_time, True, best_obj, best_solution
+        else:
+            best_obj, best_solution = temp_obj, temp_solution
+
+    print("time limit exceeded")
+    return remaining_time, False, best_obj, best_solution
+
+
+def main():
+    # number of instances over which iterate
+    n_istances = 21
+    test_instances = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 19]
+    single_test = [5]
+
+    for instance in single_test:
+        inst = {}
+        count = 1
+        for configuration in configurations:
+            print(
+                f"\n\n\n###################    Instance {instance}/{n_istances}, Configuration {count} out of {len(configurations)} -> {configuration}    ####################")
+            run_time, status, obj, solution = find_best(instance, configuration)
+
+            # JSON
+            config = {}
+            config["time"] = int(run_time)
+            config["optimal"] = status
+            config["obj"] = obj
+            config["solution"] = solution
+
+            inst[configuration] = config
+            count += 1
+
+        if not os.path.exists("res_testFinale/"):
+            os.makedirs("res_testFinale/")
+        with open(f"res_testFinale/{instance}.JSON", "w") as file:
+            file.write(json.dumps(inst, indent=3))
+
+
+main()
