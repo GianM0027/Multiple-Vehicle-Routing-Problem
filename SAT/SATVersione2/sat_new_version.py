@@ -1,4 +1,5 @@
 # - - - - - - - - - - - - - - - - - - - - - IMPORTS - - - - - - - - - - - - - - - - - - - - - #
+from matplotlib import pyplot as plt, cm
 from z3 import *
 import numpy as np
 from math import log2
@@ -175,6 +176,22 @@ def createGraph(all_distances):
 
     return G
 
+def print_graph(G, n_couriers, tour_edges, x, model):
+    # Calculate the node colors
+    colormap = cm._colormaps.get_cmap("Set3")
+    node_colors = {}
+    for z in range(n_couriers):
+        for i, j in G.edges:
+            if model.evaluate(x[i][j][z]):
+                node_colors[i] = colormap(z)
+                node_colors[j] = colormap(z)
+    node_colors[0] = 'pink'
+    # Convert to list to maintain order for nx.draw
+    color_list = [node_colors[node] for node in G.nodes]
+
+    nx.draw(G.edge_subgraph(tour_edges), with_labels=True, node_color=color_list)
+    plt.show()
+
 
 def find_routes(routes, current_node, remaining_edges, current_route):
     if current_node == 0 and len(current_route) > 1:
@@ -217,43 +234,53 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     u = [[[Bool(f"u_{i}_{k}_{b}") for b in range(len_bin)] for k in range(n_couriers)] for i in
          range(n_items)]  # encoding in binary of order index of node i
 
+    objective = Int('objective')
+
     # - - - - - - - - CONSTRAINTS - - - - - - - - #
 
-    for k in range(n_couriers):  # No routes from any node to itself
+    # Every item must be delivered (and only once)
+    # (each 3-dimensional column must contain only 1 true value, depot not included in this constraint)
+    for j in G.nodes:
+        if j != 0:  # no depot
+            s.add(exactly_one([x[i][j][k] for k in range(n_couriers) for i in G.nodes if i != j], f"only_1_delivery{j}"))
+
+    # No routes from any node to itself
+    for k in range(n_couriers):
         s.add([Not(x[i][i][k]) for i in G.nodes])
 
-    for i in range(1, n_items + 1):  # For each node there is exactly one arc entering and leaving from it
+    # For each node there is exactly one arc entering and leaving from it
+    for i in range(1, n_items + 1):
         s.add(exactly_one([x[i][j][k] for j in G.nodes for k in range(n_couriers)], f"arc_leave{i}"))
 
-    for j in range(1, n_items + 1):  # For each node there is exactly one arc entering and leaving from it
+    # For each node there is exactly one arc entering and leaving from it
+    for j in range(1, n_items + 1):
         s.add(exactly_one([x[i][j][k] for i in G.nodes for k in range(n_couriers)], f"arc_enter{j}"))
 
-    # this constraint should merge the last two constraints above (currently not working)
-    """for k in range(n_couriers):
-        for i in G.nodes:
-            s1 = Sum([x[i][j][k] for j in G.nodes if i != j])
-            s2 = Sum([x[j][i][k] for j in G.nodes if i != j])
-            s.add(s1 == s2)"""
-
-    for k in range(n_couriers):  # Each courier ends at the depot
+    # Each courier ends at the depot
+    for k in range(n_couriers):
         s.add(exactly_one([x[j][0][k] for j in range(1, n_items + 1)], f"courier_ends_{k}"))
 
-    for k in range(n_couriers):  # Each courier depart from the depot
+    # Each courier depart from the depot
+    for k in range(n_couriers):
         s.add(exactly_one([x[0][j][k] for j in range(1, n_items + 1)], f"courier_starts_{k}"))
 
     # For each vehicle, the total load over its route must be smaller than its max load size
+    """CANNOT USE THIS FORMULATION"""
     for k in range(n_couriers):
         s.add(PbLe([(v[i][k], size_item[i]) for i in range(n_items)], max_load[k]))
 
-    for i in range(n_items):  # Each item is carried by exactly one courier
+    # Each item is carried by exactly one courier
+    for i in range(n_items):
         s.add(exactly_one([v[i][k] for k in range(n_couriers)], f"item_carried_{i}"))
 
-    for k in range(n_couriers):  # If courier k goes to location (i, j), then courier k must carry item i, j
+    # If courier k goes to location (i, j), then courier k must carry item i, j
+    for k in range(n_couriers):
         for i in range(1, n_items + 1):
             for j in range(1, n_items + 1):
                 s.add([Implies(x[i][j][k], And(v[i - 1][k], v[j - 1][k]))])
 
-    for k in range(n_couriers):  # Each courier carries at least one item
+    # Each courier carries at least one item
+    for k in range(n_couriers):
         s.add(at_least_one_seq([v[i][k] for i in range(n_items)]))
 
     # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
@@ -266,27 +293,37 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     # - - - - - - - - - - - - - - - - - SOLVING - - - - - - - - - - - - - - - - - - - - - - #
 
     total_distance = Sum(
-        [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i,j in G.edges])
+        [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i, j in G.edges])
 
     min_distance = Sum(
-        [If(x[i][j][0], int(all_distances[i][j]), 0) for i,j in G.edges])
+        [If(x[i][j][0], int(all_distances[i][j]), 0) for i, j in G.edges])
 
     max_distance = Sum(
-        [If(x[i][j][0], int(all_distances[i][j]), 0) for i,j in G.edges])
+        [If(x[i][j][0], int(all_distances[i][j]), 0) for i, j in G.edges])
 
     for k in range(n_couriers):
         temp = Sum(
-            [If(x[i][j][k], int(all_distances[i][j]), 0) for i,j in G.edges])
+            [If(x[i][j][k], int(all_distances[i][j]), 0) for i, j in G.edges])
         min_distance = If(temp < min_distance, temp, min_distance)
         max_distance = If(temp > max_distance, temp, max_distance)
 
+
+    """  
+        # OBJECTIVE 1
+        if upper_bound is None:
+            s.add(objective == Sum(total_distance, (max_distance - min_distance)))
+        else:
+            s.add(objective == Sum(total_distance, (max_distance - min_distance)))
+            s.add(upper_bound > objective)
+        """
+
+    # OBJECTIVE 2
     if upper_bound is None:
-        objective = Int('objective')
-        s.add(objective >= Sum(total_distance, (max_distance - min_distance)))
+        s.add(objective == max_distance)
     else:
-        objective = Int('objective')
-        s.add(objective >= Sum(total_distance, (max_distance - min_distance)))
+        s.add(objective == max_distance)
         s.add(upper_bound > objective)
+
 
     if s.check() == sat:
         model = s.model()
@@ -308,6 +345,8 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         print("Total Distance: ", model.evaluate(total_distance))
 
         new_objective = model.evaluate(objective)
+
+        #print_graph(G, n_couriers, edges_list, x, model)
 
         return new_objective
     else:
