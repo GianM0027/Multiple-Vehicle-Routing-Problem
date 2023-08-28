@@ -300,8 +300,10 @@ def main():
             config["obj"] = obj
             config["solution"] = solution
 
+
             inst[configuration] = config
             count += 1
+
 
         if not os.path.exists("res_testFinale/"):
             os.makedirs("res_testFinale/")
