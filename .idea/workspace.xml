@@ -6,15 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="c10b6bae-c2cd-41a6-b17d-cda731b8b241" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SAT/SAT.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/SAT/SATVersione2/SAT_for_testing.py" beforeDir="false" afterPath="$PROJECT_DIR$/SAT/SATVersione2/newSAT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SAT/SATVersione2/sat_new_version.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/SMT/newSMT_for_testing.py" beforeDir="false" afterPath="$PROJECT_DIR$/SMT/newSMT_for_testing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SMT/res/1.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/SMT/res/1.JSON" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SMT/res/2.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/SMT/res/2.JSON" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SMT/res/3.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/SMT/res/3.JSON" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SMT/res/4.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/SMT/res/4.JSON" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SMT/res/5.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/SMT/res/5.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SAT/SATVersione2/newSAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/SAT/SATVersione2/oldSAT.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,7 +41,7 @@
     "last_opened_file_path": "D:/scheda sd/2-magistrale/Anno 1/Semestre 2/Combinatorial decision making/progetto CDMO/CDMO-project/MIP/newMIP.py"
   }
 }]]></component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.SAT">
     <configuration name="MIP" type="PythonConfigurationType" factoryName="Python">
       <module name="CDMO-project" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -85,7 +77,7 @@
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/SAT/SATVersione2/sat_for_testing.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/SAT/newSAT.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
