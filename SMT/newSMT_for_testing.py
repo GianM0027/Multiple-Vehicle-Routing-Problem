@@ -283,9 +283,9 @@ def find_best(instance, config):
 def main():
     # number of instances over which iterate
     n_istances = 21
-    test_instances = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 19]
+    test_instances = [1, 2, 3, 4, 5]
 
-    for instance in range(1):
+    for instance in range(len(test_instances)):
         inst = {}
         count = 1
         for configuration in configurations:
@@ -300,10 +300,13 @@ def main():
             config["obj"] = obj
             config["solution"] = solution
 
+
             inst[configuration] = config
             count += 1
 
-        with open(f"res/{instance + 1}.JSON", "w") as file:
+        if not os.path.exists("res/"):
+            os.makedirs("res/")
+        with open(f"res/{instance+1}.JSON", "w") as file:
             file.write(json.dumps(inst, indent=3))
 
 
