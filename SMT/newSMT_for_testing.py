@@ -261,6 +261,7 @@ def find_model(instance_num, remaining_time=300, upper_bound=None):
 
 
 def find_best(instance, config):
+
     print("Stated  to find a solution, configuration: ", config)
     run_time, temp_obj, temp_solution = find_model(instance, 300, None)
     remaining_time = 300 - run_time
@@ -271,31 +272,30 @@ def find_best(instance, config):
         run_time, temp_obj, temp_solution = find_model(instance, remaining_time, temp_obj)
         remaining_time = remaining_time - run_time
         if temp_obj == -1:
-            return remaining_time, True, best_obj, best_solution
+            return remaining_time, True, str(best_obj), best_solution
         else:
             best_obj, best_solution = temp_obj, temp_solution
 
     print("time limit exceeded")
-    return remaining_time, False, best_obj, best_solution
+    return remaining_time, False, str(best_obj), best_solution
 
 
 def main():
     # number of instances over which iterate
     n_istances = 21
     test_instances = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 19]
-    single_test = [5]
 
-    for instance in single_test:
+    for instance in range(1):
         inst = {}
         count = 1
         for configuration in configurations:
             print(
-                f"\n\n\n###################    Instance {instance}/{n_istances}, Configuration {count} out of {len(configurations)} -> {configuration}    ####################")
-            run_time, status, obj, solution = find_best(instance, configuration)
+                f"\n\n\n###################    Instance {instance + 1}/{n_istances}, Configuration {count} out of {len(configurations)} -> {configuration}    ####################")
+            runTime, status, obj, solution = find_best(instance + 1, configuration)
 
             # JSON
             config = {}
-            config["time"] = int(run_time)
+            config["time"] = runTime
             config["optimal"] = status
             config["obj"] = obj
             config["solution"] = solution
@@ -303,9 +303,7 @@ def main():
             inst[configuration] = config
             count += 1
 
-        if not os.path.exists("res_testFinale/"):
-            os.makedirs("res_testFinale/")
-        with open(f"res_testFinale/{instance}.JSON", "w") as file:
+        with open(f"res/{instance + 1}.JSON", "w") as file:
             file.write(json.dumps(inst, indent=3))
 
 
