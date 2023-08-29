@@ -238,12 +238,19 @@ def find_model(instance_num, remaining_time=300, upper_bound=None):
         elapsed_time = time.time() - start_time
         model = s.model()
 
-        routes = []
-
+        tot_item = []
         for z in range(n_couriers):
             tour_edges = [(i, j) for i, j in G.edges if model.evaluate(x[i][j][z])]
-            routes += [tour_edges]
-            print(f"Courier {z} tour (by Gian): ", tour_edges)
+            items = []
+            current = 0
+            while len(tour_edges) > 0:
+                for i, j in tour_edges:
+                    if i == current:
+                        items.append(j)
+                        current = j
+                        tour_edges.remove((i, j))
+            tot_item.append([i for i in items if i != 0])
+        print("Solution: ", tot_item)
         print("- - - - - - - - - - - - - - - -")
         print("Upper bound: ", upper_bound)
         print("Objective: ", model.evaluate(objective))
@@ -253,7 +260,7 @@ def find_model(instance_num, remaining_time=300, upper_bound=None):
 
         new_objective = model.evaluate(objective)
 
-        return elapsed_time, new_objective, routes
+        return elapsed_time, new_objective, tot_item
     else:
         print("minimal solution found")
         elapsed_time = time.time() - start_time
