@@ -13,8 +13,9 @@ DEFAULT_MODEL = "defaultModel"
 DEFAULT_IMPLIED_CONS = "impliedConsDefaultModel"
 DEFAULT_SYMM_BREAK_CONS = "symmBreakDefaultModel"
 DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymmBreakDefaultModel"
+SECOND_OBJ_MODEL = "secondObjectiveModel"
 
-configurations = [DEFAULT_MODEL]
+configurations = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS]
 
 
 # - - - - - - - - - - - - - - - - - - - - - FUNCTIONS - - - - - - - - - - - - - - - - - - - - - #
@@ -135,7 +136,7 @@ def print_loads(model, print_routes, max_l, loads, s_item):
 
 # - - - - - - - - - - - - - - - - - - - - - MAIN - - - - - - - - - - - - - - - - - - - - - #
 
-def find_model(instance_num, remaining_time=300, upper_bound=None):
+def find_model(instance_num, configuration, remaining_time=300, upper_bound=None):
     n_couriers, n_items, max_load, size_item, all_distances = inputFile(instance_num)
     s = Solver()
     s.set("timeout", (int(remaining_time) * 1000))
@@ -185,6 +186,31 @@ def find_model(instance_num, remaining_time=300, upper_bound=None):
         s.add(courier_loads[k] > 0)
         s.add(courier_loads[k] <= max_load[k])
 
+    # - - - - - - - - - - - - - - - - IMPLIED CONSTRINTS & SIMMETRY BREAKING - - - - - - - - - - - - - - - - #
+
+    # If (i, j) == True than --> for all the other k (i, j) != True
+    if configuration == DEFAULT_IMPLIED_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS:
+        for i in range(n_items + 1):
+            for j in range(n_items + 1):
+                for k in range(n_couriers):
+                    other_couriers = [k_prime for k_prime in range(n_couriers) if k_prime != k]
+                    s.add(Implies(x[i][j][k], And([Not(x[i][j][k_prime]) for k_prime in other_couriers])))
+
+        # For every courier, each row contains only one True
+        for i in range(n_items + 1):
+            for k in range(n_couriers):
+                for j in range(n_items + 1):
+                    other_destinations = [j_prime for j_prime in range(n_items + 1) if j_prime != j]
+                    s.add(Implies(x[i][j][k], And([Not(x[i][j_prime][k]) for j_prime in other_destinations])))
+
+    if configuration == DEFAULT_SYMM_BREAK_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS:
+        for k1 in range(n_couriers):
+            for k2 in range(n_couriers):
+                if k1 != k2:
+                    load_k1 = Sum([If(x[i][j][k1], size_item[i], 0) for i, j in G.edges])
+                    load_k2 = Sum([If(x[i][j][k2], size_item[i], 0) for i, j in G.edges])
+                    s.add(Implies(max_load[k1] < max_load[k2], load_k1 <= load_k2))
+
     # - - - - - - - - - - - - - - - - NO SUBTOUR PROBLEM - - - - - - - - - - - - - - - - #
 
     s.add(u[0] == 1)
@@ -217,21 +243,20 @@ def find_model(instance_num, remaining_time=300, upper_bound=None):
         min_distance = If(temp < min_distance, temp, min_distance)
         max_distance = If(temp > max_distance, temp, max_distance)
 
-    """  
+    if configuration == SECOND_OBJ_MODEL:
         # OBJECTIVE 1
         if upper_bound is None:
             s.add(objective == Sum(total_distance, (max_distance - min_distance)))
         else:
             s.add(objective == Sum(total_distance, (max_distance - min_distance)))
             s.add(upper_bound > objective)
-        """
-
-    # OBJECTIVE 2
-    if upper_bound is None:
-        s.add(objective == max_distance)
     else:
-        s.add(objective == max_distance)
-        s.add(upper_bound > objective)
+       # OBJECTIVE 2
+        if upper_bound is None:
+            s.add(objective == max_distance)
+        else:
+            s.add(objective == max_distance)
+            s.add(upper_bound > objective)
 
     start_time = time.time()
     if s.check() == sat:
@@ -270,13 +295,13 @@ def find_model(instance_num, remaining_time=300, upper_bound=None):
 def find_best(instance, config):
 
     print("Stated  to find a solution, configuration: ", config)
-    run_time, temp_obj, temp_solution = find_model(instance, 300, None)
+    run_time, temp_obj, temp_solution = find_model(instance, config, 300, None)
     remaining_time = 300 - run_time
     print("remaining_time: ", remaining_time)
     best_obj, best_solution = temp_obj, temp_solution
 
     while remaining_time > 0:
-        run_time, temp_obj, temp_solution = find_model(instance, remaining_time, temp_obj)
+        run_time, temp_obj, temp_solution = find_model(instance, config, remaining_time, temp_obj)
         remaining_time = remaining_time - run_time
         if temp_obj == -1:
             return remaining_time, True, str(best_obj), best_solution
@@ -290,7 +315,7 @@ def find_best(instance, config):
 def main():
     # number of instances over which iterate
     n_istances = 21
-    test_instances = [1, 2, 3, 4, 5]
+    test_instances = [1]
 
     for instance in range(len(test_instances)):
         inst = {}

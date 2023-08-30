@@ -1,14 +1,75 @@
 {
    "defaultModel": {
-      "time": 288.40897011756897,
+      "time": 298.1562294960022,
       "optimal": true,
       "obj": "226",
       "solution": [
          [
+            8,
+            6
+         ],
+         [
+            1,
+            4
+         ],
+         [
+            3,
+            7
+         ],
+         [
+            5
+         ],
+         [
             9
          ],
          [
+            2
+         ]
+      ]
+   },
+   "impliedConsDefaultModel": {
+      "time": 297.3439826965332,
+      "optimal": true,
+      "obj": "226",
+      "solution": [
+         [
+            7
+         ],
+         [
+            1,
+            4
+         ],
+         [
+            3
+         ],
+         [
+            8,
+            6
+         ],
+         [
+            5,
+            9
+         ],
+         [
+            2
+         ]
+      ]
+   },
+   "symmBreakDefaultModel": {
+      "time": 296.30157589912415,
+      "optimal": true,
+      "obj": "226",
+      "solution": [
+         [
+            9,
+            7,
+            3
+         ],
+         [
             1
+         ],
+         [
+            2
          ],
          [
             6,
@@ -18,12 +79,35 @@
             4
          ],
          [
-            7,
+            5
+         ]
+      ]
+   },
+   "impliedAndSymmBreakDefaultModel": {
+      "time": 296.7590787410736,
+      "optimal": true,
+      "obj": "226",
+      "solution": [
+         [
+            3
+         ],
+         [
+            4,
+            1
+         ],
+         [
+            6
+         ],
+         [
+            8
+         ],
+         [
+            9,
             5
          ],
          [
-            3,
-            2
+            2,
+            7
          ]
       ]
    }
