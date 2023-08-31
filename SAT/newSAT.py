@@ -1,4 +1,6 @@
 # - - - - - - - - - - - - - - - - - - - - - IMPORTS - - - - - - - - - - - - - - - - - - - - - #
+from math import log2
+
 from matplotlib import cm, pyplot as plt
 from z3 import *
 import numpy as np
@@ -16,6 +18,30 @@ def exactly_one(variables):
 
     return And(at_least_one, at_most_one)
 
+def at_least_k_seq(bool_vars, k, name):
+    return at_most_k_seq([Not(var) for var in bool_vars], len(bool_vars) - k, name)
+
+def at_most_k_seq(bool_vars, k, name):
+    constraints = []
+    n = len(bool_vars)
+    s = [[Bool(f"s_{name}_{i}_{j}") for j in range(k)] for i in range(n - 1)]
+    constraints.append(Or(Not(bool_vars[0]), s[0][0]))
+    constraints += [Not(s[0][j]) for j in range(1, k)]
+    for i in range(1, n - 1):
+        constraints.append(Or(Not(bool_vars[i]), s[i][0]))
+        constraints.append(Or(Not(s[i - 1][0]), s[i][0]))
+        constraints.append(Or(Not(bool_vars[i]), Not(s[i - 1][k - 1])))
+        for j in range(1, k):
+            constraints.append(Or(Not(bool_vars[i]), Not(s[i - 1][j - 1]), s[i][j]))
+            constraints.append(Or(Not(s[i - 1][j]), s[i][j]))
+    constraints.append(Or(Not(bool_vars[n - 1]), Not(s[n - 2][k - 1])))
+    return And(constraints)
+
+# returns True if two lists of booleans are exactly equal
+def equal_counts(a, b):
+    if len(a) != len(b):
+        return False
+    return And([ai == bi for ai, bi in zip(a, b)])
 
 def inputFile(num):
     # Instantiate variables from file
@@ -49,29 +75,6 @@ def inputFile(num):
     dist = dist.astype(int)
 
     return n_couriers, n_items, max_load, [0] + size_item, dist
-
-
-def find_routes(routes, current_node, remaining_edges, current_route):
-    if current_node == 0 and len(current_route) > 1:
-        routes.append(list(current_route))
-    else:
-        for i in range(len(remaining_edges)):
-            if remaining_edges[i][0] == current_node:
-                next_node = remaining_edges[i][1]
-                current_route.append(remaining_edges[i])
-                find_routes(routes, next_node, remaining_edges[:i] + remaining_edges[i + 1:], current_route)
-                current_route.pop()
-
-    solution_route = []
-    for i in range(len(routes)):
-        temp_route = []
-        for s in routes[i]:
-            temp_route.append(s[0])
-        temp_route = temp_route[1:]
-        solution_route.append(temp_route)
-
-    return solution_route
-
 
 def createGraph(all_distances):
     all_dist_size = all_distances.shape[0]
@@ -109,6 +112,26 @@ def print_graph(G, n_couriers, tour_edges, x, model):
     nx.draw(G.edge_subgraph(tour_edges), with_labels=True, node_color=color_list)
     plt.show()
 
+def find_routes(routes, current_node, remaining_edges, current_route):
+    if current_node == 0 and len(current_route) > 1:
+        routes.append(list(current_route))
+    else:
+        for i in range(len(remaining_edges)):
+            if remaining_edges[i][0] == current_node:
+                next_node = remaining_edges[i][1]
+                current_route.append(remaining_edges[i])
+                find_routes(routes, next_node, remaining_edges[:i] + remaining_edges[i + 1:], current_route)
+                current_route.pop()
+
+    solution_route = []
+    for i in range(len(routes)):
+        temp_route = []
+        for s in routes[i]:
+            temp_route.append(s[0])
+        temp_route = temp_route[1:]
+        solution_route.append(temp_route)
+
+    return solution_route
 
 def print_loads(model, print_routes, max_l, loads, s_item):
     print("\n- - Print Loads - -")
@@ -118,9 +141,6 @@ def print_loads(model, print_routes, max_l, loads, s_item):
         print(print_routes[k])
         print(f"Total Load: {model.evaluate(loads[k])}\n")
 
-
-def encode(n):
-    pass
 
 
 def main(instance_num=1, remaining_time=300, upper_bound=None):
@@ -137,7 +157,8 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
     courier_loads = [Int(f"courier_loads_{k}") for k in range(n_couriers)]
 
-    u = [Int(f"u_{j}") for j in G.nodes]
+    #u = [Int(f"u_{j}") for j in G.nodes]
+
 
     objective = Int('objective')
 
@@ -159,15 +180,16 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     # (number of times a vehicle enters a node is equal to the number of times it leaves that node)
     for k in range(n_couriers):
         for i in G.nodes:
-            s1 = Sum([x[i][j][k] for j in G.nodes if i != j])
-            s2 = Sum([x[j][i][k] for j in G.nodes if i != j])
-            s.add(s1 == s2)
+            a = Sum([x[i][j][k] for j in G.nodes if i != j])
+            b = Sum([x[j][i][k] for j in G.nodes if i != j])
+            s.add(a == b)
+
 
     # each courier leaves and enters exactly once in the depot
     # (the number of predecessors and successors of the depot must be exactly one for each courier)
     for k in range(n_couriers):
-        s.add(Sum([x[i][0][k] for i in G.nodes if i != 0]) == 1)
-        s.add(Sum([x[0][j][k] for j in G.nodes if j != 0]) == 1)
+        s.add(exactly_one([x[i][0][k] for i in G.nodes if i != 0]))
+        s.add(exactly_one([x[0][j][k] for j in G.nodes if j != 0]))
 
     # For each vehicle, the total load over its route must be smaller than its max load size
     for k in range(n_couriers):
@@ -179,19 +201,27 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
 
     # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
+    # a represents the number of the package
+    # b will contain a number of 1s proportional to the delivery order (the smaller the number of 1s, the earlier the delivery)
+    u = [[Bool(f"u_{a}_{b}") for b in G.nodes] for a in G.nodes]
 
-    s.add(u[0] == 1)
+    # point zero is the first to be visited (depot)
+    s.add(exactly_one(u[0][:]))
+
+    # depot is the last to be visited
+    s.add(And(u[n_items][:]))
 
     # all the other points must be visited after the depot
     for i in G.nodes:
         if i != 0:  # excluding the depot
-            s.add(u[i] >= 2)
+            s.add(at_least_k_seq(u[i][:], 2, "at_least_2"))
 
     # MTZ approach core
     for z in range(n_couriers):
         for i, j in G.edges:
             if i != 0 and j != 0 and i != j:  # excluding the depot
-                s.add(x[i][j][z] * u[j] >= x[i][j][z] * (u[i] + 1))
+                s.add(Implies(x[i][j][z], Sum(u[i][:]) < Sum(u[j][:])))
+
 
     # - - - - - - - - - - - - - - - - - SOLVING - - - - - - - - - - - - - - - - - - - - - - #
 
@@ -227,11 +257,15 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         s.add(upper_bound > objective)
 
 
+
     if s.check() == sat:
         model = s.model()
 
+        edges_list = []
+
         for z in range(n_couriers):
             tour_edges = [(i, j) for i, j in G.edges if model.evaluate(x[i][j][z])]
+            edges_list += tour_edges
             print(f"Courier {z} tour (by Gian): ", tour_edges)
         print("- - - - - - - - - - - - - - - -")
         print("Upper bound: ", upper_bound)
@@ -242,12 +276,15 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
         new_objective = model.evaluate(objective)
 
+        routes = find_routes([], 0, edges_list, [])
+        print("ROUTEEEES -> ", routes)
+
         return new_objective
     else:
         print("\nMERDA")
         return 0
 
-inst = 1
+inst = 5
 temp = main(inst, 300)
 
 for _ in range(10):
