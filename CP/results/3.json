@@ -45,7 +45,7 @@
       "gecode": {
          "time": 0,
          "optimal": true,
-         "obj": 36,
+         "obj": 12,
          "solution": [
             [
                5,
@@ -54,27 +54,7 @@
             ],
             [
                3,
-               7
-            ],
-            [
-               1,
                6
-            ]
-         ]
-      },
-      "chuffed": {
-         "time": 0,
-         "optimal": true,
-         "obj": 36,
-         "solution": [
-            [
-               3,
-               6,
-               5
-            ],
-            [
-               2,
-               4
             ],
             [
                1,
@@ -129,7 +109,7 @@
       "gecode": {
          "time": 0,
          "optimal": true,
-         "obj": 36,
+         "obj": 12,
          "solution": [
             [
                5,
@@ -138,27 +118,7 @@
             ],
             [
                3,
-               7
-            ],
-            [
-               1,
                6
-            ]
-         ]
-      },
-      "chuffed": {
-         "time": 0,
-         "optimal": true,
-         "obj": 36,
-         "solution": [
-            [
-               3,
-               6,
-               5
-            ],
-            [
-               2,
-               4
             ],
             [
                1,

@@ -33,21 +33,7 @@
       "gecode": {
          "time": 0,
          "optimal": true,
-         "obj": 412,
-         "solution": [
-            [
-               2
-            ],
-            [
-               1,
-               3
-            ]
-         ]
-      },
-      "chuffed": {
-         "time": 0,
-         "optimal": true,
-         "obj": 412,
+         "obj": 206,
          "solution": [
             [
                2
@@ -93,21 +79,7 @@
       "gecode": {
          "time": 0,
          "optimal": true,
-         "obj": 412,
-         "solution": [
-            [
-               2
-            ],
-            [
-               1,
-               3
-            ]
-         ]
-      },
-      "chuffed": {
-         "time": 0,
-         "optimal": true,
-         "obj": 412,
+         "obj": 206,
          "solution": [
             [
                2

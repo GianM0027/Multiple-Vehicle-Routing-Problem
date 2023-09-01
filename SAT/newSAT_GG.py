@@ -213,8 +213,8 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     # decision variables
     x = [[[Bool(f"x_{i}_{j}_{k}") for k in range(n_couriers)] for j in G.nodes] for i in G.nodes]  # x[i][j][k] == True : route (i->j) is used by courier k | set of Archs
 
-
-    courier_loads = [Int(f"courier_loads_{k}") for k in range(n_couriers)]
+    max_load_range = int(log2(max(max_load[:])))+1
+    courier_loads = [[Bool(f"courier_loads_{k}_{n}") for k in range(n_couriers)] for n in range(max_load_range)]
     objective = Int('objective')
 
 
@@ -249,9 +249,16 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
     for k in range(n_couriers):
         #s.add(PbLe([(v[i][k], size_item[i+1]) for i in range(n_items)], max_load[k]))
-        s.add(courier_loads[k] == Sum([If(x[i][j][k], size_item[i],0) for i, j in G.edges]))
-        s.add(courier_loads[k] > 0)
-        s.add(courier_loads[k] <= max_load[k])
+        # s.add(courier_loads[k] == Sum([If(x[i][j][k], size_item[i],0) for i, j in G.edges]))
+        # s.add(courier_loads[k] <= max_load[k])
+        print(Sum([If(x[i][j][k], size_item[i],0) for i, j in G.edges]))
+        current_load = format(Sum([If(x[i][j][k], size_item[i],0) for i, j in G.edges]),'b')
+        max_load_bool = format(max_load[k],'b')
+        for n in range(max_load_range):
+            if n>len(current_load): s.add(courier_loads[k][n] == 0)
+            else: s.add(courier_loads[k][n] == current_load[n])
+        s.add(Or(courier_loads[k][:]))
+        s.add(courier_loads[k][:] <= max_load_bool)
 
 
 

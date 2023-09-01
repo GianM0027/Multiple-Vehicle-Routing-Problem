@@ -3,13 +3,13 @@
       "gecode": {
          "time": 300,
          "optimal": false,
-         "obj": "None",
+         "obj": null,
          "solution": null
       },
       "chuffed": {
          "time": 300,
          "optimal": false,
-         "obj": "None",
+         "obj": null,
          "solution": null
       }
    },
@@ -17,13 +17,7 @@
       "gecode": {
          "time": 300,
          "optimal": false,
-         "obj": "None",
-         "solution": null
-      },
-      "chuffed": {
-         "time": 300,
-         "optimal": false,
-         "obj": "None",
+         "obj": null,
          "solution": null
       }
    },
@@ -31,13 +25,13 @@
       "gecode": {
          "time": 300,
          "optimal": false,
-         "obj": "None",
+         "obj": null,
          "solution": null
       },
       "chuffed": {
          "time": 300,
          "optimal": false,
-         "obj": "None",
+         "obj": null,
          "solution": null
       }
    },
@@ -45,13 +39,7 @@
       "gecode": {
          "time": 300,
          "optimal": false,
-         "obj": "None",
-         "solution": null
-      },
-      "chuffed": {
-         "time": 300,
-         "optimal": false,
-         "obj": "None",
+         "obj": null,
          "solution": null
       }
    }

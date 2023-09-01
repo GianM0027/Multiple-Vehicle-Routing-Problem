@@ -1,8 +1,8 @@
 {
    "defaultModelMaxDist": {
       "gecode": {
-         "time": 300,
-         "optimal": false,
+         "time": 0,
+         "optimal": true,
          "obj": 167,
          "solution": [
             [
@@ -37,7 +37,7 @@
          ]
       },
       "chuffed": {
-         "time": 299,
+         "time": 300,
          "optimal": false,
          "obj": 190,
          "solution": [
@@ -77,80 +77,44 @@
       "gecode": {
          "time": 300,
          "optimal": false,
-         "obj": 927,
+         "obj": 172,
          "solution": [
             [
                1,
-               8
-            ],
-            [
-               2,
-               7,
-               13
-            ],
-            [
-               3,
-               6,
-               15
-            ],
-            [
-               4,
-               14,
-               12
-            ],
-            [
-               11,
-               5,
-               9
-            ],
-            [
-               17,
-               16,
-               10
-            ]
-         ]
-      },
-      "chuffed": {
-         "time": 299,
-         "optimal": false,
-         "obj": 1055,
-         "solution": [
-            [
-               1
-            ],
-            [
-               2
-            ],
-            [
-               3
-            ],
-            [
                4
             ],
             [
-               5,
-               7,
-               14,
+               2,
                13,
-               12,
-               11,
+               12
+            ],
+            [
+               5,
+               9,
                15
             ],
             [
-               6,
-               8,
+               7,
+               3,
+               8
+            ],
+            [
+               11,
+               14,
+               10
+            ],
+            [
                17,
                16,
-               10,
-               9
+               6
             ]
          ]
       }
    },
    "impliedConsMaxDist": {
       "gecode": {
-         "time": 300,
-         "optimal": false,
+         "time": 0,
+         "optimal": true,
          "obj": 167,
          "solution": [
             [
@@ -185,8 +149,8 @@
          ]
       },
       "chuffed": {
-         "time": 298,
-         "optimal": false,
+         "time": 6,
+         "optimal": true,
          "obj": 167,
          "solution": [
             [
@@ -225,72 +189,36 @@
       "gecode": {
          "time": 300,
          "optimal": false,
-         "obj": 927,
+         "obj": 172,
          "solution": [
             [
                1,
-               8
+               4
             ],
             [
                2,
-               7,
-               13
-            ],
-            [
-               3,
-               6,
-               15
-            ],
-            [
-               4,
-               14,
+               13,
                12
             ],
             [
-               11,
                5,
-               9
+               9,
+               15
+            ],
+            [
+               7,
+               3,
+               8
+            ],
+            [
+               11,
+               14,
+               10
             ],
             [
                17,
                16,
-               10
-            ]
-         ]
-      },
-      "chuffed": {
-         "time": 299,
-         "optimal": false,
-         "obj": 973,
-         "solution": [
-            [
-               1
-            ],
-            [
-               2,
-               7
-            ],
-            [
-               3,
-               8,
-               17,
-               16
-            ],
-            [
-               4,
-               14,
-               10
-            ],
-            [
-               5,
-               13,
-               12,
-               11
-            ],
-            [
-               6,
-               15,
-               9
+               6
             ]
          ]
       }
