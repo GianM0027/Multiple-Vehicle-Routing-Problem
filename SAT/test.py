@@ -15,7 +15,7 @@ def sum_binary_digits(l):
 
     return boolean
 
-#sum of two binary numbers a and b represented as a list of booleans
+#sum of two numbers (x is a list of decision variables or a list of decision variables, y is a real number)
 def sum_binary(x, y):
     length = max(len(x), len(y))
 
@@ -69,8 +69,7 @@ def sum_binary(x, y):
         solution = [1 if model.evaluate(solution[i]) == True else 0 for i in range(length+1)]
         while solution and solution[0] == 0:
             solution.pop(0)
-        print(solution)
-        return solution
+        return "".join([str(item) for item in solution])
     else:
         return False
 
@@ -122,24 +121,23 @@ l_a = 3
 l_b = 3
 
 a = [Bool(f"a_{i}") for i in range(l_a)] # 010
-b = [Bool(f"b_{i}") for i in range(l_b)] # 010
+#b = [Bool(f"b_{i}") for i in range(l_b)] # 010
 
 s.add(Not(a[0]))
 s.add(a[1])
 s.add(Not(a[2]))
 
-s.add(Not(b[0]))
-s.add(b[1])
-s.add(Not(b[2]))
+
+b = [False,True,False]
 
 print("Sum function")
-#s.add(sum_bool_ref(a,b,[1,0,0]))
+print(sum_binary(a,b))
 
 if s.check() == sat:
     model = s.model()
     print("\nActual values")
     print("a -> ", [1 if model.evaluate(a[i]) == True else 0 for i in range(l_a)])
-    print("b -> ", [1 if model.evaluate(b[i]) == True else 0 for i in range(l_b)])
+    print("b -> ", [1 if b[i] == True else 0 for i in range(l_b)])
     print("[1,0,0]")
 else:
     print("UNSAT")

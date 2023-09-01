@@ -141,7 +141,66 @@ def print_loads(model, print_routes, max_l, loads, s_item):
         print(print_routes[k])
         print(f"Total Load: {model.evaluate(loads[k])}\n")
 
+# Sum between a list of decision variables x and a list of booleans y
+# x and y must be the binary representation of a integer number as a python list
+# (it returns the result as a list or a string according to the value of "type"
+def sum_binary(x, y, type = list):
+    length = max(len(x), len(y))
 
+    s = Solver()
+
+    # both addends x and y must have same lenght
+
+    a = [Bool(f"a_{i}") for i in range(length)]
+    b = [Bool(f"b_{i}") for i in range(length)]
+
+
+    for i in range(len(x)):
+        if type(x[i]) != BoolRef:
+            s.add(If(bool(x[i]), a[i], Not(a[i])))
+        else:
+            s.add(Implies(x[i], a[i]))
+            s.add(Implies(Not(x[i]), Not(a[i])))
+
+    for i in range(len(y)):
+        if type(y[i]) != BoolRef:
+            s.add(If(bool(y[i]), b[i], Not(b[i])))
+        else:
+            s.add(If(y[i], b[i], Not(b[i])))
+
+
+    solution = [Bool(f"sol_{i}") for i in range(length+1)]
+    carry = [Bool(f"carry_{i}") for i in range(length+1)]
+
+    # sum constraints
+    s.add(Not(carry[length]))
+
+    for i in range(-1, -length-1, -1):
+        # 0 + 1 + 1 = 0 with carry = 1  ///  0 + 1 + 0 = 1 with carry = 0
+        s.add(Implies(Xor(a[i], b[i]), If(carry[i], Not(solution[i]), solution[i])))
+        s.add(Implies(Xor(a[i], b[i]), If(carry[i], carry[i - 1], Not(carry[i - 1]))))
+
+        # 1 + 1 + 1 = 1 with carry = 1  ///  0 + 1 + 1 = 0 with carry = 1
+        s.add(Implies(And(a[i], b[i]), If(carry[i], solution[i], Not(solution[i]))))
+        s.add(Implies(And(a[i], b[i]), carry[i - 1]))
+
+        # 0 + 0 + 0 = 0 with carry 0   ///  0 + 0 + 1 = 1 with carry 0
+        s.add(Implies(And(Not(a[i]), Not(b[i])), If(carry[i], solution[i], Not(solution[i]))))
+        s.add(Implies(And(Not(a[i]), Not(b[i])), Not(carry[i - 1])))
+
+    s.add(Implies(carry[0], solution[0]))
+
+    if s.check() == sat:
+        model = s.model()
+        solution = [1 if model.evaluate(solution[i]) == True else 0 for i in range(length+1)]
+        while solution and solution[0] == 0:
+            solution.pop(0)
+        if type == list:
+            return "".join([str(item) for item in solution])
+        else:
+            return solution
+    else:
+        return False
 
 def main(instance_num=1, remaining_time=300, upper_bound=None):
     n_couriers, n_items, max_load, size_item, all_distances = inputFile(instance_num)
@@ -152,14 +211,10 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     G = createGraph(all_distances)
 
     # decision variables
-    x = [[[Bool(f"x_{i}_{j}_{k}") for k in range(n_couriers)] for j in range(n_items + 1)] for i in
-         range(n_items + 1)]  # x[i][j][k] == True : route (i->j) is used by courier k | set of Archs
+    x = [[[Bool(f"x_{i}_{j}_{k}") for k in range(n_couriers)] for j in G.nodes] for i in G.nodes]  # x[i][j][k] == True : route (i->j) is used by courier k | set of Archs
+
 
     courier_loads = [Int(f"courier_loads_{k}") for k in range(n_couriers)]
-
-    #u = [Int(f"u_{j}") for j in G.nodes]
-
-
     objective = Int('objective')
 
 
@@ -168,22 +223,21 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
     # No routes from any node to itself
     for k in range(n_couriers):
-        s.add([Not(x[i][i][k]) for i in range(n_items + 1)])
+        s.add([Not(x[i][i][k]) for i in G.nodes])
 
     # Every item must be delivered (and only once)
-    # (each 3-dimensional column must contain only 1 true value, depot not included in this constraint)
+    # (each 3-dimensional column and row must contain only 1 true value, depot not included in this constraint)
     for j in G.nodes:
         if j != 0:  # no depot
             s.add(exactly_one([x[i][j][k] for k in range(n_couriers) for i in G.nodes if i != j]))
 
     # Every node should be entered and left once and by the same vehicle
-    # (number of times a vehicle enters a node is equal to the number of times it leaves that node)
+    # the fact that a vehicle enters a node implies that the node is also left from the same vehicle
     for k in range(n_couriers):
         for i in G.nodes:
-            a = Sum([x[i][j][k] for j in G.nodes if i != j])
-            b = Sum([x[j][i][k] for j in G.nodes if i != j])
+            a = Sum([x[i][j][k] for j in G.nodes])
+            b = Sum([x[j][i][k] for j in G.nodes])
             s.add(a == b)
-
 
     # each courier leaves and enters exactly once in the depot
     # (the number of predecessors and successors of the depot must be exactly one for each courier)
@@ -191,7 +245,8 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         s.add(exactly_one([x[i][0][k] for i in G.nodes if i != 0]))
         s.add(exactly_one([x[0][j][k] for j in G.nodes if j != 0]))
 
-    # For each vehicle, the total load over its route must be smaller than its max load size
+
+
     for k in range(n_couriers):
         #s.add(PbLe([(v[i][k], size_item[i+1]) for i in range(n_items)], max_load[k]))
         s.add(courier_loads[k] == Sum([If(x[i][j][k], size_item[i],0) for i, j in G.edges]))
@@ -207,9 +262,6 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
     # point zero is the first to be visited (depot)
     s.add(exactly_one(u[0][:]))
-
-    # depot is the last to be visited
-    s.add(And(u[n_items][:]))
 
     # all the other points must be visited after the depot
     for i in G.nodes:
@@ -250,6 +302,9 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     """
 
     # OBJECTIVE 2
+    lower_bound = max(all_distances[0,:]) + max(all_distances[:,0])
+    s.add(objective > lower_bound)
+
     if upper_bound is None:
         s.add(objective == max_distance)
     else:
@@ -284,7 +339,7 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         print("\nMERDA")
         return 0
 
-inst = 5
+inst = 1
 temp = main(inst, 300)
 
 for _ in range(10):

@@ -150,7 +150,7 @@ def main():
         model.setObjective(sumOfAllPaths + (maxTravelled - minTravelled), GRB.MINIMIZE)
 
     if configuration in configSimplerObj:
-        lower_bound = 1
+        lower_bound = 1 #lower_bound = max(all_distances[0,:]) + max(all_distances[:,0])
         for z in range(n_couriers):
             model.addConstr(quicksum(all_distances[i, j] * x[z][i, j] for i, j in G.edges) <= maxTravelled)
         model.setObjective(maxTravelled, GRB.MINIMIZE)

@@ -276,9 +276,6 @@ def model(num, configuration):
     return int(model.Runtime), model.status == GRB.OPTIMAL, objectiveVal, tot_item
 
 
-
-
-#passare come parametro solo numero dell'istanza (senza lo 0)
 def main():
 
     # number of instances over which iterate
