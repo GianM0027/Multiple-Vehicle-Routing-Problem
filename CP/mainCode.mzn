@@ -5,7 +5,7 @@ include "globals.mzn";
 %------------------------------
 
 % include "inst01.dzn";    % 2 couriers, 6 items
-include "inst02.dzn";    % 6 couriers, 9 items
+% include "inst02.dzn";    % 6 couriers, 9 items
 % include "inst03.dzn";    % 3 couriers, 7 items
 % include "inst04.dzn";    % 8 couriers, 10 items
 % include "inst05.dzn";    % 2 couriers, 3 items
@@ -25,8 +25,6 @@ include "inst02.dzn";    % 6 couriers, 9 items
 % include "inst19.dzn";    % 20 couriers, 71 items
 % include "inst20.dzn";    % 20 couriers, 287 items
 % include "inst21.dzn";    % 20 couriers, 143 items
-
-%include "CreateInputFinal/input_test.dzn";
 
 % PARAMETERS DECLARATION
 %------------------------------
@@ -53,7 +51,11 @@ set of int: STEPS = 1..steps;
 set of int: STEPS_NO_LAST = 1..steps-1;
 set of int: STEPS_NO_FIRST_NO_LAST = 2..steps-1;
 
+% int: lbound = max(all_distances[..,1])+ max(all_distances[1,..]);
+int: ubound = sum(all_distances);
 
+% float: lbound_f = max(all_distances[..,1])+ max(all_distances[1,..]);
+float: ubound_f = sum(all_distances);
 % DECISION VARIABLES
 %------------------------------
 % Correspondence between courier and items (chronological order)
@@ -96,6 +98,7 @@ constraint forall(c in COURIERS, i in STEPS_NO_FIRST_NO_LAST)
 constraint forall(c in COURIERS)(delivery_order[2,c] != 0 /\
               sum(delivery_order[steps-n_couriers+1..,c]) == 0);
         
+
 % OBJECTIVE FUNCTION - MINIMIZE THE DISTANCE - MAXIMIZE FAIRNESS
 %------------------------------
 constraint forall(c in COURIERS)
@@ -103,15 +106,19 @@ constraint forall(c in COURIERS)
                   (all_distances[delivery_order[s,c] + 1,delivery_order[s + 1,c] + 1] ));
 
 % minimize the max of the distances 
-var int: obj_fun = max(courier_dist);
+% var lbound..ubound: max_dist = max(courier_dist);
 
 % minimize the sum between the total length of all the couriers and the difference between the max and the min distance
-% var int: obj_fun = sum(courier_dist)+ max(courier_dist)- min(courier_dist);
+% var lbound_f..ubound_f: obj_fun = max(courier_dist)+(sum(courier_dist)/(sum(courier_dist)+1));
 
+% solve :: int_search(delivery_order, dom_w_deg, indomain_split)
+% minimize obj_fun;
 
-solve :: int_search(delivery_order, dom_w_deg, indomain_split)
-minimize obj_fun;
-
+output 
+    [show(obj_fun)] ++ [ "\n"] ++
+    [show(delivery_order)] ++ [ "\n"] ++
+    [show(courier_dist)] ++ [ "\n"]
+;
 
 
 

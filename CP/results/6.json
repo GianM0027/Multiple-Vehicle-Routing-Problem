@@ -1,7 +1,34 @@
 {
    "defaultModelMaxDist": {
+      "gecode": {
+         "time": 0,
+         "optimal": true,
+         "obj": 322,
+         "solution": [
+            [
+               1
+            ],
+            [
+               2
+            ],
+            [
+               3
+            ],
+            [
+               5
+            ],
+            [
+               4,
+               6
+            ],
+            [
+               7,
+               8
+            ]
+         ]
+      },
       "chuffed": {
-         "time": 14,
+         "time": 0,
          "optimal": true,
          "obj": 322,
          "solution": [
@@ -29,15 +56,42 @@
       }
    },
    "defaultModelObjFun": {
-      "chuffed": {
-         "time": 59,
+      "gecode": {
+         "time": 40,
          "optimal": true,
-         "obj": 1096,
+         "obj": 322,
          "solution": [
             [
+               2
+            ],
+            [
+               3
+            ],
+            [
+               6
+            ],
+            [
+               7
+            ],
+            [
                1,
-               5,
-               8
+               5
+            ],
+            [
+               8,
+               4
+            ]
+         ]
+      }
+   },
+   "impliedConsMaxDist": {
+      "gecode": {
+         "time": 0,
+         "optimal": true,
+         "obj": 322,
+         "solution": [
+            [
+               1
             ],
             [
                2
@@ -46,20 +100,20 @@
                3
             ],
             [
-               4
+               5
             ],
             [
+               4,
                6
             ],
             [
-               7
+               7,
+               8
             ]
          ]
-      }
-   },
-   "impliedConsMaxDist": {
+      },
       "chuffed": {
-         "time": 1,
+         "time": 0,
          "optimal": true,
          "obj": 322,
          "solution": [
@@ -87,16 +141,11 @@
       }
    },
    "impliedConsObjFun": {
-      "chuffed": {
-         "time": 31,
+      "gecode": {
+         "time": 33,
          "optimal": true,
-         "obj": 1096,
+         "obj": 322,
          "solution": [
-            [
-               1,
-               5,
-               8
-            ],
             [
                2
             ],
@@ -104,13 +153,18 @@
                3
             ],
             [
-               4
-            ],
-            [
                6
             ],
             [
                7
+            ],
+            [
+               1,
+               5
+            ],
+            [
+               8,
+               4
             ]
          ]
       }

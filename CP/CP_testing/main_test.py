@@ -16,13 +16,13 @@ def set_model(configuration):
 
     if configuration == 'defaultModelMaxDist' or configuration == 'impliedConsMaxDist':
         model.add_string("""
-        var int: obj_fun = max(courier_dist);
+        var lbound..ubound: obj_fun = max(courier_dist);
         solve :: int_search(delivery_order, dom_w_deg, indomain_split) minimize obj_fun;   
         """)
 
     if configuration == 'defaultModelObjFun' or configuration == 'impliedConsObjFun':
         model.add_string("""
-        var int: obj_fun = sum(courier_dist)+ max(courier_dist)- min(courier_dist);
+        var lbound_f..ubound_f: obj_fun = max(courier_dist)+(sum(courier_dist)/(sum(courier_dist)+1));
         solve :: int_search(delivery_order, dom_w_deg, indomain_split) minimize obj_fun;   
         """)
 
@@ -31,8 +31,11 @@ def set_model(configuration):
 def get_results(result, n_couriers, n_items, timeout):
 
     lines = str(result.solution).split("\n")
-    try: objective = int(lines[0])
+    try: objective = float(lines[0])
     except: objective = lines[0]
+    if type(objective) is float:
+        objective = int(objective)
+
 
     if len(lines) > 1:
 
@@ -59,13 +62,17 @@ def get_results(result, n_couriers, n_items, timeout):
 
     return(objective,sol,runTime,status)   
 
+def find_lower_bound(dist_matrix):
+    lb = 0
+    n,_ = dist_matrix.shape
+    for i in range(1,n):
+        if dist_matrix[0,i] + dist_matrix[i,0] > lb : lb = dist_matrix[0,i] + dist_matrix[i,0]
 
-def solve_model(n_inst,model,solver_str,timeout):
+    return lb
+    
+def solve_model(n_inst,model,solver_str,timeout, lb_tba):
 
     solver = Solver.lookup(solver_str)
-
-    # Transform Model into a instance
-    inst = Instance(solver, model)
 
     # Instantiate variables from file
     instances_path = "Instances_CP_blank/" + str(n_inst) + ".dzn"
@@ -93,6 +100,15 @@ def solve_model(n_inst,model,solver_str,timeout):
 
     dist = dist.astype(int)
 
+    if lb_tba:
+        lower_bound = find_lower_bound(dist)
+        model.add_string("int: lbound = " + str(lower_bound) + ";")
+        model.add_string("float: lbound_f = " + str(lower_bound) + ";")
+
+    
+    # Transform Model into a instance
+    inst = Instance(solver, model)
+
     inst["n_couriers"] = n_couriers
     inst["n_items"] = n_items
     inst["max_load"] = max_load
@@ -113,8 +129,17 @@ IMPLIED_CONS_OBJ_FUN = "impliedConsObjFun"
 # every element in configurations corresponds to a specific configuration of the model
 configurations = [DEFAULT_MODEL_MAX_DIST, DEFAULT_MODEL_OBJ_FUN, IMPLIED_CONS_MAX_DIST, IMPLIED_CONS_OBJ_FUN]
 
+number_of_instances = 21
+instances_list = list()
+for i in range(1,number_of_instances+1):
+    if i < 10:
+        instances_list.append(('0'+str(i)))
+    else:
+        instances_list.append(str(i))
+        
 solvers = ["gecode","chuffed"]
 timeout = datetime.timedelta(milliseconds= 300000)
+timeout_int = int(int(timeout.total_seconds()))
 
 valid_in = False
 while not valid_in:
@@ -141,7 +166,9 @@ print("1:"+solvers[0])
 print("2:"+solvers[1])
 while not valid_in:
     n_solv = input("\nSelect the solver (1-2) = ")
-    if int(n_solv) > 0 and int(n_solv) <= 2:
+    if int(n_solv) == 2 and (int(n_conf) == 2 or int(n_conf) == 4):
+        print('The second objective function is not supported on Chuffed\n')
+    elif int(n_solv) > 0 and int(n_solv) <= 2:
         n_solv = int(n_solv)
         valid_in = True
     else: print("Please, insert a valid input\n")
@@ -155,7 +182,7 @@ else:
 
 model = set_model(configurations[n_conf-1])
 try: # Bypass the minizinc timeout error, given in millisecond as asked, still rise the error (with lower values dont!)
-    result, n_couriers, n_items = solve_model(inst,model,solvers[n_solv-1],timeout)
+    result, n_couriers, n_items = solve_model(inst,model,solvers[n_solv-1],timeout, lb_tba = True)
     obj,solution,runTime,status = get_results(result, n_couriers, n_items, timeout)
     print("\n###### RESULTS ######\n")
     print("Time = ", runTime)
