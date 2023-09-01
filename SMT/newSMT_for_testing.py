@@ -2,20 +2,24 @@
 from matplotlib import cm, pyplot as plt
 from z3 import *
 import numpy as np
-from math import log2
-from itertools import combinations
 import networkx as nx
 import time
 import json
 
 # - - - - - - - - - - - - - - - - - - - - - CONFIGURATIONS - - - - - - - - - - - - - - - - - - - - - #
-DEFAULT_MODEL = "defaultModel"
-DEFAULT_IMPLIED_CONS = "impliedConsDefaultModel"
-DEFAULT_SYMM_BREAK_CONS = "symmBreakDefaultModel"
-DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymmBreakDefaultModel"
-SECOND_OBJ_MODEL = "secondObjectiveModel"
+DEFAULT_MODEL = "maxDistanceObjModel"
+DEFAULT_IMPLIED_CONS = "impliedMaxDistanceObjModel"
+DEFAULT_SYMM_BREAK_CONS = "symmBreakDMaxDistanceObjModel"
+DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymmBreakMaxDistanceObjModel"
 
-configurations = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS]
+SECOND_OBJ_MODEL = "secondObjectiveModel"
+SECOND_OBJ_IMPLIED_CONS = "impliedSecondObjectiveModel"
+SECOND_OBJ_SYMM_BREAK_CONS = "symmBreakSecondObjectiveModel"
+SECOND_OBJ_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymmBreakSecondObjectiveModel"
+
+
+configurations = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS,
+                  SECOND_OBJ_MODEL, SECOND_OBJ_IMPLIED_CONS, SECOND_OBJ_SYMM_BREAK_CONS, SECOND_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
 
 
 # - - - - - - - - - - - - - - - - - - - - - FUNCTIONS - - - - - - - - - - - - - - - - - - - - - #
@@ -189,7 +193,8 @@ def find_model(instance_num, configuration, remaining_time=300, upper_bound=None
     # - - - - - - - - - - - - - - - - IMPLIED CONSTRINTS & SIMMETRY BREAKING - - - - - - - - - - - - - - - - #
 
     # If (i, j) == True than --> for all the other k (i, j) != True
-    if configuration == DEFAULT_IMPLIED_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS:
+    if (configuration == DEFAULT_IMPLIED_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS
+            or configuration == SECOND_OBJ_IMPLIED_CONS or configuration == SECOND_OBJ_IMPLIED_AND_SYMM_BREAK_CONS):
         for i in range(n_items + 1):
             for j in range(n_items + 1):
                 for k in range(n_couriers):
@@ -203,7 +208,8 @@ def find_model(instance_num, configuration, remaining_time=300, upper_bound=None
                     other_destinations = [j_prime for j_prime in range(n_items + 1) if j_prime != j]
                     s.add(Implies(x[i][j][k], And([Not(x[i][j_prime][k]) for j_prime in other_destinations])))
 
-    if configuration == DEFAULT_SYMM_BREAK_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS:
+    if (configuration == DEFAULT_SYMM_BREAK_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS
+            or configuration == SECOND_OBJ_SYMM_BREAK_CONS or configuration == SECOND_OBJ_IMPLIED_AND_SYMM_BREAK_CONS):
         for k1 in range(n_couriers):
             for k2 in range(n_couriers):
                 if k1 != k2:
@@ -243,7 +249,8 @@ def find_model(instance_num, configuration, remaining_time=300, upper_bound=None
         min_distance = If(temp < min_distance, temp, min_distance)
         max_distance = If(temp > max_distance, temp, max_distance)
 
-    if configuration == SECOND_OBJ_MODEL:
+    if (configuration == SECOND_OBJ_MODEL or configuration == SECOND_OBJ_IMPLIED_CONS or configuration == SECOND_OBJ_SYMM_BREAK_CONS
+            or configuration == SECOND_OBJ_IMPLIED_AND_SYMM_BREAK_CONS):
         # OBJECTIVE 1
         if upper_bound is None:
             s.add(objective == Sum(total_distance, (max_distance - min_distance)))
@@ -251,7 +258,7 @@ def find_model(instance_num, configuration, remaining_time=300, upper_bound=None
             s.add(objective == Sum(total_distance, (max_distance - min_distance)))
             s.add(upper_bound > objective)
     else:
-       # OBJECTIVE 2
+        # OBJECTIVE 2
         if upper_bound is None:
             s.add(objective == max_distance)
         else:
@@ -293,7 +300,6 @@ def find_model(instance_num, configuration, remaining_time=300, upper_bound=None
 
 
 def find_best(instance, config):
-
     print("Stated  to find a solution, configuration: ", config)
     run_time, temp_obj, temp_solution = find_model(instance, config, 300, None)
     remaining_time = 300 - run_time
@@ -304,18 +310,18 @@ def find_best(instance, config):
         run_time, temp_obj, temp_solution = find_model(instance, config, remaining_time, temp_obj)
         remaining_time = remaining_time - run_time
         if temp_obj == -1:
-            return remaining_time, True, str(best_obj), best_solution
+            return int(300 - remaining_time), True, str(best_obj), best_solution
         else:
             best_obj, best_solution = temp_obj, temp_solution
 
     print("time limit exceeded")
-    return remaining_time, False, str(best_obj), best_solution
+    return 300, False, str(best_obj), best_solution
 
 
 def main():
     # number of instances over which iterate
     n_istances = 21
-    test_instances = [1]
+    test_instances = [1, 2, 3, 4, 5]
 
     for instance in range(len(test_instances)):
         inst = {}
@@ -332,13 +338,12 @@ def main():
             config["obj"] = obj
             config["solution"] = solution
 
-
             inst[configuration] = config
             count += 1
 
         if not os.path.exists("res/"):
             os.makedirs("res/")
-        with open(f"res/{instance+1}.JSON", "w") as file:
+        with open(f"res/{instance + 1}.JSON", "w") as file:
             file.write(json.dumps(inst, indent=3))
 
 

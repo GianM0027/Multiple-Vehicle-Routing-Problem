@@ -1,34 +1,34 @@
 {
-   "defaultModel": {
-      "time": 298.1562294960022,
+   "maxDistanceObjModel": {
+      "time": 2,
       "optimal": true,
       "obj": "226",
       "solution": [
          [
-            8,
-            6
+            2
          ],
          [
-            1,
-            4
-         ],
-         [
-            3,
             7
          ],
          [
             5
          ],
          [
-            9
+            3
          ],
          [
-            2
+            1,
+            4
+         ],
+         [
+            8,
+            6,
+            9
          ]
       ]
    },
-   "impliedConsDefaultModel": {
-      "time": 297.3439826965332,
+   "impliedMaxDistanceObjModel": {
+      "time": 2,
       "optimal": true,
       "obj": "226",
       "solution": [
@@ -36,14 +36,6 @@
             7
          ],
          [
-            1,
-            4
-         ],
-         [
-            3
-         ],
-         [
-            8,
             6
          ],
          [
@@ -51,63 +43,183 @@
             9
          ],
          [
+            3,
             2
+         ],
+         [
+            8
+         ],
+         [
+            1,
+            4
          ]
       ]
    },
-   "symmBreakDefaultModel": {
-      "time": 296.30157589912415,
+   "symmBreakDMaxDistanceObjModel": {
+      "time": 8,
       "optimal": true,
       "obj": "226",
       "solution": [
          [
-            9,
-            7,
-            3
+            7
          ],
          [
-            1
+            8,
+            6
+         ],
+         [
+            9
+         ],
+         [
+            3,
+            5
+         ],
+         [
+            1,
+            4
          ],
          [
             2
+         ]
+      ]
+   },
+   "impliedAndSymmBreakMaxDistanceObjModel": {
+      "time": 9,
+      "optimal": true,
+      "obj": "226",
+      "solution": [
+         [
+            3
+         ],
+         [
+            2
+         ],
+         [
+            8
+         ],
+         [
+            5,
+            7
+         ],
+         [
+            1,
+            4
+         ],
+         [
+            6,
+            9
+         ]
+      ]
+   },
+   "secondObjectiveModel": {
+      "time": 299,
+      "optimal": true,
+      "obj": "1146",
+      "solution": [
+         [
+            4,
+            1
+         ],
+         [
+            5,
+            2
+         ],
+         [
+            9
          ],
          [
             6,
             8
          ],
          [
-            4
+            3
          ],
          [
-            5
+            7
          ]
       ]
    },
-   "impliedAndSymmBreakDefaultModel": {
-      "time": 296.7590787410736,
+   "impliedSecondObjectiveModel": {
+      "time": 592,
       "optimal": true,
-      "obj": "226",
+      "obj": "1146",
       "solution": [
          [
-            3
+            7
+         ],
+         [
+            5,
+            2
          ],
          [
             4,
             1
          ],
          [
-            6
-         ],
-         [
+            6,
             8
          ],
          [
-            9,
-            5
+            9
+         ],
+         [
+            3
+         ]
+      ]
+   },
+   "symmBreakSecondObjectiveModel": {
+      "time": 299,
+      "optimal": true,
+      "obj": "1146",
+      "solution": [
+         [
+            7
+         ],
+         [
+            8,
+            6
+         ],
+         [
+            5,
+            2
+         ],
+         [
+            3
+         ],
+         [
+            1,
+            4
+         ],
+         [
+            9
+         ]
+      ]
+   },
+   "impliedAndSymmBreakSecondObjectiveModel": {
+      "time": 299,
+      "optimal": true,
+      "obj": "1154",
+      "solution": [
+         [
+            7
+         ],
+         [
+            9
          ],
          [
             2,
-            7
+            5
+         ],
+         [
+            3
+         ],
+         [
+            1,
+            4
+         ],
+         [
+            8,
+            6
          ]
       ]
    }

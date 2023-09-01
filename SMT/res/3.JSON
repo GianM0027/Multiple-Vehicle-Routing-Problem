@@ -1,26 +1,6 @@
 {
-   "defaultModel": {
-      "time": 299.53113889694214,
-      "optimal": true,
-      "obj": "12",
-      "solution": [
-         [
-            5,
-            6,
-            3
-         ],
-         [
-            4,
-            2
-         ],
-         [
-            7,
-            1
-         ]
-      ]
-   },
-   "impliedConsDefaultModel": {
-      "time": 299.6634967327118,
+   "maxDistanceObjModel": {
+      "time": 0,
       "optimal": true,
       "obj": "12",
       "solution": [
@@ -34,13 +14,53 @@
             2
          ],
          [
+            1,
+            7
+         ]
+      ]
+   },
+   "impliedMaxDistanceObjModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": "12",
+      "solution": [
+         [
+            5,
+            6,
+            3
+         ],
+         [
+            4,
+            2
+         ],
+         [
             7,
             1
          ]
       ]
    },
-   "symmBreakDefaultModel": {
-      "time": 299.47911620140076,
+   "symmBreakDMaxDistanceObjModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": "12",
+      "solution": [
+         [
+            5,
+            4,
+            2
+         ],
+         [
+            6,
+            3
+         ],
+         [
+            1,
+            7
+         ]
+      ]
+   },
+   "impliedAndSymmBreakMaxDistanceObjModel": {
+      "time": 0,
       "optimal": true,
       "obj": "12",
       "solution": [
@@ -51,7 +71,27 @@
          ],
          [
             3,
-            6
+            7
+         ],
+         [
+            6,
+            1
+         ]
+      ]
+   },
+   "secondObjectiveModel": {
+      "time": 1,
+      "optimal": true,
+      "obj": "36",
+      "solution": [
+         [
+            5,
+            6,
+            3
+         ],
+         [
+            4,
+            2
          ],
          [
             7,
@@ -59,15 +99,55 @@
          ]
       ]
    },
-   "impliedAndSymmBreakDefaultModel": {
-      "time": 299.51676321029663,
+   "impliedSecondObjectiveModel": {
+      "time": 0,
       "optimal": true,
-      "obj": "12",
+      "obj": "36",
       "solution": [
          [
             5,
             6,
             3
+         ],
+         [
+            2,
+            4
+         ],
+         [
+            7,
+            1
+         ]
+      ]
+   },
+   "symmBreakSecondObjectiveModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": "36",
+      "solution": [
+         [
+            3,
+            6,
+            5
+         ],
+         [
+            2,
+            4
+         ],
+         [
+            7,
+            1
+         ]
+      ]
+   },
+   "impliedAndSymmBreakSecondObjectiveModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": "36",
+      "solution": [
+         [
+            3,
+            6,
+            5
          ],
          [
             2,
