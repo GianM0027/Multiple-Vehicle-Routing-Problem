@@ -314,7 +314,7 @@ def find_best(instance, config):
         run_time, temp_obj, temp_solution = find_model(instance, config, remaining_time, temp_obj)
         remaining_time = remaining_time - run_time
         if temp_obj == -1:
-            return int(300 - round(remaining_time)), True, str(best_obj), best_solution
+            return int(300 - int(remaining_time)), True, str(best_obj), best_solution
         else:
             best_obj, best_solution = temp_obj, temp_solution
 
@@ -326,7 +326,7 @@ def main():
     # number of instances over which iterate
     n_istances = 21
 
-    for instance in range(n_istances):
+    for instance in range(3,5):
         inst = {}
         count = 1
         for configuration in configurations:

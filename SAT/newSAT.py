@@ -249,21 +249,9 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
     for k in range(n_couriers):
         #s.add(PbLe([(v[i][k], size_item[i+1]) for i in range(n_items)], max_load[k]))
-        """s.add(courier_loads[k] == Sum([If(x[i][j][k], size_item[i],0) for i, j in G.edges]))
+        s.add(courier_loads[k] == Sum([If(x[i][j][k], size_item[i],0) for i, j in G.edges]))
         s.add(courier_loads[k] > 0)
-        s.add(courier_loads[k] <= max_load[k])"""
-        for i, j in G.edges:
-            courier_loads = If(x[i][j][k], sum_binary(courier_loads[k][:], bin(size_item[i]).split(), list), [0])
-
-
-        max_load_bool = format(max_load[k], 'b')
-        for n in range(max_load_range):
-            if n > len(current_load):
-                s.add(courier_loads[k][n] == 0)
-            else:
-                s.add(courier_loads[k][n] == current_load[n])
-        s.add(Or(courier_loads[k][:]))
-        s.add(courier_loads[k][:] <= max_load_bool)
+        s.add(courier_loads[k] <= max_load[k])
 
 
 

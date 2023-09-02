@@ -218,7 +218,6 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     objective = Int('objective')
 
 
-
     # - - - - - - - - CONSTRAINTS - - - - - - - - #
 
     # No routes from any node to itself
