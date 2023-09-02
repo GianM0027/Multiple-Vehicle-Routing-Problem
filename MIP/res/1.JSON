@@ -1,8 +1,8 @@
 {
-   "initialModel": {
+   "default_Model": {
       "time": 0,
       "optimal": true,
-      "obj": 28.0,
+      "obj": 14,
       "solution": [
          [
             1,
@@ -16,10 +16,10 @@
          ]
       ]
    },
-   "impliedCons_on_initialModel": {
+   "default_Model_ImpliedCons": {
       "time": 0,
       "optimal": true,
-      "obj": 28.0,
+      "obj": 14,
       "solution": [
          [
             1,
@@ -33,10 +33,10 @@
          ]
       ]
    },
-   "symmBreak_on_initialModel": {
+   "default_Model_SymmBreak": {
       "time": 0,
       "optimal": true,
-      "obj": 28.0,
+      "obj": 14,
       "solution": [
          [
             1,
@@ -50,10 +50,10 @@
          ]
       ]
    },
-   "impliedAndSymBreak_on_initialModel": {
+   "default_Model_Implied_And_SymBreak": {
       "time": 0,
       "optimal": true,
-      "obj": 28.0,
+      "obj": 14,
       "solution": [
          [
             1,
@@ -67,27 +67,10 @@
          ]
       ]
    },
-   "model2": {
+   "defaultModel_with_focus": {
       "time": 0,
       "optimal": true,
-      "obj": 14.0,
-      "solution": [
-         [
-            4,
-            3,
-            1
-         ],
-         [
-            2,
-            5,
-            6
-         ]
-      ]
-   },
-   "impliedCons_on_model2": {
-      "time": 0,
-      "optimal": true,
-      "obj": 14.0,
+      "obj": 14,
       "solution": [
          [
             1,
@@ -101,27 +84,10 @@
          ]
       ]
    },
-   "symmBreak_on_model2": {
+   "second_Model": {
       "time": 0,
       "optimal": true,
-      "obj": 14.0,
-      "solution": [
-         [
-            4,
-            3,
-            1
-         ],
-         [
-            2,
-            5,
-            6
-         ]
-      ]
-   },
-   "impliedAndSymBreak_on_model2": {
-      "time": 0,
-      "optimal": true,
-      "obj": 14.0,
+      "obj": 28,
       "solution": [
          [
             1,
@@ -135,15 +101,49 @@
          ]
       ]
    },
-   "model2_with_focus": {
+   "second_Model_implied_Cons": {
       "time": 0,
       "optimal": true,
-      "obj": 14.0,
+      "obj": 28,
       "solution": [
          [
-            4,
+            1,
             3,
-            1
+            4
+         ],
+         [
+            2,
+            5,
+            6
+         ]
+      ]
+   },
+   "second_Model_symmBreak": {
+      "time": 0,
+      "optimal": true,
+      "obj": 28,
+      "solution": [
+         [
+            1,
+            3,
+            4
+         ],
+         [
+            2,
+            5,
+            6
+         ]
+      ]
+   },
+   "second_Model_implied_And_SymBreak": {
+      "time": 0,
+      "optimal": true,
+      "obj": 28,
+      "solution": [
+         [
+            1,
+            3,
+            4
          ],
          [
             2,

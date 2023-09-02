@@ -157,6 +157,9 @@ def find_model(instance_num, configuration, remaining_time=300, upper_bound=None
     u = [Int(f"u_{j}") for j in G.nodes]
 
     objective = Int('objective')
+    lower_bound = 0
+    for i in G.nodes:
+        if all_distances[0, i] + all_distances[i, 0] > lower_bound: lower_bound = all_distances[0, i] + all_distances[i, 0]
 
     # - - - - - - - - - - - - - - - - CONSTRAINTS - - - - - - - - - - - - - - - - #
 
@@ -264,6 +267,7 @@ def find_model(instance_num, configuration, remaining_time=300, upper_bound=None
         else:
             s.add(objective == max_distance)
             s.add(upper_bound > objective)
+        s.add(max_distance >= lower_bound)
 
     start_time = time.time()
     if s.check() == sat:
@@ -310,7 +314,7 @@ def find_best(instance, config):
         run_time, temp_obj, temp_solution = find_model(instance, config, remaining_time, temp_obj)
         remaining_time = remaining_time - run_time
         if temp_obj == -1:
-            return int(300 - remaining_time), True, str(best_obj), best_solution
+            return int(300 - round(remaining_time)), True, str(best_obj), best_solution
         else:
             best_obj, best_solution = temp_obj, temp_solution
 
@@ -321,9 +325,8 @@ def find_best(instance, config):
 def main():
     # number of instances over which iterate
     n_istances = 21
-    test_instances = [1, 2, 3, 4, 5]
 
-    for instance in range(len(test_instances)):
+    for instance in range(n_istances):
         inst = {}
         count = 1
         for configuration in configurations:
@@ -345,6 +348,5 @@ def main():
             os.makedirs("res/")
         with open(f"res/{instance + 1}.JSON", "w") as file:
             file.write(json.dumps(inst, indent=3))
-
 
 main()

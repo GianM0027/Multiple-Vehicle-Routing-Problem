@@ -8,9 +8,34 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MIP/MIP_for_testing.py" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/MIP_for_testing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MIP/newMIP.py" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/newMIP.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SAT/SATVersione2/res_testFinale/1.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/SAT/SATVersione2/res_testFinale/1.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/1.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/1.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/10.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/10.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/11.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/11.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/12.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/12.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/13.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/13.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/14.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/14.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/15.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/15.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/16.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/16.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/17.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/17.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/18.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/18.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/19.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/19.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/2.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/2.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/20.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/20.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/21.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/21.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/3.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/3.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/4.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/4.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/5.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/5.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/6.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/6.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/7.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/7.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/8.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/8.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MIP/res/9.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/MIP/res/9.JSON" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SAT/newSAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/SAT/newSAT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SAT/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/SAT/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SAT/newSAT_GG.py" beforeDir="false" afterPath="$PROJECT_DIR$/SAT/newSAT_GG.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SMT/newSMT_for_testing.py" beforeDir="false" afterPath="$PROJECT_DIR$/SMT/newSMT_for_testing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SMT/res/1.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/SMT/res/1.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SMT/res/2.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/SMT/res/2.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SMT/res/3.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/SMT/res/3.JSON" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SMT/res/4.JSON" beforeDir="false" afterPath="$PROJECT_DIR$/SMT/res/4.JSON" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,7 +70,7 @@
     &quot;last_opened_file_path&quot;: &quot;D:/scheda sd/2-magistrale/Anno 1/Semestre 2/Combinatorial decision making/progetto CDMO/CDMO-project/SAT/test.py&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.MIP">
+  <component name="RunManager" selected="Python.SAT">
     <configuration name="MIP" type="PythonConfigurationType" factoryName="Python">
       <module name="CDMO-project" />
       <option name="INTERPRETER_OPTIONS" value="" />

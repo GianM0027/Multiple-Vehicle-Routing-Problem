@@ -143,7 +143,7 @@ def print_loads(model, print_routes, max_l, loads, s_item):
 
 # Sum between a list of decision variables x and a list of booleans y
 # x and y must be the binary representation of a integer number as a python list
-# (it returns the result as a list or a string according to the value of "type"
+# it returns the result as a list or a string according to the value of "type"
 def sum_binary(x, y, type = list):
     length = max(len(x), len(y))
 
@@ -246,16 +246,15 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
         s.add(exactly_one([x[0][j][k] for j in G.nodes if j != 0]))
 
 
-
     for k in range(n_couriers):
-        #s.add(PbLe([(v[i][k], size_item[i+1]) for i in range(n_items)], max_load[k]))
+        # s.add(PbLe([(v[i][k], size_item[i+1]) for i in range(n_items)], max_load[k]))
         # s.add(courier_loads[k] == Sum([If(x[i][j][k], size_item[i],0) for i, j in G.edges]))
         # s.add(courier_loads[k] <= max_load[k])
-        print(Sum([If(x[i][j][k], size_item[i],0) for i, j in G.edges]))
-        current_load = format(Sum([If(x[i][j][k], size_item[i],0) for i, j in G.edges]),'b')
-        max_load_bool = format(max_load[k],'b')
+        # print(Sum([If(x[i][j][k], size_item[i], 0) for i, j in G.edges]))
+        current_load = format(Sum([If(x[i][j][k], size_item[i],0) for i, j in G.edges]), 'b')
+        max_load_bool = format(max_load[k], 'b')
         for n in range(max_load_range):
-            if n>len(current_load): s.add(courier_loads[k][n] == 0)
+            if n > len(current_load): s.add(courier_loads[k][n] == 0)
             else: s.add(courier_loads[k][n] == current_load[n])
         s.add(Or(courier_loads[k][:]))
         s.add(courier_loads[k][:] <= max_load_bool)

@@ -5,27 +5,27 @@ import numpy as np
 import gurobipy as gp
 from gurobipy import GRB, quicksum
 import networkx as nx
-import matplotlib.cm as cm
-from matplotlib import pyplot as plt
 
 np.set_printoptions(threshold=sys.maxsize)
 
 
 ##################################    POSSIBLE CONFIGURATIONS OF THE MODEL      ###################################
-DEFAULT_MODEL = "initialModel"
-DEFAULT_IMPLIED_CONS = "impliedCons_on_initialModel"
-DEFAULT_SYMM_BREAK_CONS = "symmBreak_on_initialModel"
-DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymBreak_on_initialModel"
+DEFAULT_MODEL = "second_Model"
+DEFAULT_IMPLIED_CONS = "second_Model_implied_Cons"
+DEFAULT_SYMM_BREAK_CONS = "second_Model_symmBreak"
+DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS = "second_Model_implied_And_SymBreak"
 
-SIMPLER_OBJ_NO_FOCUS = "model2"
-SIMPLER_OBJ_IMPLIED_CONS = "impliedCons_on_model2"
-SIMPLER_OBJ_SYMM_BREAK_CONS = "symmBreak_on_model2"
-SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymBreak_on_model2"
-SIMPLER_OBJ_FOCUS = "model2_with_focus"
+SIMPLER_OBJ_NO_FOCUS = "default_Model"
+SIMPLER_OBJ_IMPLIED_CONS = "default_Model_ImpliedCons"
+SIMPLER_OBJ_SYMM_BREAK_CONS = "default_Model_SymmBreak"
+SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS = "default_Model_Implied_And_SymBreak"
+SIMPLER_OBJ_FOCUS = "defaultModel_with_focus"
+
 
 # every element in configurations corresponds to a specific configuration of the model
-configurations = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS,
-                  SIMPLER_OBJ_NO_FOCUS, SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS, SIMPLER_OBJ_FOCUS]
+configurations = [SIMPLER_OBJ_NO_FOCUS, SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS,
+                  SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS, SIMPLER_OBJ_FOCUS,DEFAULT_MODEL, DEFAULT_IMPLIED_CONS,
+                  DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS,]
 
 impliedConfiguration = [DEFAULT_IMPLIED_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS,SIMPLER_OBJ_IMPLIED_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
 symmBreakConfiguration = [DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS, SIMPLER_OBJ_SYMM_BREAK_CONS, SIMPLER_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
@@ -123,9 +123,13 @@ def model(num, configuration):
         model.setObjective(sumOfAllPaths + (maxTravelled - minTravelled), GRB.MINIMIZE)
 
     if configuration in configSimplerObj:
+        lower_bound = 0
+        for i in G.nodes:
+            if all_distances[0, i] + all_distances[i, 0] > lower_bound: lower_bound = all_distances[0, i] +  all_distances[i, 0]
         for z in range(n_couriers):
             model.addConstr(quicksum(all_distances[i, j] * x[z][i, j] for i, j in G.edges) <= maxTravelled)
         model.setObjective(maxTravelled, GRB.MINIMIZE)
+        model.addConstr(maxTravelled >= lower_bound)
 
     # CONSTRAINTS
 
@@ -292,7 +296,7 @@ def main():
             config = {}
             config["time"] = runTime
             config["optimal"] = status
-            config["obj"] = obj
+            config["obj"] = int(obj)
             config["solution"] = solution
 
             inst[configuration] = config
