@@ -2,7 +2,7 @@
    "maxDistanceObjModel": {
       "time": 0,
       "optimal": true,
-      "obj": "206",
+      "obj": 206,
       "solution": [
          [
             2
@@ -16,7 +16,7 @@
    "impliedMaxDistanceObjModel": {
       "time": 0,
       "optimal": true,
-      "obj": "206",
+      "obj": 206,
       "solution": [
          [
             2
@@ -30,7 +30,7 @@
    "symmBreakDMaxDistanceObjModel": {
       "time": 0,
       "optimal": true,
-      "obj": "206",
+      "obj": 206,
       "solution": [
          [
             2
@@ -44,7 +44,7 @@
    "impliedAndSymmBreakMaxDistanceObjModel": {
       "time": 0,
       "optimal": true,
-      "obj": "206",
+      "obj": 206,
       "solution": [
          [
             2
@@ -58,7 +58,7 @@
    "secondObjectiveModel": {
       "time": 0,
       "optimal": true,
-      "obj": "412",
+      "obj": 412,
       "solution": [
          [
             2
@@ -72,7 +72,7 @@
    "impliedSecondObjectiveModel": {
       "time": 0,
       "optimal": true,
-      "obj": "412",
+      "obj": 412,
       "solution": [
          [
             2
@@ -86,7 +86,7 @@
    "symmBreakSecondObjectiveModel": {
       "time": 0,
       "optimal": true,
-      "obj": "412",
+      "obj": 412,
       "solution": [
          [
             2
@@ -100,7 +100,7 @@
    "impliedAndSymmBreakSecondObjectiveModel": {
       "time": 0,
       "optimal": true,
-      "obj": "412",
+      "obj": 412,
       "solution": [
          [
             2

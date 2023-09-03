@@ -305,10 +305,10 @@ def find_best(instance, config):
         run_time, temp_obj, temp_solution, temp_total_dist, temp_max_dist, temp_min_dist = find_model(instance, config, remaining_time, temp_obj)
         remaining_time = remaining_time - run_time
         if temp_obj == -1:
-            if (300 - round(remaining_time)) >= 300:
+            if (300 - remaining_time) >= 299:
                 return 300, False, str(best_obj), best_solution, best_total_dist, best_max_dist, best_min_dist
             else:
-                return int(300 - round(remaining_time)), True, str(best_obj), best_solution, best_total_dist, best_max_dist, best_min_dist
+                return round(300 - remaining_time), True, str(best_obj), best_solution, best_total_dist, best_max_dist, best_min_dist
         else:
             best_obj, best_solution, best_total_dist, best_max_dist, best_min_dist = temp_obj, temp_solution, temp_total_dist, temp_max_dist, temp_min_dist
 
@@ -343,7 +343,7 @@ if len(solution) == 0:
 else:
     print(f"Time taken: {runtime}")
     print(f"Objective value: {obj}")
-    print("Optimal solution found")
+    print("status: ", status)
     print(f"Solution: {solution}")
 
     print("------- Additional Information -------")
