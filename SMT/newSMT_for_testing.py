@@ -307,26 +307,31 @@ def find_best(instance, config):
     print("Stated  to find a solution, configuration: ", config)
     run_time, temp_obj, temp_solution = find_model(instance, config, 300, None)
     remaining_time = 300 - run_time
-    print("remaining_time: ", remaining_time)
     best_obj, best_solution = temp_obj, temp_solution
 
     while remaining_time > 0:
         run_time, temp_obj, temp_solution = find_model(instance, config, remaining_time, temp_obj)
         remaining_time = remaining_time - run_time
         if temp_obj == -1:
-            return int(300 - int(remaining_time)), True, str(best_obj), best_solution
+            print("Remaining time: ", remaining_time)
+            if (300 - round(remaining_time)) >= 300:
+                return 300, False, str(best_obj), best_solution
+            else:
+                return int(300 - round(remaining_time)), True, str(best_obj), best_solution
         else:
             best_obj, best_solution = temp_obj, temp_solution
 
     print("time limit exceeded")
+    print("Remaining time: ", remaining_time)
     return 300, False, str(best_obj), best_solution
 
 
 def main():
     # number of instances over which iterate
     n_istances = 21
+    test_istances = [11, 12, 15, 18]
 
-    for instance in range(3,5):
+    for instance in test_istances:
         inst = {}
         count = 1
         for configuration in configurations:
