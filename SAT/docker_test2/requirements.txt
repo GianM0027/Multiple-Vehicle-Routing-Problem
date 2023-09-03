@@ -1,2 +1,3 @@
 numpy
 z3-solver
+networkx
