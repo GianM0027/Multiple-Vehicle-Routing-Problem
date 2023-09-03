@@ -304,7 +304,7 @@ def find_model(instance_num, configuration, remaining_time=300, upper_bound=None
 
 
 def find_best(instance, config):
-    print("Stated  to find a solution, configuration: ", config)
+    print("Started  to find a solution, configuration: ", config)
     run_time, temp_obj, temp_solution = find_model(instance, config, 300, None)
     remaining_time = 300 - run_time
     best_obj, best_solution = temp_obj, temp_solution
@@ -329,14 +329,14 @@ def find_best(instance, config):
 def main():
     # number of instances over which iterate
     n_istances = 21
-    test_istances = [12, 13, 16, 19]
+    test_istances = [14, 15, 18]
 
     for instance in test_istances:
         inst = {}
         count = 1
         for configuration in configurations:
             print(
-                f"\n\n\n###################    Instance {instance }/{n_istances}, Configuration {count} out of {len(configurations)} -> {configuration}    ####################")
+                f"\n\n\n###################    Instance {instance}/{n_istances}, Configuration {count} out of {len(configurations)} -> {configuration}    ####################")
             runTime, status, obj, solution = find_best(instance, configuration)
 
             # JSON
@@ -351,7 +351,7 @@ def main():
 
         if not os.path.exists("res/"):
             os.makedirs("res/")
-        with open(f"res/{instance + 1}.JSON", "w") as file:
+        with open(f"res/{instance}.JSON", "w") as file:
             file.write(json.dumps(inst, indent=3))
 
 main()

@@ -165,10 +165,10 @@ def main():
 
     ### implied constraints (added only if the configuration allows it)
     if configuration in impliedConfiguration:
-        # (each row for each courier must contain at most 1 true value, depot not included in this constraint)
+        # (each row for each courier must contain at most 1 true value)
         for z in range(n_couriers):
             for i in G.nodes:
-                model.addConstr(quicksum(x[z][i, j] for j in G.nodes if i != j) <= 1)
+                model.addConstr(quicksum(x[z][i, j] for j in G.nodes for z in range(n_couriers) if i != j) <= 1)
 
         # same values of (i,j) cannot be true in different z (two couriers cannot travel the same sub-path)
         for i, j in G.edges:

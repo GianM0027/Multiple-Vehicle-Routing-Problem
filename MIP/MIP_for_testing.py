@@ -144,7 +144,6 @@ def model(num, configuration):
         for i, j in G.edges:
             model.addConstr(quicksum(x[z][i, j] for z in range(n_couriers)) <= 1)
 
-
     # symmetry breaking couriers
     if configuration in symmBreakConfiguration:
         #couriers with lower max_load must bring less weight

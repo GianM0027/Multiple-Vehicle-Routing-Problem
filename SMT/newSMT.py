@@ -2,13 +2,27 @@
 from matplotlib import cm, pyplot as plt
 from z3 import *
 import numpy as np
-from math import log2
-from itertools import combinations
 import networkx as nx
 import time
 import json
 
+# - - - - - - - - - - - - - - - - - - - - - CONFIGURATIONS - - - - - - - - - - - - - - - - - - - - - #
+DEFAULT_MODEL = "maxDistanceObjModel"
+DEFAULT_IMPLIED_CONS = "impliedMaxDistanceObjModel"
+DEFAULT_SYMM_BREAK_CONS = "symmBreakDMaxDistanceObjModel"
+DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymmBreakMaxDistanceObjModel"
 
+SECOND_OBJ_MODEL = "secondObjectiveModel"
+SECOND_OBJ_IMPLIED_CONS = "impliedSecondObjectiveModel"
+SECOND_OBJ_SYMM_BREAK_CONS = "symmBreakSecondObjectiveModel"
+SECOND_OBJ_IMPLIED_AND_SYMM_BREAK_CONS = "impliedAndSymmBreakSecondObjectiveModel"
+
+
+configurations = [DEFAULT_MODEL, DEFAULT_IMPLIED_CONS, DEFAULT_SYMM_BREAK_CONS, DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS,
+                  SECOND_OBJ_MODEL, SECOND_OBJ_IMPLIED_CONS, SECOND_OBJ_SYMM_BREAK_CONS, SECOND_OBJ_IMPLIED_AND_SYMM_BREAK_CONS]
+
+
+# - - - - - - - - - - - - - - - - - - - - - FUNCTIONS - - - - - - - - - - - - - - - - - - - - - #
 def exactly_one(variables):
     # At least one of the variables must be true
     at_least_one = Or(variables)
@@ -97,6 +111,7 @@ def createGraph(all_distances):
 
     return G
 
+
 def print_graph(G, n_couriers, tour_edges, x, model):
     # Calculate the node colors
     colormap = cm._colormaps.get_cmap("Set3")
@@ -123,7 +138,9 @@ def print_loads(model, print_routes, max_l, loads, s_item):
         print(f"Total Load: {model.evaluate(loads[k])}\n")
 
 
-def main(instance_num=1, remaining_time=300, upper_bound=None):
+# - - - - - - - - - - - - - - - - - - - - - MAIN - - - - - - - - - - - - - - - - - - - - - #
+
+def find_model(instance_num, configuration, remaining_time=300, upper_bound=None):
     n_couriers, n_items, max_load, size_item, all_distances = inputFile(instance_num)
     s = Solver()
     s.set("timeout", (int(remaining_time) * 1000))
@@ -140,16 +157,17 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
     u = [Int(f"u_{j}") for j in G.nodes]
 
     objective = Int('objective')
+    lower_bound = 0
+    for i in G.nodes:
+        if all_distances[0, i] + all_distances[i, 0] > lower_bound: lower_bound = all_distances[0, i] + all_distances[i, 0]
 
-
-
-    # - - - - - - - - CONSTRAINTS - - - - - - - - #
+    # - - - - - - - - - - - - - - - - CONSTRAINTS - - - - - - - - - - - - - - - - #
 
     # No routes from any node to itself
     for k in range(n_couriers):
         s.add([Not(x[i][i][k]) for i in range(n_items + 1)])
 
-    # Every item must be delivered (and only once)
+    # Every item must be delivered
     # (each 3-dimensional column must contain only 1 true value, depot not included in this constraint)
     for j in G.nodes:
         if j != 0:  # no depot
@@ -171,14 +189,38 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
 
     # For each vehicle, the total load over its route must be smaller than its max load size
     for k in range(n_couriers):
-        #s.add(PbLe([(v[i][k], size_item[i+1]) for i in range(n_items)], max_load[k]))
-        s.add(courier_loads[k] == Sum([If(x[i][j][k], size_item[i],0) for i, j in G.edges]))
+        s.add(courier_loads[k] == Sum([If(x[i][j][k], size_item[i], 0) for i, j in G.edges]))
         s.add(courier_loads[k] > 0)
         s.add(courier_loads[k] <= max_load[k])
 
+    # - - - - - - - - - - - - - - - - IMPLIED CONSTRINTS & SIMMETRY BREAKING - - - - - - - - - - - - - - - - #
 
+    # If (i, j) == True than --> for all the other k (i, j) != True
+    if (configuration == DEFAULT_IMPLIED_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS
+            or configuration == SECOND_OBJ_IMPLIED_CONS or configuration == SECOND_OBJ_IMPLIED_AND_SYMM_BREAK_CONS):
+        for i in range(n_items + 1):
+            for j in range(n_items + 1):
+                for k in range(n_couriers):
+                    other_couriers = [k_prime for k_prime in range(n_couriers) if k_prime != k]
+                    s.add(Implies(x[i][j][k], And([Not(x[i][j][k_prime]) for k_prime in other_couriers])))
 
-    # - - - - - - - - - - - - - - - - - NO SUBTOURS PROBLEM - - - - - - - - - - - - - - - - - - - - - - #
+        # For every courier, each row contains only one True
+        for i in range(n_items + 1):
+            for k in range(n_couriers):
+                for j in range(n_items + 1):
+                    other_destinations = [j_prime for j_prime in range(n_items + 1) if j_prime != j]
+                    s.add(Implies(x[i][j][k], And([Not(x[i][j_prime][k]) for j_prime in other_destinations])))
+
+    if (configuration == DEFAULT_SYMM_BREAK_CONS or configuration == DEFAULT_IMPLIED_AND_SYMM_BREAK_CONS
+            or configuration == SECOND_OBJ_SYMM_BREAK_CONS or configuration == SECOND_OBJ_IMPLIED_AND_SYMM_BREAK_CONS):
+        for k1 in range(n_couriers):
+            for k2 in range(n_couriers):
+                if k1 != k2:
+                    load_k1 = Sum([If(x[i][j][k1], size_item[i], 0) for i, j in G.edges])
+                    load_k2 = Sum([If(x[i][j][k2], size_item[i], 0) for i, j in G.edges])
+                    s.add(Implies(max_load[k1] < max_load[k2], load_k1 <= load_k2))
+
+    # - - - - - - - - - - - - - - - - NO SUBTOUR PROBLEM - - - - - - - - - - - - - - - - #
 
     s.add(u[0] == 1)
 
@@ -193,64 +235,114 @@ def main(instance_num=1, remaining_time=300, upper_bound=None):
             if i != 0 and j != 0 and i != j:  # excluding the depot
                 s.add(x[i][j][z] * u[j] >= x[i][j][z] * (u[i] + 1))
 
-    # - - - - - - - - - - - - - - - - - SOLVING - - - - - - - - - - - - - - - - - - - - - - #
+    # - - - - - - - - - - - - - - - - SOLVING - - - - - - - - - - - - - - - - #
 
     total_distance = Sum(
-        [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i,j in G.edges])
+        [If(x[i][j][k], int(all_distances[i][j]), 0) for k in range(n_couriers) for i, j in G.edges])
 
     min_distance = Sum(
-        [If(x[i][j][0], int(all_distances[i][j]), 0) for i,j in G.edges])
+        [If(x[i][j][0], int(all_distances[i][j]), 0) for i, j in G.edges])
 
     max_distance = Sum(
-        [If(x[i][j][0], int(all_distances[i][j]), 0) for i,j in G.edges])
+        [If(x[i][j][0], int(all_distances[i][j]), 0) for i, j in G.edges])
 
     for k in range(n_couriers):
         temp = Sum(
-            [If(x[i][j][k], int(all_distances[i][j]), 0) for i,j in G.edges])
+            [If(x[i][j][k], int(all_distances[i][j]), 0) for i, j in G.edges])
         min_distance = If(temp < min_distance, temp, min_distance)
         max_distance = If(temp > max_distance, temp, max_distance)
 
-    """  
-    # OBJECTIVE 1
-    if upper_bound is None:
-        s.add(objective == Sum(total_distance, (max_distance - min_distance)))
+    if (configuration == SECOND_OBJ_MODEL or configuration == SECOND_OBJ_IMPLIED_CONS or configuration == SECOND_OBJ_SYMM_BREAK_CONS
+            or configuration == SECOND_OBJ_IMPLIED_AND_SYMM_BREAK_CONS):
+        # OBJECTIVE 1
+        if upper_bound is None:
+            s.add(objective == Sum(total_distance, (max_distance - min_distance)))
+        else:
+            s.add(objective == Sum(total_distance, (max_distance - min_distance)))
+            s.add(upper_bound > objective)
     else:
-        s.add(objective == Sum(total_distance, (max_distance - min_distance)))
-        s.add(upper_bound > objective)
-    """
+        # OBJECTIVE 2
+        if upper_bound is None:
+            s.add(objective == max_distance)
+        else:
+            s.add(objective == max_distance)
+            s.add(upper_bound > objective)
+        s.add(max_distance >= lower_bound)
 
-    # OBJECTIVE 2
-    if upper_bound is None:
-        s.add(objective == max_distance)
-    else:
-        s.add(objective == max_distance)
-        s.add(upper_bound > objective)
-
-
+    start_time = time.time()
     if s.check() == sat:
+        elapsed_time = time.time() - start_time
         model = s.model()
 
+        tot_item = []
         for z in range(n_couriers):
             tour_edges = [(i, j) for i, j in G.edges if model.evaluate(x[i][j][z])]
-            print(f"Courier {z} tour (by Gian): ", tour_edges)
-        print("- - - - - - - - - - - - - - - -")
-        print("Upper bound: ", upper_bound)
-        print("Objective: ", model.evaluate(objective))
-        print("Min Distance: ", model.evaluate(min_distance))
-        print("Max Distance: ", model.evaluate(max_distance))
-        print("Total Distance: ", model.evaluate(total_distance))
+            items = []
+            current = 0
+            while len(tour_edges) > 0:
+                for i, j in tour_edges:
+                    if i == current:
+                        items.append(j)
+                        current = j
+                        tour_edges.remove((i, j))
+            tot_item.append([i for i in items if i != 0])
 
         new_objective = model.evaluate(objective)
 
-        return new_objective
+        return elapsed_time, new_objective, tot_item
     else:
-        print("\nMERDA")
-        return 0
+        elapsed_time = time.time() - start_time
+        return elapsed_time, -1, []
 
-inst = 1
-temp = main(inst, 300)
 
-for _ in range(10):
-    temp = main(inst, 300, temp)
-    if temp == 0:
-        break
+def find_best(instance, config):
+    run_time, temp_obj, temp_solution = find_model(instance, config, 300, None)
+    remaining_time = 300 - run_time
+    best_obj, best_solution = temp_obj, temp_solution
+
+    while remaining_time > 0:
+        run_time, temp_obj, temp_solution = find_model(instance, config, remaining_time, temp_obj)
+        remaining_time = remaining_time - run_time
+        if temp_obj == -1:
+            if (300 - round(remaining_time)) >= 300:
+                return 300, False, str(best_obj), best_solution
+            else:
+                return int(300 - round(remaining_time)), True, str(best_obj), best_solution
+        else:
+            best_obj, best_solution = temp_obj, temp_solution
+
+    print("time limit exceeded")
+    print("Remaining time: ", remaining_time)
+    return 300, False, str(best_obj), best_solution
+
+inst = 0
+configuration = 0
+
+while inst < 1 or inst > 21:
+    inst = int(input("Instance number: "))
+    if inst < 1 or inst > 21:
+        print(f"ERROR WITH FIRST ARGUMENT: Instance {inst} does not exist, please insert a number between 1 and 21")
+
+while configuration < 1 or configuration > len(configurations):
+    configuration = int(input("Configuration number: "))
+    if configuration < 1 or configuration > len(configurations):
+        print(f"ERROR WITH SECOND ARGUMENT: Configuration number {configuration} does not exist, please insert a number between 1 and {len(configurations)}")
+
+configuration = configurations[configuration-1]
+
+runtime, status, obj, solution = find_best(inst, configuration)
+
+print("\n#####################    OUTPUT   ######################")
+print("Configuration: ", configuration)
+if len(solution) == 0:
+    print("Time taken: 300")
+    print("Objective value: inf")
+    print("Optimal solution not found")
+    print("Solution: []")
+else:
+    print(f"Time taken: {runtime}")
+    print(f"Objective value: {obj}")
+    print("Optimal solution found")
+    print(f"Solution: {solution}")
+
+
