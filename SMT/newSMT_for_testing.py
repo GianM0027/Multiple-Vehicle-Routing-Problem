@@ -323,13 +323,15 @@ def find_best(instance, config):
 
     print("time limit exceeded")
     print("Remaining time: ", remaining_time)
+
     return 300, False, str(best_obj), best_solution
+
 
 
 def main():
     # number of instances over which iterate
     n_istances = 21
-    test_istances = [2]
+    test_istances = [19]
 
     for instance in test_istances:
         inst = {}

@@ -296,6 +296,7 @@ def find_model(instance_num, configuration, remaining_time=300, upper_bound=None
 
 
 def find_best(instance, config):
+    best_obj, best_solution = -1, []
     run_time, temp_obj, temp_solution, temp_total_dist, temp_max_dist, temp_min_dist = find_model(instance, config, 300,None)
     remaining_time = 300 - run_time
     best_obj, best_solution, best_total_dist, best_max_dist, best_min_dist = temp_obj, temp_solution, temp_total_dist, temp_max_dist, temp_min_dist
