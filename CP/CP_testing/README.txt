@@ -11,7 +11,7 @@ HOW TO RUN THE MODEL:
 
 4) Execute the command:  docker run -ti main_test
 
-When the program is running it requires three integer input, an instance number (from 1 to 21) and a configuration number 
+When the program is running it requires three integer input, an instance number (from 1 to 21), a configuration number 
 (from 1 to 4) and a sovler number(from 1 to 2). The second objective is not supported using Chuffed.
 Configurations:
 	= 1 -> Default Model minimizing the 1° objective function
