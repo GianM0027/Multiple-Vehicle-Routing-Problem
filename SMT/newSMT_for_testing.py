@@ -329,7 +329,7 @@ def find_best(instance, config):
 def main():
     # number of instances over which iterate
     n_istances = 21
-    test_istances = [14, 15, 18]
+    test_istances = [2]
 
     for instance in test_istances:
         inst = {}

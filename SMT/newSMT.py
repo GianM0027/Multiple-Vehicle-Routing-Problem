@@ -289,31 +289,31 @@ def find_model(instance_num, configuration, remaining_time=300, upper_bound=None
 
         new_objective = model.evaluate(objective)
 
-        return elapsed_time, new_objective, tot_item
+        return elapsed_time, new_objective, tot_item, model.evaluate(total_distance), model.evaluate(max_distance), model.evaluate(min_distance)
     else:
         elapsed_time = time.time() - start_time
-        return elapsed_time, -1, []
+        return elapsed_time, -1, [], 0, 0, 0
 
 
 def find_best(instance, config):
-    run_time, temp_obj, temp_solution = find_model(instance, config, 300, None)
+    run_time, temp_obj, temp_solution, temp_total_dist, temp_max_dist, temp_min_dist = find_model(instance, config, 300,None)
     remaining_time = 300 - run_time
-    best_obj, best_solution = temp_obj, temp_solution
+    best_obj, best_solution, best_total_dist, best_max_dist, best_min_dist = temp_obj, temp_solution, temp_total_dist, temp_max_dist, temp_min_dist
 
     while remaining_time > 0:
-        run_time, temp_obj, temp_solution = find_model(instance, config, remaining_time, temp_obj)
+        run_time, temp_obj, temp_solution, temp_total_dist, temp_max_dist, temp_min_dist = find_model(instance, config, remaining_time, temp_obj)
         remaining_time = remaining_time - run_time
         if temp_obj == -1:
             if (300 - round(remaining_time)) >= 300:
-                return 300, False, str(best_obj), best_solution
+                return 300, False, str(best_obj), best_solution, best_total_dist, best_max_dist, best_min_dist
             else:
-                return int(300 - round(remaining_time)), True, str(best_obj), best_solution
+                return int(300 - round(remaining_time)), True, str(best_obj), best_solution, best_total_dist, best_max_dist, best_min_dist
         else:
-            best_obj, best_solution = temp_obj, temp_solution
+            best_obj, best_solution, best_total_dist, best_max_dist, best_min_dist = temp_obj, temp_solution, temp_total_dist, temp_max_dist, temp_min_dist
 
     print("time limit exceeded")
     print("Remaining time: ", remaining_time)
-    return 300, False, str(best_obj), best_solution
+    return 300, False, str(best_obj), best_solution, best_total_dist, best_max_dist, best_min_dist
 
 inst = 0
 configuration = 0
@@ -330,7 +330,7 @@ while configuration < 1 or configuration > len(configurations):
 
 configuration = configurations[configuration-1]
 
-runtime, status, obj, solution = find_best(inst, configuration)
+runtime, status, obj, solution, total_dist, max_dist, min_dist = find_best(inst, configuration)
 
 print("\n#####################    OUTPUT   ######################")
 print("Configuration: ", configuration)
@@ -344,5 +344,10 @@ else:
     print(f"Objective value: {obj}")
     print("Optimal solution found")
     print(f"Solution: {solution}")
+
+    print("------- Additional Information -------")
+    print("Min path travelled: ", min_dist)
+    print("Max path travelled: ", max_dist)
+    print("Total path travelled: ", total_dist)
 
 
