@@ -1,4 +1,6 @@
 # - - - - - - - - - - - - - - - - - - - - - IMPORTS - - - - - - - - - - - - - - - - - - - - - #
+import math
+
 from matplotlib import cm, pyplot as plt
 from z3 import *
 import numpy as np
@@ -308,7 +310,7 @@ def find_best(instance, config):
             if (300 - remaining_time) >= 299:
                 return 300, False, str(best_obj), best_solution, best_total_dist, best_max_dist, best_min_dist
             else:
-                return round(300 - remaining_time), True, str(best_obj), best_solution, best_total_dist, best_max_dist, best_min_dist
+                return int(300 - remaining_time), True, str(best_obj), best_solution, best_total_dist, best_max_dist, best_min_dist
         else:
             best_obj, best_solution, best_total_dist, best_max_dist, best_min_dist = temp_obj, temp_solution, temp_total_dist, temp_max_dist, temp_min_dist
 
