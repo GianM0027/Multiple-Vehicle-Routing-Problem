@@ -329,15 +329,15 @@ def find_best(instance, config):
 def main():
     # number of instances over which iterate
     n_istances = 21
-    test_istances = [11, 12, 15, 18]
+    test_istances = [12, 13, 16, 19]
 
     for instance in test_istances:
         inst = {}
         count = 1
         for configuration in configurations:
             print(
-                f"\n\n\n###################    Instance {instance + 1}/{n_istances}, Configuration {count} out of {len(configurations)} -> {configuration}    ####################")
-            runTime, status, obj, solution = find_best(instance + 1, configuration)
+                f"\n\n\n###################    Instance {instance }/{n_istances}, Configuration {count} out of {len(configurations)} -> {configuration}    ####################")
+            runTime, status, obj, solution = find_best(instance, configuration)
 
             # JSON
             config = {}
