@@ -1,0 +1,38 @@
+{
+   "defaultModelMaxDist_gecode": {
+      "time": 300,
+      "optimal": false,
+      "obj": null,
+      "solution": null
+   },
+   "defaultModelMaxDist_chuffed": {
+      "time": 300,
+      "optimal": false,
+      "obj": null,
+      "solution": null
+   },
+   "defaultModelObjFun_gecode": {
+      "time": 300,
+      "optimal": false,
+      "obj": null,
+      "solution": null
+   },
+   "impliedConsMaxDist_gecode": {
+      "time": 300,
+      "optimal": false,
+      "obj": null,
+      "solution": null
+   },
+   "impliedConsMaxDist_chuffed": {
+      "time": 300,
+      "optimal": false,
+      "obj": null,
+      "solution": null
+   },
+   "impliedConsObjFun_gecode": {
+      "time": 300,
+      "optimal": false,
+      "obj": null,
+      "solution": null
+   }
+}

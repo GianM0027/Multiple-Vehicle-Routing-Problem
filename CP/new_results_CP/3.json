@@ -1,0 +1,122 @@
+{
+   "defaultModelMaxDist_gecode": {
+      "time": 0,
+      "optimal": true,
+      "obj": 12,
+      "solution": [
+         [
+            5,
+            4,
+            2
+         ],
+         [
+            3,
+            7
+         ],
+         [
+            1,
+            6
+         ]
+      ]
+   },
+   "defaultModelMaxDist_chuffed": {
+      "time": 0,
+      "optimal": true,
+      "obj": 12,
+      "solution": [
+         [
+            3,
+            6,
+            5
+         ],
+         [
+            2,
+            4
+         ],
+         [
+            1,
+            7
+         ]
+      ]
+   },
+   "defaultModelObjFun_gecode": {
+      "time": 0,
+      "optimal": true,
+      "obj": 12,
+      "solution": [
+         [
+            5,
+            4,
+            2
+         ],
+         [
+            3,
+            6
+         ],
+         [
+            1,
+            7
+         ]
+      ]
+   },
+   "impliedConsMaxDist_gecode": {
+      "time": 0,
+      "optimal": true,
+      "obj": 12,
+      "solution": [
+         [
+            5,
+            4,
+            2
+         ],
+         [
+            7,
+            3
+         ],
+         [
+            1,
+            6
+         ]
+      ]
+   },
+   "impliedConsMaxDist_chuffed": {
+      "time": 0,
+      "optimal": true,
+      "obj": 12,
+      "solution": [
+         [
+            3,
+            6,
+            5
+         ],
+         [
+            2,
+            4
+         ],
+         [
+            1,
+            7
+         ]
+      ]
+   },
+   "impliedConsObjFun_gecode": {
+      "time": 0,
+      "optimal": true,
+      "obj": 12,
+      "solution": [
+         [
+            5,
+            4,
+            2
+         ],
+         [
+            3,
+            6
+         ],
+         [
+            1,
+            7
+         ]
+      ]
+   }
+}
