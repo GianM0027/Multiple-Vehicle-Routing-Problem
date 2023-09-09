@@ -1,0 +1,218 @@
+{
+   "maxDistanceObjModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": 322,
+      "solution": [
+         [
+            4
+         ],
+         [
+            8
+         ],
+         [
+            3,
+            6
+         ],
+         [
+            2
+         ],
+         [
+            1
+         ],
+         [
+            5,
+            7
+         ]
+      ]
+   },
+   "impliedMaxDistanceObjModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": 322,
+      "solution": [
+         [
+            8
+         ],
+         [
+            6
+         ],
+         [
+            1
+         ],
+         [
+            5
+         ],
+         [
+            3
+         ],
+         [
+            2,
+            7,
+            4
+         ]
+      ]
+   },
+   "symmBreakDMaxDistanceObjModel": {
+      "time": 1,
+      "optimal": true,
+      "obj": 322,
+      "solution": [
+         [
+            4,
+            5
+         ],
+         [
+            7
+         ],
+         [
+            3
+         ],
+         [
+            8,
+            1
+         ],
+         [
+            2
+         ],
+         [
+            6
+         ]
+      ]
+   },
+   "impliedAndSymmBreakMaxDistanceObjModel": {
+      "time": 0,
+      "optimal": true,
+      "obj": 322,
+      "solution": [
+         [
+            2
+         ],
+         [
+            1
+         ],
+         [
+            5
+         ],
+         [
+            3,
+            6,
+            4
+         ],
+         [
+            8
+         ],
+         [
+            7
+         ]
+      ]
+   },
+   "secondObjectiveModel": {
+      "time": 136,
+      "optimal": true,
+      "obj": 1096,
+      "solution": [
+         [
+            7
+         ],
+         [
+            1,
+            5,
+            8
+         ],
+         [
+            4
+         ],
+         [
+            6
+         ],
+         [
+            3
+         ],
+         [
+            2
+         ]
+      ]
+   },
+   "impliedSecondObjectiveModel": {
+      "time": 118,
+      "optimal": true,
+      "obj": 1096,
+      "solution": [
+         [
+            2
+         ],
+         [
+            7
+         ],
+         [
+            3
+         ],
+         [
+            4
+         ],
+         [
+            5,
+            8,
+            1
+         ],
+         [
+            6
+         ]
+      ]
+   },
+   "symmBreakSecondObjectiveModel": {
+      "time": 79,
+      "optimal": true,
+      "obj": 1096,
+      "solution": [
+         [
+            6
+         ],
+         [
+            4
+         ],
+         [
+            2
+         ],
+         [
+            1,
+            5,
+            8
+         ],
+         [
+            3
+         ],
+         [
+            7
+         ]
+      ]
+   },
+   "impliedAndSymmBreakSecondObjectiveModel": {
+      "time": 71,
+      "optimal": true,
+      "obj": 1096,
+      "solution": [
+         [
+            4
+         ],
+         [
+            7
+         ],
+         [
+            2
+         ],
+         [
+            1,
+            5,
+            8
+         ],
+         [
+            3
+         ],
+         [
+            6
+         ]
+      ]
+   }
+}

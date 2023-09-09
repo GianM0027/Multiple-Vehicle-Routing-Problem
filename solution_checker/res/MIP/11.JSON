@@ -1,0 +1,240 @@
+{
+   "default_Model": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "default_Model_ImpliedCons": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "default_Model_SymmBreak": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "default_Model_Implied_And_SymBreak": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "defaultModel_with_focus": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "second_Model": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "second_Model_implied_Cons": {
+      "time": 300,
+      "optimal": false,
+      "obj": 1816090.0,
+      "solution": [
+         [
+            17,
+            22,
+            73,
+            112,
+            27,
+            128,
+            13,
+            7,
+            78,
+            95,
+            12,
+            75,
+            21,
+            1
+         ],
+         [
+            20,
+            58,
+            68,
+            55
+         ],
+         [
+            61
+         ],
+         [
+            29,
+            114,
+            136,
+            142,
+            109,
+            140
+         ],
+         [
+            50
+         ],
+         [
+            85,
+            39,
+            71,
+            41
+         ],
+         [
+            49,
+            108,
+            116,
+            18,
+            28
+         ],
+         [
+            93,
+            72
+         ],
+         [
+            9,
+            141,
+            51,
+            70,
+            60,
+            125,
+            64
+         ],
+         [
+            59
+         ],
+         [
+            89,
+            130,
+            98,
+            63,
+            77,
+            54,
+            52,
+            42,
+            99
+         ],
+         [
+            14,
+            79,
+            45,
+            119,
+            38,
+            105,
+            31,
+            36,
+            76,
+            67,
+            92,
+            118,
+            57
+         ],
+         [
+            91,
+            23,
+            97,
+            53,
+            133
+         ],
+         [
+            111
+         ],
+         [
+            103,
+            117,
+            34,
+            37,
+            66,
+            43,
+            113
+         ],
+         [
+            33,
+            62,
+            84,
+            135,
+            16,
+            25,
+            143,
+            19,
+            4,
+            124,
+            24,
+            35,
+            88
+         ],
+         [
+            8,
+            10,
+            127,
+            138,
+            123,
+            102,
+            30,
+            56,
+            87
+         ],
+         [
+            44,
+            26,
+            32,
+            83,
+            86,
+            2,
+            100
+         ],
+         [
+            107,
+            104,
+            5,
+            69,
+            40,
+            131,
+            46,
+            15,
+            11,
+            48,
+            106,
+            90,
+            139,
+            3,
+            47
+         ],
+         [
+            94,
+            6,
+            134,
+            82,
+            96,
+            101,
+            126,
+            81,
+            129,
+            120,
+            137,
+            110,
+            132,
+            121,
+            122,
+            65,
+            74,
+            80,
+            115
+         ]
+      ]
+   },
+   "second_Model_symmBreak": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   },
+   "second_Model_implied_And_SymBreak": {
+      "time": 300,
+      "optimal": false,
+      "obj": "Inf",
+      "solution": []
+   }
+}
