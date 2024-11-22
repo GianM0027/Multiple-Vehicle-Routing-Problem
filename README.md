@@ -1,4 +1,4 @@
-# Rultiple Courier Scheduling Problem
+# Multiple Courier Scheduling Problem
 
 ## Overview
 
